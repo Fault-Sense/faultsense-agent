@@ -1,0 +1,50 @@
+{
+  "name": "faultsense",
+  "version": "0.0.0",
+  "description": "A Framework & Language Agnostic Application Feature Monitor for the Frontend",
+  "main": "dist/faultsense-agent.min.js",
+  "files": [
+    "dist/faultsense-agent.min.js",
+    "README.md",
+    "LICENSE",
+    "assets/"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Fault-Sense/faultsense-agent.git"
+  },
+  "keywords": [
+    "testing",
+    "assertions",
+    "observability",
+    "monitoring"
+  ],
+  "author": "Fault Sense",
+  "license": "FSL-1.1-ALv2",
+  "homepage": "https://github.com/Fault-Sense/faultsense-agent",
+  "bugs": {
+    "url": "https://github.com/Fault-Sense/faultsense-agent/issues"
+  },
+  "scripts": {
+    "build": "esbuild src/index.ts --bundle --target=es2020 --outfile=./dist/faultsense-agent.min.js --global-name=Faultsense --format=iife --minify",
+    "size": "echo \"📦 faultsense-agent.min.js\" && ls -lh dist/faultsense-agent.min.js | awk '{print \"   Raw: \" $5 \"B\"}' && echo \"   Gzipped: $(echo \"scale=1; $(gzip -c dist/faultsense-agent.min.js | wc -c | tr -d ' ') / 1024\" | bc)kb\"",
+    "build:size": "npm run build && npm run size",
+    "prepublishOnly": "npm run build",
+    "test": "vitest"
+  },
+  "vitest": {
+    "test": {
+      "environment": "jsdom",
+      "setupFiles": [
+        "./setupTests.ts"
+      ]
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^22.12.0",
+    "esbuild": "^0.25.11",
+    "jsdom": "^25.0.0",
+    "msw": "^2.4.6",
+    "vitest": "^3.2.4"
+  }
+}
