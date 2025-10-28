@@ -73,7 +73,7 @@ export function createAssertionManager(config: Configuration) {
       // Check if an existing assertion matches by `assertionKey` and `type`
       const existingAssertion = findAassertion(newAssertion, activeAssertions);
       if (existingAssertion && isAssertionCompleted(existingAssertion)) {
-        retryCompletedAssertion(existingAssertion);
+        retryCompletedAssertion(existingAssertion, newAssertion);
 
         // Reset timeout timer for the retried assertion
         createAssertionTimeout(existingAssertion, config, (completedAssertion) => {
