@@ -31,8 +31,14 @@ export function isAssertionCompleted(assertion: Assertion): boolean {
 }
 
 export function retryCompletedAssertion(
-  assertion: Assertion | CompletedAssertion
+  assertion: Assertion | CompletedAssertion,
+  newAssertion: Assertion
 ): void {
+  // allow targets and modifiers to be dynamically updated bewteen assertions
+  assertion.modifiers = newAssertion.modifiers
+  assertion.typeValue = newAssertion.typeValue
+  assertion.elementSnapshot = newAssertion.elementSnapshot
+
   // Copy the completed fields to "previous" fields
   assertion.previousStatus = assertion.status;
   assertion.previousStatusReason = assertion.statusReason;

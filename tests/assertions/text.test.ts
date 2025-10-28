@@ -3,9 +3,8 @@
 import { describe, it, expect, afterEach, beforeEach, vi } from "vitest";
 import { init } from "../../src/index";
 import * as resolveModule from "../../src/assertions/server";
-import { isVisible } from "../../src/utils/elements";
 
-describe.only("Faultsense Agent - Assertion Type modifer: text-matches", () => {
+describe("Faultsense Agent - Assertion Type modifer: text-matches", () => {
   let consoleErrorMock: ReturnType<typeof vi.spyOn>;
   let sendToServerMock: ReturnType<typeof vi.spyOn>;
   let cleanupFn: ReturnType<typeof init>;
@@ -58,7 +57,7 @@ describe.only("Faultsense Agent - Assertion Type modifer: text-matches", () => {
     vi.spyOn(Date, "now").mockRestore();
   });
 
-  it.only("Should pass if the childs text matches the string literal", async () => {
+  it("Should pass if the childs text matches the string literal", async () => {
     document.body.innerHTML = `
       <p id="note"></p>
       <button x-test-trigger="click" 
@@ -91,7 +90,7 @@ describe.only("Faultsense Agent - Assertion Type modifer: text-matches", () => {
     );
   });
 
-  it.only("Should fail if the childs text does not match the string literal", async () => {
+  it("Should fail if the childs text does not match the string literal", async () => {
     document.body.innerHTML = `
       <p id="note"></p>
       <button x-test-trigger="click" 
@@ -214,6 +213,83 @@ describe.only("Faultsense Agent - Assertion Type modifer: text-matches", () => {
           expect.objectContaining({
             status: "failed",
             statusReason: 'Text does not match "Count: [a-z]+"',
+          }),
+        ],
+        config
+      )
+    );
+  });
+
+  it("Should support dynamic text-matches values that update with application state", async () => {
+    // This test demonstrates dynamic text-matches functionality
+    // The text-matches attribute value should update based on application state
+    let count = 0;
+
+    document.body.innerHTML = `
+      <div id="counter">Count: 0</div>
+      <button id="increment-btn" 
+        x-test-trigger="click" 
+        x-test-assert-updated="#counter" 
+        x-test-text-matches="Count: 1"
+        x-test-assertion-key="dynamic-counter" 
+        x-test-feature-key="counter">
+        Increment
+      </button>
+    `;
+
+    const button = document.querySelector("#increment-btn") as HTMLButtonElement;
+    const counter = document.querySelector("#counter") as HTMLDivElement;
+
+    // Set up click handler that updates both the display and the text-matches attribute
+    button.addEventListener("click", () => {
+      count++;
+      // Update the display text
+      counter.textContent = `Count: ${count}`;
+
+      // Update the text-matches attribute to expect the next count value
+      const nextExpectedCount = count + 1;
+      button.setAttribute("x-test-text-matches", `Count: ${nextExpectedCount}`);
+    });
+
+    // First click: count goes from 0 to 1, display shows "Count: 1"
+    // text-matches expects "Count: 1" (should pass)
+    button.click();
+
+    // Verify state
+    expect(counter.textContent).toBe("Count: 1");
+    expect(button.getAttribute("x-test-text-matches")).toBe("Count: 2");
+
+
+    await vi.waitFor(() =>
+      expect(sendToServerMock).toHaveBeenNthCalledWith(
+        1,
+        [
+          expect.objectContaining({
+            status: "passed",
+            statusReason: "",
+          }),
+        ],
+        config
+      )
+    );
+
+
+    // Second click: count goes from 1 to 2, display shows "Count: 2"
+    // text-matches now expects "Count: 2" (should pass)
+    button.click();
+
+    // Verify state
+    expect(counter.textContent).toBe("Count: 2");
+    expect(button.getAttribute("x-test-text-matches")).toBe("Count: 3");
+
+
+    await vi.waitFor(() =>
+      expect(sendToServerMock).toHaveBeenNthCalledWith(
+        1,
+        [
+          expect.objectContaining({
+            status: "passed",
+            statusReason: "",
           }),
         ],
         config
