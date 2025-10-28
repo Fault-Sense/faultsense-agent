@@ -26,7 +26,6 @@ const server = setupServer(
 
   http.get("/api/success-using-param/?x-resp-for=server-check", () => {
     return HttpResponse.json(null, {
-      headers: { "x-resp-for": "server-check" },
       status: 200,
     });
   }),

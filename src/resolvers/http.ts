@@ -47,7 +47,7 @@ export function isHttpResponseForAssertion(
   const actual =
     responseInfo.responseHeaders?.[httpResponseHeaderKey] ||
     requestInfo.headers[httpResponseHeaderKey] ||
-    extractParamXRespFor(requestInfo.params);
+    extractParamXRespFor(new URL(requestInfo.url, 'http://localhost').searchParams);
 
   return actual === expected;
 }
