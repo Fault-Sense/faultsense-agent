@@ -1,5 +1,5 @@
 import { HttpErrorHandler, HttpResponseHandler } from "../types";
-import { httpResponseHeaderKey } from "../config";
+import { assertionPrefix, httpResponseHeaderKey } from "../config";
 
 // Network processing configuration
 const NETWORK_CONFIG = {
@@ -208,8 +208,8 @@ function shouldProcessResponse(
 
   // Check if request has assertion identification headers
   const hasAssertionHeaders = Object.keys(requestHeaders).some(key =>
-    key.toLowerCase().startsWith('x-test-') ||
-    key.toLowerCase().startsWith('x-resp-for')
+    key.toLowerCase().startsWith(assertionPrefix.details) ||
+    key.toLowerCase().startsWith(httpResponseHeaderKey)
   );
 
   if (hasAssertionHeaders) {
@@ -220,8 +220,8 @@ function shouldProcessResponse(
   try {
     const urlObj = new URL(url, window.location.origin);
     const hasAssertionParams = Array.from(urlObj.searchParams.keys()).some(key =>
-      key.toLowerCase().startsWith('x-test-') ||
-      key.toLowerCase().startsWith('x-resp-for')
+      key.toLowerCase().startsWith(assertionPrefix.details) ||
+      key.toLowerCase().startsWith(httpResponseHeaderKey)
     );
 
     if (hasAssertionParams) {

@@ -61,11 +61,11 @@ describe.only("Faultsense Agent - Assertion Type modifer: classlist", () => {
   it("Should pass the target has the classes", async () => {
     document.body.innerHTML = `
       <img id="logo" class="foo bar baz" id="logo" width="100" height="100" alt="alt text" />
-      <button x-test-trigger="click" 
-      x-test-assert-updated="#logo" 
-      x-test-classlist='{ "foo": true, "bar": true, "baz": true, "test": true }'
-      x-test-assertion-key="img-src-update" 
-      x-test-feature-key="updater">Click</button>
+      <button fs-trigger="click" 
+      fs-assert-updated="#logo" 
+      fs-assert-classlist='{ "foo": true, "bar": true, "baz": true, "test": true }'
+      fs-assert="img-src-update" 
+      fs-feature="updater">Click</button>
     `;
 
     const button = document.querySelector("button") as HTMLButtonElement;
@@ -91,11 +91,11 @@ describe.only("Faultsense Agent - Assertion Type modifer: classlist", () => {
   it("Should pass the target omits the classes", async () => {
     document.body.innerHTML = `
       <img id="logo" class="foo bar baz" id="logo" width="100" height="100" alt="alt text" />
-      <button x-test-trigger="click" 
-      x-test-assert-updated="#logo" 
-      x-test-classlist='{ "random": false, "junk": false }'
-      x-test-assertion-key="img-src-update" 
-      x-test-feature-key="updater">Click</button>
+      <button fs-trigger="click" 
+      fs-assert-updated="#logo" 
+      fs-assert-classlist='{ "random": false, "junk": false }'
+      fs-assert="img-src-update" 
+      fs-feature="updater">Click</button>
     `;
 
     const button = document.querySelector("button") as HTMLButtonElement;
@@ -121,11 +121,11 @@ describe.only("Faultsense Agent - Assertion Type modifer: classlist", () => {
   it("Should fail if required are omitted or vice versa", async () => {
     document.body.innerHTML = `
       <img id="logo" class="foo" id="logo" width="100" height="100" alt="alt text" />
-      <button x-test-trigger="click" 
-      x-test-assert-updated="#logo" 
-      x-test-classlist='{ "foo": true, "test": false, "bar": false }'
-      x-test-assertion-key="img-src-update" 
-      x-test-feature-key="updater">Click</button>
+      <button fs-trigger="click" 
+      fs-assert-updated="#logo" 
+      fs-assert-classlist='{ "foo": true, "test": false, "bar": false }'
+      fs-assert="img-src-update" 
+      fs-feature="updater">Click</button>
     `;
 
     const button = document.querySelector("button") as HTMLButtonElement;

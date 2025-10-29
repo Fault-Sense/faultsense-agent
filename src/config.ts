@@ -7,9 +7,9 @@ export const defaultConfiguration: Partial<Configuration> = {
 };
 
 export const assertionPrefix = {
-  details: "x-test-",
-  types: "x-test-assert-",
-  modifiers: "x-test-",
+  details: "fs-",
+  types: "fs-assert-",
+  modifiers: "fs-assert-",
 };
 export const assertionTriggerAttr = `${assertionPrefix.details}trigger`;
 
@@ -22,19 +22,19 @@ export const domAssertions = [
   "loaded",
 ];
 export const httpResponseAssertions = ["response-status", "response-headers"];
-export const httpResponseHeaderKey = "x-resp-for";
+export const httpResponseHeaderKey = "fs-resp-for";
 
 export const supportedAssertions = {
   details: [
-    "feature-key",
+    "feature",
     "feature-label",
-    "assertion-key",
-    "assertion-label",
+    "assert",
+    "assert-label",
     "trigger",
   ],
   types: [...domAssertions, ...httpResponseAssertions],
   modifiers: [
-    "mpa-mode",
+    "mpa",
     "timeout",
     "text-matches",
     "attrs-match",

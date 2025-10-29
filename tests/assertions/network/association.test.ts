@@ -19,12 +19,12 @@ import * as resolveModule from "../../../src/assertions/server";
 const server = setupServer(
   http.get("/api/success", () => {
     return HttpResponse.json(null, {
-      headers: { "x-resp-for": "server-check" },
+      headers: { "fs-resp-for": "server-check" },
       status: 200,
     });
   }),
 
-  http.get("/api/success-using-param/?x-resp-for=server-check", () => {
+  http.get("/api/success-using-param/?fs-resp-for=server-check", () => {
     return HttpResponse.json(null, {
       status: 200,
     });
@@ -91,10 +91,10 @@ describe("Faultsense Agent - Response Header Association: ", () => {
   it("should pass with matching assertion response header", async () => {
     document.body.innerHTML = `
       <button 
-        x-test-trigger="click" 
-        x-test-assert-response-status="200" 
-        x-test-assertion-key="server-check" 
-        x-test-feature-key="network-requests">
+        fs-trigger="click" 
+        fs-assert-response-status="200" 
+        fs-assert="server-check" 
+        fs-feature="network-requests">
         Click me
       </button>
     `;
@@ -123,10 +123,10 @@ describe("Faultsense Agent - Response Header Association: ", () => {
   it("should pass with matching assertion request query param", async () => {
     document.body.innerHTML = `
       <button 
-        x-test-trigger="click" 
-        x-test-assert-response-status="200" 
-        x-test-assertion-key="server-check" 
-        x-test-feature-key="network-requests">
+        fs-trigger="click" 
+        fs-assert-response-status="200" 
+        fs-assert="server-check" 
+        fs-feature="network-requests">
         Click me
       </button>
     `;
@@ -134,7 +134,7 @@ describe("Faultsense Agent - Response Header Association: ", () => {
     const button = document.querySelector("button") as HTMLButtonElement;
     // Simulate the fetch call when the button is clicked
     button.addEventListener("click", async () => {
-      await fetch("/api/success-using-param/?x-resp-for=server-check");
+      await fetch("/api/success-using-param/?fs-resp-for=server-check");
     });
     button.click();
 
@@ -155,10 +155,10 @@ describe("Faultsense Agent - Response Header Association: ", () => {
   it("should fail without a matching assertion response header or param", async () => {
     document.body.innerHTML = `
       <button 
-        x-test-trigger="click" 
-        x-test-assert-response-status="200" 
-        x-test-assertion-key="server-check" 
-        x-test-feature-key="network-requests">
+        fs-trigger="click" 
+        fs-assert-response-status="200" 
+        fs-assert="server-check" 
+        fs-feature="network-requests">
         Click me
       </button>
     `;
@@ -181,7 +181,7 @@ describe("Faultsense Agent - Response Header Association: ", () => {
           expect.objectContaining({
             status: "failed",
             statusReason:
-              'HTTP response not received within 1000ms. Make sure the server responds with the header "x-resp-for: server-check" or the outgoing request has a "x-resp-for=server-check" parameter.',
+              'HTTP response not received within 1000ms. Make sure the server responds with the header "fs-resp-for: server-check" or the outgoing request has a "fs-resp-for=server-check" parameter.',
           }),
         ],
         config

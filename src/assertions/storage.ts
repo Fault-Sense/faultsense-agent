@@ -15,6 +15,11 @@ export function loadAssertions(): Assertion[] {
 
 export function storeAssertions(activeAssertions: Assertion[]) {
   if (activeAssertions.length) {
+    const data = localStorage.getItem(storageKey);
+    if (data) {
+      let existing = JSON.parse(data);
+      activeAssertions = [...existing, ...activeAssertions];
+    }
     localStorage.setItem(storageKey, JSON.stringify(activeAssertions));
   }
 }

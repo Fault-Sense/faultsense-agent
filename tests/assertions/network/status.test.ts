@@ -19,14 +19,14 @@ import * as resolveModule from "../../../src/assertions/server";
 const server = setupServer(
   http.get("/api/success", () => {
     return HttpResponse.json(null, {
-      headers: { "x-resp-for": "server-check" },
+      headers: { "fs-resp-for": "server-check" },
       status: 200,
     });
   }),
 
   http.get("/api/failed", () => {
     return HttpResponse.json(null, {
-      headers: { "x-resp-for": "server-check" },
+      headers: { "fs-resp-for": "server-check" },
       status: 202,
     });
   })
@@ -86,10 +86,10 @@ describe("Faultsense Agent - Assertion Type: response-status", () => {
   it("should pass when the server response status matches the expected value", async () => {
     document.body.innerHTML = `
       <button 
-        x-test-trigger="click" 
-        x-test-assert-response-status="200" 
-        x-test-assertion-key="server-check" 
-        x-test-feature-key="network-requests">
+        fs-trigger="click" 
+        fs-assert-response-status="200" 
+        fs-assert="server-check" 
+        fs-feature="network-requests">
         Click me
       </button>
     `;
@@ -122,10 +122,10 @@ describe("Faultsense Agent - Assertion Type: response-status", () => {
   it("should fail when the server response status does not match the expected value", async () => {
     document.body.innerHTML = `
     <button 
-      x-test-trigger="click" 
-      x-test-assert-response-status="200"
-      x-test-assertion-key="server-check" 
-      x-test-feature-key="network-requests">
+      fs-trigger="click" 
+      fs-assert-response-status="200"
+      fs-assert="server-check" 
+      fs-feature="network-requests">
       Click me
     </button>
   `;

@@ -20,7 +20,7 @@ function extractParamXRespFor(
       const parsedParams = JSON.parse(params);
       return parsedParams[fsHeaderKey] || null;
     } catch {
-      return null; // If it's not a JSON string, we can't extract x-resp-for
+      return null; // If it's not a JSON string, we can't extract config.httpResponseHeaderKey
     }
   } else if (params instanceof URLSearchParams) {
     return params.get(fsHeaderKey);

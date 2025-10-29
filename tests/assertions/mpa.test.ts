@@ -77,11 +77,11 @@ describe("Faultsense Agent - Assertion MPA Mode", () => {
      */
     document.body.innerHTML = `
       <button
-        x-test-mpa-mode="true"
-        x-test-trigger="click"
-        x-test-assert-added="#panel"
-        x-test-assertion-key="mpa-mode-test-click"
-        x-test-feature-key="revealer"
+        fs-assert-mpa="true"
+        fs-trigger="click"
+        fs-assert-added="#panel"
+        fs-assert="mpa-mode-test-click"
+        fs-feature="revealer"
       >Click</button>
     `;
 
@@ -127,11 +127,11 @@ describe("Faultsense Agent - Assertion MPA Mode", () => {
      */
     document.body.innerHTML = `
       <button
-        x-test-mpa-mode="true"
-        x-test-trigger="click"
-        x-test-assert-added="#panel"
-        x-test-assertion-key="mpa-mode-test-click"
-        x-test-feature-key="revealer"
+        fs-assert-mpa="true"
+        fs-trigger="click"
+        fs-assert-added="#panel"
+        fs-assert="mpa-mode-test-click"
+        fs-feature="revealer"
       >Click</button>
     `;
 
@@ -179,12 +179,12 @@ describe("Faultsense Agent - Assertion MPA Mode", () => {
      */
     document.body.innerHTML = `
       <button
-        x-test-mpa-mode="true"
-        x-test-timeout="5000"
-        x-test-trigger="click"
-        x-test-assert-added="#panel"
-        x-test-assertion-key="mpa-mode-test-click"
-        x-test-feature-key="revealer"
+        fs-assert-mpa="true"
+        fs-assert-timeout="5000"
+        fs-trigger="click"
+        fs-assert-added="#panel"
+        fs-assert="mpa-mode-test-click"
+        fs-feature="revealer"
       >Click</button>
     `;
 
@@ -236,10 +236,10 @@ describe("Faultsense Agent - Assertion MPA Mode", () => {
      */
     document.body.innerHTML = `
         <button
-          x-test-trigger="click"
-          x-test-assert-added="#panel"
-          x-test-assertion-key="not-mpa-mode-test-click"
-          x-test-feature-key="revealer"
+          fs-trigger="click"
+          fs-assert-added="#panel"
+          fs-assert="not-mpa-mode-test-click"
+          fs-feature="revealer"
         >Click</button>
       `;
 

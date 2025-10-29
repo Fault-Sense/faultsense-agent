@@ -40,27 +40,27 @@ describe("Faultsense Agent - Attribute Validation", () => {
   });
 
   it("Should require a feature key", async () => {
-    document.body.innerHTML = `<button x-test-trigger="click">Click</button>`;
+    document.body.innerHTML = `<button fs-trigger="click">Click</button>`;
 
     const button = document.querySelector(
-      'button[x-test-trigger="click"]'
+      'button[fs-trigger="click"]'
     ) as HTMLElement;
     button.click();
 
     expect(consoleErrorMock).toHaveBeenCalledWith(
-      "[Faultsense]: Missing 'feature-key' on assertion.",
+      "[Faultsense]: Missing 'fs-feature' on assertion.",
       { element: button }
     );
   });
 
   it("Should require an assertion key", async () => {
-    document.body.innerHTML = `<button x-test-trigger="click" x-test-feature-key="feature1">Click</button>`;
+    document.body.innerHTML = `<button fs-trigger="click" fs-feature="feature1">Click</button>`;
 
     const button = document.querySelector("button") as HTMLElement;
     button.click();
 
     expect(consoleErrorMock).toHaveBeenCalledWith(
-      "[Faultsense]: Missing 'assertion-key' on assertion.",
+      "[Faultsense]: Missing 'fs-assert' on assertion.",
       { element: button }
     );
   });
@@ -68,9 +68,9 @@ describe("Faultsense Agent - Attribute Validation", () => {
   it("Should require at least one assertion type", async () => {
     document.body.innerHTML = `
         <button 
-          x-test-trigger="click"
-          x-test-feature-key="feature1"
-          x-test-assertion-key="assert1">Click</button>`;
+          fs-trigger="click"
+          fs-feature="feature1"
+          fs-assert="assert1">Click</button>`;
 
     const button = document.querySelector("button") as HTMLElement;
     button.click();
@@ -84,10 +84,10 @@ describe("Faultsense Agent - Attribute Validation", () => {
   it("Should allow supported assertion types", async () => {
     document.body.innerHTML = `
         <button
-          x-test-trigger="click"
-          x-test-feature-key="feature1"
-          x-test-assertion-key="assert1"
-          x-test-assert-added="#id">Click</button>`;
+          fs-trigger="click"
+          fs-feature="feature1"
+          fs-assert="assert1"
+          fs-assert-added="#id">Click</button>`;
 
     const button = document.querySelector("button") as HTMLElement;
     button.click();
@@ -98,10 +98,10 @@ describe("Faultsense Agent - Attribute Validation", () => {
   it("Should allow the response-headers assertion type", async () => {
     document.body.innerHTML = `
         <button
-          x-test-trigger="click"
-          x-test-feature-key="feature1"
-          x-test-assertion-key="assert1"
-          x-test-assert-response-headers='{"status": "200", "Content-Type": "application/json"}'
+          fs-trigger="click"
+          fs-feature="feature1"
+          fs-assert="assert1"
+          fs-assert-response-headers='{"status": "200", "Content-Type": "application/json"}'
         >Click</button>`;
 
     const button = document.querySelector("button") as HTMLElement;
@@ -113,10 +113,10 @@ describe("Faultsense Agent - Attribute Validation", () => {
   it("Should fail if the response-headers assertion is not valid JSON", async () => {
     document.body.innerHTML = `
         <button
-          x-test-trigger="click"
-          x-test-feature-key="feature1"
-          x-test-assertion-key="assert1"
-          x-test-assert-response-headers="200"
+          fs-trigger="click"
+          fs-feature="feature1"
+          fs-assert="assert1"
+          fs-assert-response-headers="200"
         >Click</button>`;
 
     const button = document.querySelector("button") as HTMLElement;

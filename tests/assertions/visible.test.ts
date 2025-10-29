@@ -56,7 +56,7 @@ describe("Faultsense Agent - Assertion Type: visible", () => {
 
   it("visible should pass if the element exists and is visible", async () => {
     document.body.innerHTML = `
-      <button x-test-trigger="click" x-test-assert-visible="#panel" x-test-assertion-key="btn-click" x-test-feature-key="revealer">Click</button>
+      <button fs-trigger="click" fs-assert-visible="#panel" fs-assert="btn-click" fs-feature="revealer">Click</button>
       <div id="panel" style="display: none;"></div>
     `;
 
@@ -88,7 +88,7 @@ describe("Faultsense Agent - Assertion Type: visible", () => {
 
   it("visible should not pass if the element exists but is not visible", async () => {
     document.body.innerHTML = `
-     <button x-test-trigger="click" x-test-assert-visible="#panel" x-test-assertion-key="btn-click" x-test-feature-key="revealer">Click</button>
+     <button fs-trigger="click" fs-assert-visible="#panel" fs-assert="btn-click" fs-feature="revealer">Click</button>
      <div id="panel" style="display: none;"></div>
    `;
 
@@ -110,7 +110,7 @@ describe("Faultsense Agent - Assertion Type: visible", () => {
 
   it("visible should not pass if the element does not exist", async () => {
     document.body.innerHTML = `
-    <button x-test-trigger="click" x-test-assert-visible="#panel" x-test-assertion-key="btn-click" x-test-feature-key="revealer">Click</button>
+    <button fs-trigger="click" fs-assert-visible="#panel" fs-assert="btn-click" fs-feature="revealer">Click</button>
   `;
     const button = document.querySelector("button") as HTMLButtonElement;
     button.click();

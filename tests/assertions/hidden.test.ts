@@ -59,12 +59,12 @@ describe("Faultsense Agent - Assertion Type: hidden", () => {
 
   it("hidden should pass if the element exists and is hidden (mount trigger)", async () => {
     document.body.innerHTML = `
-      <button x-test-trigger="mount" x-test-assert-hidden="#panel" x-test-assertion-key="btn-click" x-test-feature-key="revealer">Click</button>
+      <button fs-trigger="mount" fs-assert-hidden="#panel" fs-assert="btn-click" fs-feature="revealer">Click</button>
       <div id="panel" style="display:none;"></div>
     `;
 
     // Manually trigger mount processing for elements that are already in the DOM
-    const mountElements = document.querySelectorAll('[x-test-trigger="mount"]');
+    const mountElements = document.querySelectorAll('[fs-trigger="mount"]');
     if (mountElements.length > 0) {
       // Trigger a mutation to simulate the mount processing
       const event = new Event('DOMContentLoaded');
@@ -89,7 +89,7 @@ describe("Faultsense Agent - Assertion Type: hidden", () => {
 
   it("hidden should pass if the element exists and is hidden", async () => {
     document.body.innerHTML = `
-      <button x-test-trigger="click" x-test-assert-hidden="#panel" x-test-assertion-key="btn-click" x-test-feature-key="revealer">Click</button>
+      <button fs-trigger="click" fs-assert-hidden="#panel" fs-assert="btn-click" fs-feature="revealer">Click</button>
       <div id="panel" style="display: block; width: 100px; height: 100px;"></div>
     `;
 
@@ -117,7 +117,7 @@ describe("Faultsense Agent - Assertion Type: hidden", () => {
 
   it("hidden should fail if the element exists but is visisble", async () => {
     document.body.innerHTML = `
-      <button x-test-trigger="click" x-test-assert-hidden="#panel" x-test-assertion-key="btn-click" x-test-feature-key="revealer">Click</button>
+      <button fs-trigger="click" fs-assert-hidden="#panel" fs-assert="btn-click" fs-feature="revealer">Click</button>
       <div id="panel" style="display: block; width: 100px; height: 100px;"></div>
     `;
 
@@ -139,7 +139,7 @@ describe("Faultsense Agent - Assertion Type: hidden", () => {
 
   it("hidden should fail if the element does not exist", async () => {
     document.body.innerHTML = `
-        <button x-test-trigger="click" x-test-assert-hidden="#panel" x-test-assertion-key="btn-click" x-test-feature-key="revealer">Click</button>
+        <button fs-trigger="click" fs-assert-hidden="#panel" fs-assert="btn-click" fs-feature="revealer">Click</button>
       `;
 
     const button = document.querySelector("button") as HTMLButtonElement;

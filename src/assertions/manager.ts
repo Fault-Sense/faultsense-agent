@@ -69,7 +69,11 @@ export function createAssertionManager(config: Configuration) {
     });
   };
   const enqueueAssertions = (newAssertions: Assertion[]): void => {
-    newAssertions.forEach((newAssertion) => {
+    // any assertsions marked for processing on the next page load should
+    // skip the queue and be saved in storage
+    storeAssertions(newAssertions.filter((a) => a.mpa_mode));
+
+    newAssertions.filter((a) => !a.mpa_mode).forEach((newAssertion) => {
       // Check if an existing assertion matches by `assertionKey` and `type`
       const existingAssertion = findAassertion(newAssertion, activeAssertions);
       if (existingAssertion && isAssertionCompleted(existingAssertion)) {

@@ -19,7 +19,7 @@ import * as resolveModule from "../../../src/assertions/server";
 const server = setupServer(
   http.get("/api/404", () => {
     return HttpResponse.json(null, {
-      headers: { "x-resp-for": "server-check" },
+      headers: { "fs-resp-for": "server-check" },
       status: 404,
     });
   }),
@@ -28,7 +28,7 @@ const server = setupServer(
     return HttpResponse.json(
       { message: "Internal Server Error" },
       {
-        headers: { "x-resp-for": "server-check" },
+        headers: { "fs-resp-for": "server-check" },
         status: 500,
       }
     );
@@ -93,10 +93,10 @@ describe("Faultsense Agent - Assertion Http Errors", () => {
   it("should fail with 4xx errors", async () => {
     document.body.innerHTML = `
       <button 
-        x-test-trigger="click" 
-        x-test-assert-response-status="200" 
-        x-test-assertion-key="server-check" 
-        x-test-feature-key="network-requests">
+        fs-trigger="click" 
+        fs-assert-response-status="200" 
+        fs-assert="server-check" 
+        fs-feature="network-requests">
         Click me
       </button>
     `;
@@ -130,10 +130,10 @@ describe("Faultsense Agent - Assertion Http Errors", () => {
   it("should fail with 5xx errors", async () => {
     document.body.innerHTML = `
     <button 
-      x-test-trigger="click" 
-      x-test-assert-response-status="200" 
-      x-test-assertion-key="server-check" 
-      x-test-feature-key="network-requests">
+      fs-trigger="click" 
+      fs-assert-response-status="200" 
+      fs-assert="server-check" 
+      fs-feature="network-requests">
       Click me
     </button>
   `;
@@ -171,10 +171,10 @@ describe("Faultsense Agent - Assertion Http Errors", () => {
   it("should fail if network errors are detected", async () => {
     document.body.innerHTML = `
     <button 
-      x-test-trigger="click" 
-      x-test-assert-response-status="200" 
-      x-test-assertion-key="server-check" 
-      x-test-feature-key="network-requests">
+      fs-trigger="click" 
+      fs-assert-response-status="200" 
+      fs-assert="server-check" 
+      fs-feature="network-requests">
       Click me
     </button>
   `;

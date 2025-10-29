@@ -100,7 +100,7 @@ export type AssertionType =
 
 export type AssertionModiferValue = string;
 export type AssertionModifiers =
-  | "mpa-mode"
+  | "mpa"
   | "timeout"
   | "text-matches"
   | "attrs-match"

@@ -60,7 +60,7 @@ describe("Faultsense Agent - Duplication Assertion Prevention", () => {
 
   it("should only create a single assertion if the same type is still open", async () => {
     document.body.innerHTML = `
-      <button x-test-trigger="click" x-test-assert-added="#panel" x-test-assertion-key="dupe-test" x-test-feature-key="test">Click</button>
+      <button fs-trigger="click" fs-assert-added="#panel" fs-assert="dupe-test" fs-feature="test">Click</button>
     `;
 
     const button = document.querySelector("button") as HTMLButtonElement;
@@ -90,7 +90,7 @@ describe("Faultsense Agent - Duplication Assertion Prevention", () => {
 
   it("should not send a re-completed assertion to the server if the status did not change", async () => {
     document.body.innerHTML = `
-      <button x-test-trigger="click" x-test-assert-added="#panel" x-test-assertion-key="dupe-test" x-test-feature-key="test">Click</button>
+      <button fs-trigger="click" fs-assert-added="#panel" fs-assert="dupe-test" fs-feature="test">Click</button>
     `;
 
     const button = document.querySelector("button") as HTMLButtonElement;
@@ -122,7 +122,7 @@ describe("Faultsense Agent - Duplication Assertion Prevention", () => {
 
   it("should send a re-completed assertion to the server if the status changed", async () => {
     document.body.innerHTML = `
-      <button x-test-trigger="click" x-test-assert-added="#panel" x-test-assertion-key="dupe-test" x-test-feature-key="test">Click</button>
+      <button fs-trigger="click" fs-assert-added="#panel" fs-assert="dupe-test" fs-feature="test">Click</button>
     `;
 
     const button = document.querySelector("button") as HTMLButtonElement;
