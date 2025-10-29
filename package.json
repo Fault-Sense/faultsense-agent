@@ -1,6 +1,6 @@
 {
   "name": "faultsense",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A Framework & Language Agnostic Application Feature Monitor for the Frontend",
   "main": "dist/faultsense-agent.min.js",
   "files": [
