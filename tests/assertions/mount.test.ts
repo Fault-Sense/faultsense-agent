@@ -56,7 +56,7 @@ describe("Faultsense Agent - Mount Assetion", () => {
 
   it("Should pass if elements are mounted with page-load", async () => {
     document.body.innerHTML = `
-      <img id="my-img" src="/some/img/png" x-test-trigger="mount" x-test-assert-loaded="#my-img" x-test-assertion-key="product-image-dom-loaded" x-test-feature-key="product-display" />
+      <img id="my-img" src="/some/img/png" fs-trigger="mount" fs-assert-loaded="#my-img" fs-assert="product-image-dom-loaded" fs-feature="product-display" />
     `;
 
     document.addEventListener("DOMContentLoaded", () => {
@@ -95,7 +95,7 @@ describe("Faultsense Agent - Mount Assetion", () => {
     cleanupFn = init(config);
 
     document.body.innerHTML = `
-      <img id="my-img2" src="/some/img/png" x-test-trigger="mount" x-test-assert-loaded="#my-img2" x-test-assertion-key="product-image-js-render" x-test-feature-key="product-display" />
+      <img id="my-img2" src="/some/img/png" fs-trigger="mount" fs-assert-loaded="#my-img2" fs-assert="product-image-js-render" fs-feature="product-display" />
     `;
 
     const img = document.querySelector("img") as HTMLImageElement;
@@ -127,7 +127,7 @@ describe("Faultsense Agent - Mount Assetion", () => {
     document.body.innerHTML = `
       <div>
         <p>
-          <img id="childimg" src="/some/img/png" x-test-trigger="mount" x-test-assert-loaded="#childimg" x-test-assertion-key="product-image-nested-child" x-test-feature-key="product-display" />
+          <img id="childimg" src="/some/img/png" fs-trigger="mount" fs-assert-loaded="#childimg" fs-assert="product-image-nested-child" fs-feature="product-display" />
         </p>
       <div>
     `;

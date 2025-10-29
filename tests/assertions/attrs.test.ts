@@ -61,11 +61,11 @@ describe.only("Faultsense Agent - Assertion Type modifer: attrs-match", () => {
   it("Should pass if a subset of the target attributes match", async () => {
     document.body.innerHTML = `
       <img id="logo" class="foo bar baz" id="logo" width="100" height="100" alt="alt text" />
-      <button x-test-trigger="click" 
-      x-test-assert-updated="#logo" 
-      x-test-attrs-match='{ "src": "/path/to/foo.png", "width": "100", "height": "100",  "alt": "alt text" }'
-      x-test-assertion-key="img-src-update" 
-      x-test-feature-key="updater">Click</button>
+      <button fs-trigger="click" 
+      fs-assert-updated="#logo" 
+      fs-assert-attrs-match='{ "src": "/path/to/foo.png", "width": "100", "height": "100",  "alt": "alt text" }'
+      fs-assert="img-src-update" 
+      fs-feature="updater">Click</button>
     `;
 
     const button = document.querySelector("button") as HTMLButtonElement;
@@ -92,11 +92,11 @@ describe.only("Faultsense Agent - Assertion Type modifer: attrs-match", () => {
   it.only("Should fail if any of the subset of the target attributes do not match", async () => {
     document.body.innerHTML = `
       <img id="logo" class="foo bar baz" id="logo" width="100" height="100" alt="alt text" />
-      <button x-test-trigger="click" 
-      x-test-assert-updated="#logo" 
-      x-test-attrs-match='{ "src": "/path/to/bar.png", "width": "100", "height": "100",  "alt": "some text" }'
-      x-test-assertion-key="img-src-update" 
-      x-test-feature-key="updater">Click</button>
+      <button fs-trigger="click" 
+      fs-assert-updated="#logo" 
+      fs-assert-attrs-match='{ "src": "/path/to/bar.png", "width": "100", "height": "100",  "alt": "some text" }'
+      fs-assert="img-src-update" 
+      fs-feature="updater">Click</button>
     `;
 
     const button = document.querySelector("button") as HTMLButtonElement;

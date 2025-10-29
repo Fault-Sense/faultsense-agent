@@ -63,11 +63,11 @@ In production, set debug to false and set the collectorURL to an event collectio
 <div id="counter">Count: 0</div>
 <button 
   onclick="..."
-  x-test-feature-key="counter"
-  x-test-assertion-key="increment-btn"
-  x-test-trigger="click"
-  x-test-assert-updated="#counter"
-  x-test-text-matches="Count: \d+">
+  fs-feature="counter"
+  fs-assert="increment-btn"
+  fs-trigger="click"
+  fs-assert-updated="#counter"
+  fs-assert-text-matches="Count: \d+">
   Increment
 </button>
 ```
@@ -78,16 +78,16 @@ In production, set debug to false and set the collectorURL to an event collectio
   * assert the new item is created with the specific text, within 400ms
     - you can update the text-matches attr with user input for dynamic validation
   * assert that the API returned a 201 response
-    - Network request or response needs the x-resp-for="add-todo" header or param
+    - Network request or response needs the fs-resp-for="add-todo" header or param
 -->
 <ul id="todos"></ul>
 <form 
   onsubmit="..."
-  x-test-feature-key="todo-management"
-  x-test-assertion-key="add-todo"
-  x-test-trigger="submit"
-  x-test-assert-added="#todos li"
-  x-test-assert-response-status="201"
+  fs-feature="todo-management"
+  fs-assert="add-todo"
+  fs-trigger="submit"
+  fs-assert-added="#todos li"
+  fs-assert-response-status="201"
   >
 
   <input type="text" placeholder="New todo...">
@@ -121,7 +121,7 @@ You can create (and resolve) assertions by annotating your HTML with Fault Sense
 
 Triggers are the implicit or explicit actions that create assertions. You must have 1 and only 1 trigger on a single HTML element.
 
-Triggers follow the form of `x-test-trigger=<trigger>`. The following triggers are supported:
+Triggers follow the form of `fs-trigger=<trigger>`. The following triggers are supported:
 
 `mount` - when the HTML element is added to the DOM
 
@@ -145,7 +145,7 @@ Once an action is taken and an assertion is triggered, Types specify how to reso
 
 #### DOM Assertion Types
 
-DOM assertion types follow the form of `x-test-assert-<type>=<selector>`. Assertions will be resolved when an element matching the selector passes the rule enforced by Type.
+DOM assertion types follow the form of `fs-assert-<type>=<selector>`. Assertions will be resolved when an element matching the selector passes the rule enforced by Type.
 
 The following Types are supported:
 
@@ -164,9 +164,9 @@ The following Types are supported:
 
 ####  Assertion Type Modifiers
 
-Modifiers are optional, but allow you to customize aspects of how Fault Sense resolves the assertion. Modifiers follow the form `x-test-<modifier>=<value>`. If your element has multiple assertion types, modifiers will be attached to all of the assertion types.
+Modifiers are optional, but allow you to customize aspects of how Fault Sense resolves the assertion. Modifiers follow the form `fs-assert-<modifier>=<value>`. If your element has multiple assertion types, modifiers will be attached to all of the assertion types.
 
-`mpa-mode="true"` - If you have an action that you want to resolve on the next page load, enabling mpa-mode for the assertion will store the assertion in localStorage and attempt to resolve it when the next page has completed loading (assuming Fault Sense is initialized on the next page).
+`mpa="true"` - If you have an action that you want to resolve on the next page load, enabling mpa-mode for the assertion will store the assertion in localStorage and attempt to resolve it when the next page has completed loading (assuming Fault Sense is initialized on the next page).
 
 `timeout=<ms>` - Overrides the timeout used before failing the assertion. By default it will use the global timeout specified in the Fault Sense configuration.
 
@@ -181,13 +181,13 @@ Modifiers are optional, but allow you to customize aspects of how Fault Sense re
 
 #### Network Assertion Types
 
-Network assertion types allow you to create assertions for fetch/xhr calls that resolve when the network response arrives. All network assertions follow the form of `x-test-assert-<type>=<value>`, where `<type>=<value>` are noted below.
+Network assertion types allow you to create assertions for fetch/xhr calls that resolve when the network response arrives. All network assertions follow the form of `fs-assert-<type>=<value>`, where `<type>=<value>` are noted below.
 
 `response-status=<status>` - The HTTP response has this status
 
 ```html
 <!-- Assert that the HTTP response status from the form submission is HTTP 200 -->
-<form ... x-test-assert-response-status="200"></form>
+<form ... fs-assert-response-status="200"></form>
 ```
 
 `response-headers=<headerJSON>` - A Subset of HTTP response headers match headerJSON
@@ -196,7 +196,7 @@ Network assertion types allow you to create assertions for fetch/xhr calls that 
 <!-- Assert that the HTTP response headers from the form submission contain: -->
 <form
   ...
-  x-test-assert-response-headers='{ "content-type": "application/json" }'
+  fs-assert-response-headers='{ "content-type": "application/json" }'
 ></form>
 ```
 
@@ -204,22 +204,22 @@ Network assertion types allow you to create assertions for fetch/xhr calls that 
 
 In order to use network assertions, the network request must contain the assertion key. This enables Fault Sense to resolve the correct Assertion when the HTTP response (or error) is handled. See [Identifying Assertions](#identifying-assertions) for more information on Assertion keys. You can do this multiple ways (pick one):
 
-1. The HTTP response contains a `x-resp-for=<assertion-key>` header
-2. The HTTP request contains a `x-resp-for=<assertion-key>` header
-3. The HTTP request contains the query parameter `?x-resp-for=<assertion-key>`
+1. The HTTP response contains a `fs-resp-for=<fs-assert>` header
+2. The HTTP request contains a `fs-resp-for=<fs-assert>` header
+3. The HTTP request contains the query parameter `?fs-resp-for=<fs-assert>`
 
 
 ### Identifying Assertions
 
-Assertions are categorized by release (provided in the config) and then by feature. Every assertion can have a key and label to identify the assertion and feature it is a part of, but only key is required. Key must remain consistent across releases but label may change over time. Identifiers follow the form `x-test-<identifier>=<value>`
+Assertions are categorized by release (provided in the config) and then by feature. Every assertion can have a key and label to identify the assertion and feature it is a part of, but only key is required. Key must remain consistent across releases but label may change over time. Identifiers follow the form `fs-<identifier>=<value>`
 
-`assertion-key=<value>` - Required. The unique ID for this assertion. This value will also be used to associate network responses with assertions (see [Network Assertion Types](#associating-network-assertions)).
+`assert=<value>` - Required. The unique ID for this assertion. This value will also be used to associate network responses with assertions (see [Network Assertion Types](#associating-network-assertions)).
 
-`feature-key=<value>` - Required. Used to group assertions under a feature umbrella. Multiple unique assertions can have the same feature-key value.
+`feature<value>` - Required. Used to group assertions under a feature umbrella. Multiple unique assertions can have the same feature-key value.
 
-`assertion-label=<value>` - Optional. A more human readable description of the assertion. May change over time and can be set in the Fault Sense dashboard if omitted in code.
+`assert-label=<value>` - Optional. A more human readable description of the assertion. May change over time, but if multiple, different values exist for the same assertion identifier (`fs-assert`) the last one received in an event wins
 
-`feature-label=<value>` - Optional. A more human readable description of the feature. May change over time, but if multiple, different values exist for the same feature key, the last one received in an event wins. This can be set in the Fault Sense dashboard if omitted in code.
+`feature-label=<value>` - Optional. A more human readable description of the feature. May change over time, but if multiple, different values exist for the same feature identifier (`fs-feature`), the last one received in an event wins.
 
 ### Resolving Assertions
 
@@ -244,7 +244,7 @@ type AssertionType =
   | "response-status";
 
 type AssertionModifier =
-  | "mpa-mode"
+  | "mpa"
   | "timeout"
   | "text-matches"
   | "attrs-match"

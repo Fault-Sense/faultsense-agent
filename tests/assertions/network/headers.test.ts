@@ -19,7 +19,7 @@ import * as resolveModule from "../../../src/assertions/server";
 const server = setupServer(
   http.get("/api/test", () => {
     return HttpResponse.json(null, {
-      headers: { "x-resp-for": "server-check" },
+      headers: { "fs-resp-for": "server-check" },
       status: 200,
     });
   })
@@ -79,10 +79,10 @@ describe("Faultsense Agent - Assertion Type: response-headers", () => {
   it("should pass when the server response headers match the expected value", async () => {
     document.body.innerHTML = `
       <button 
-        x-test-trigger="click" 
-        x-test-assert-response-headers='{ "content-type": "application/json" }' 
-        x-test-assertion-key="server-check" 
-        x-test-feature-key="network-requests">
+        fs-trigger="click" 
+        fs-assert-response-headers='{ "content-type": "application/json" }' 
+        fs-assert="server-check" 
+        fs-feature="network-requests">
         Click me
       </button>
     `;
@@ -111,10 +111,10 @@ describe("Faultsense Agent - Assertion Type: response-headers", () => {
   it("should fail when the server response headers do not match the expected value", async () => {
     document.body.innerHTML = `
     <button 
-      x-test-trigger="click" 
-      x-test-assert-response-headers='{ "content-type": "text/html", "x-custom-header": "test" }' 
-      x-test-assertion-key="server-check" 
-      x-test-feature-key="network-requests">
+      fs-trigger="click" 
+      fs-assert-response-headers='{ "content-type": "text/html", "x-custom-header": "test" }' 
+      fs-assert="server-check" 
+      fs-feature="network-requests">
       Click me
     </button>
   `;
@@ -133,7 +133,7 @@ describe("Faultsense Agent - Assertion Type: response-headers", () => {
           expect.objectContaining({
             status: "failed",
             statusReason:
-              "Expected HTTP response headers not found in actual headers:\n\nExpected:\ncontent-type: text/html\nx-custom-header: test\n\nActual:\ncontent-length: 4\ncontent-type: application/json\nx-resp-for: server-check",
+              "Expected HTTP response headers not found in actual headers:\n\nExpected:\ncontent-type: text/html\nx-custom-header: test\n\nActual:\ncontent-length: 4\ncontent-type: application/json\nfs-resp-for: server-check",
           }),
         ],
         config

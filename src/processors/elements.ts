@@ -136,14 +136,14 @@ function isValidAssertionMetadata(
 ): boolean {
   const details = { element };
 
-  if (!assertionMetadata.details["feature-key"]) {
-    console.error("[Faultsense]: Missing 'feature-key' on assertion.", details);
+  if (!assertionMetadata.details["feature"]) {
+    console.error("[Faultsense]: Missing 'fs-feature' on assertion.", details);
     return false; // Return false to indicate the validation failed
   }
 
-  if (!assertionMetadata.details["assertion-key"]) {
+  if (!assertionMetadata.details["assert"]) {
     console.error(
-      "[Faultsense]: Missing 'assertion-key' on assertion.",
+      "[Faultsense]: Missing 'fs-assert' on assertion.",
       details
     );
     return false;
@@ -196,15 +196,15 @@ function createAssertions(
 
   return Object.keys(metadata.types).map((assertionType) => {
     return {
-      assertionKey: metadata.details["assertion-key"],
-      assertionLabel: metadata.details["assertion-label"] || "",
+      assertionKey: metadata.details["assert"],
+      assertionLabel: metadata.details["assert-label"] || "",
       endTime: undefined,
       elementSnapshot: element.outerHTML,
-      featureKey: metadata.details["feature-key"],
+      featureKey: metadata.details["feature"],
       featureLabel: metadata.details["feature-label"] || "",
       trigger: metadata.details.trigger,
       type: assertionType as AssertionType,
-      mpa_mode: Boolean(metadata.modifiers["mpa-mode"]),
+      mpa_mode: Boolean(metadata.modifiers["mpa"]),
       typeValue: metadata.types[assertionType] as string,
       startTime: Date.now(),
       status: undefined,

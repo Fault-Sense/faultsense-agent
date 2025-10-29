@@ -62,7 +62,7 @@ describe("Faultsense Agent - Loaded Assetion", () => {
 
   it("Should pass if onload is triggered for the element", async () => {
     document.body.innerHTML = `
-      <img id="my-img" src="/some/img/png" x-test-trigger="mount" x-test-assert-loaded="#my-img" x-test-assertion-key="product-image" x-test-feature-key="product-display" /> 
+      <img id="my-img" src="/some/img/png" fs-trigger="mount" fs-assert-loaded="#my-img" fs-assert="product-image" fs-feature="product-display" /> 
     `;
     const img = document.querySelector("img") as HTMLImageElement;
 
@@ -91,7 +91,7 @@ describe("Faultsense Agent - Loaded Assetion", () => {
 
   it("Should fail if onerror is triggered for the element", async () => {
     document.body.innerHTML = `
-      <img id="my-img" src="/some/img/png" x-test-trigger="mount" x-test-assert-loaded="#my-img" x-test-assertion-key="product-image" x-test-feature-key="product-display" /> 
+      <img id="my-img" src="/some/img/png" fs-trigger="mount" fs-assert-loaded="#my-img" fs-assert="product-image" fs-feature="product-display" /> 
     `;
     const img = document.querySelector("img") as HTMLImageElement;
 
@@ -121,7 +121,7 @@ describe("Faultsense Agent - Loaded Assetion", () => {
 
   it("Should fail if it takes too long to load", async () => {
     document.body.innerHTML = `
-      <img id="my-img" src="/some/img/png" x-test-trigger="mount" x-test-assert-loaded="#my-img" x-test-assertion-key="product-image" x-test-feature-key="product-display" /> 
+      <img id="my-img" src="/some/img/png" fs-trigger="mount" fs-assert-loaded="#my-img" fs-assert="product-image" fs-feature="product-display" /> 
     `;
 
     // do not trigger the load or error events. Instead wait for the timeout
@@ -147,7 +147,7 @@ describe("Faultsense Agent - Loaded Assetion", () => {
   it("Should ignore onload events for untracked elements", async () => {
     document.body.innerHTML = `
       <img id="my-img-untracked" src="/some/img/png"  />
-      <img id="my-img" src="/some/img/png" x-test-trigger="mount" x-test-assert-loaded="#my-img" x-test-assertion-key="product-image" x-test-feature-key="product-display" /> 
+      <img id="my-img" src="/some/img/png" fs-trigger="mount" fs-assert-loaded="#my-img" fs-assert="product-image" fs-feature="product-display" /> 
     `;
     const img = document.querySelector("#my-img-untracked") as HTMLImageElement;
 
@@ -178,7 +178,7 @@ describe("Faultsense Agent - Loaded Assetion", () => {
   it("Should pass without an explicit id on the element", async () => {
     document.body.innerHTML = `
     <div id="container">
-      <img src="/some/img/png" x-test-trigger="mount" x-test-assert-loaded="#container img" x-test-assertion-key="product-image" x-test-feature-key="product-display" /> 
+      <img src="/some/img/png" fs-trigger="mount" fs-assert-loaded="#container img" fs-assert="product-image" fs-feature="product-display" /> 
     </div>
     `;
     const img = document.querySelector("img") as HTMLImageElement;
@@ -205,7 +205,7 @@ describe("Faultsense Agent - Loaded Assetion", () => {
   it("Should pass if the element was marked as completed and rendered", async () => {
     document.body.innerHTML = `
     <div id="container">
-     <img src="/some/img/png" x-test-trigger="mount" x-test-assert-loaded="#container img" x-test-assertion-key="product-image" x-test-feature-key="product-display" /> 
+     <img src="/some/img/png" fs-trigger="mount" fs-assert-loaded="#container img" fs-assert="product-image" fs-feature="product-display" /> 
     </div>
     `;
     const img = document.querySelector("img") as HTMLImageElement;
@@ -234,7 +234,7 @@ describe("Faultsense Agent - Loaded Assetion", () => {
   it("Should fail if the element was marked as completed but failed to render", async () => {
     document.body.innerHTML = `
     <div id="container">
-     <img src="/some/img/png" x-test-trigger="mount" x-test-assert-loaded="#container img" x-test-assertion-key="product-image" x-test-feature-key="product-display" /> 
+     <img src="/some/img/png" fs-trigger="mount" fs-assert-loaded="#container img" fs-assert="product-image" fs-feature="product-display" /> 
     </div>
     `;
     const img = document.querySelector("img") as HTMLImageElement;
@@ -264,7 +264,7 @@ describe("Faultsense Agent - Loaded Assetion", () => {
   it("Should resolve anytime load or error is triggered", async () => {
     document.body.innerHTML = `
     <div id="container">
-     <img src="/some/img/png"  x-test-trigger="load" x-test-assert-loaded="#container img" x-test-assertion-key="product-image" x-test-feature-key="product-display" /> 
+     <img src="/some/img/png"  fs-trigger="load" fs-assert-loaded="#container img" fs-assert="product-image" fs-feature="product-display" /> 
     </div>
     `;
     const img = document.querySelector("img") as HTMLImageElement;
