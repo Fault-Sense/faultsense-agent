@@ -51,7 +51,7 @@ export function interceptNetwork(
         const clonedResponse = response.clone();
         const responseText = await processResponseText(clonedResponse, responseHeaders);
 
-        if (!response.ok) {
+        if (!isResponseStatusOk(response.status)) {
           errorHandler({
             message: `HTTP Error: ${response.statusText}`,
             status: response.status,
@@ -118,7 +118,7 @@ export function interceptNetwork(
               return;
             }
 
-            if (this.status >= 200 && this.status < 300) {
+            if (isResponseStatusOk(this.status)) {
               // Success: Call the standardized response handler
               responseHandler(
                 {
@@ -312,4 +312,11 @@ function extractHeaders(headersInit: HeadersInit): Record<string, string> {
     Object.assign(headers, headersInit);
   }
   return headers;
+}
+
+function isResponseStatusOk(status: number): boolean {
+  const ok4xx = [400, 401, 409, 422];
+  if (status >= 200 && status <= 399) return true;
+  if (ok4xx.includes(status)) return true;
+  return false;
 }

@@ -36,6 +36,47 @@ const server = setupServer(
 
   http.get("/api/network-error", () => {
     return HttpResponse.error();
+  }),
+
+  // Test endpoints for status codes that should NOT be treated as errors
+  http.get("/api/400", () => {
+    return HttpResponse.json(
+      { message: "Bad Request" },
+      {
+        headers: { "fs-resp-for": "client-error-check" },
+        status: 400,
+      }
+    );
+  }),
+
+  http.get("/api/401", () => {
+    return HttpResponse.json(
+      { message: "Unauthorized" },
+      {
+        headers: { "fs-resp-for": "auth-check" },
+        status: 401,
+      }
+    );
+  }),
+
+  http.get("/api/409", () => {
+    return HttpResponse.json(
+      { message: "Conflict" },
+      {
+        headers: { "fs-resp-for": "conflict-check" },
+        status: 409,
+      }
+    );
+  }),
+
+  http.get("/api/422", () => {
+    return HttpResponse.json(
+      { message: "Unprocessable Entity" },
+      {
+        headers: { "fs-resp-for": "validation-check" },
+        status: 422,
+      }
+    );
   })
 );
 
@@ -202,6 +243,135 @@ describe("Faultsense Agent - Assertion Http Errors", () => {
             type: "response-status",
             status: "failed",
             statusReason: "Network Error",
+          }),
+        ],
+        config
+      )
+    );
+  });
+
+  // Tests for status codes that should NOT be treated as errors
+  it("should NOT treat 400 Bad Request as an error", async () => {
+    document.body.innerHTML = `
+      <button 
+        fs-trigger="click" 
+        fs-assert-response-status="400" 
+        fs-assert="client-error-check" 
+        fs-feature="validation-requests">
+        Submit Invalid Data
+      </button>
+    `;
+
+    const button = document.querySelector("button") as HTMLButtonElement;
+    button.addEventListener("click", async () => {
+      await fetch("/api/400");
+    });
+    button.click();
+
+    // Should pass because 400 is expected and not treated as an error
+    await vi.waitFor(() =>
+      expect(sendToServerMock).toHaveBeenCalledWith(
+        [
+          expect.objectContaining({
+            type: "response-status",
+            status: "passed",
+            statusReason: "",
+          }),
+        ],
+        config
+      )
+    );
+  });
+
+  it("should NOT treat 401 Unauthorized as an error", async () => {
+    document.body.innerHTML = `
+      <button 
+        fs-trigger="click" 
+        fs-assert-response-status="401" 
+        fs-assert="auth-check" 
+        fs-feature="authentication">
+        Access Protected Resource
+      </button>
+    `;
+
+    const button = document.querySelector("button") as HTMLButtonElement;
+    button.addEventListener("click", async () => {
+      await fetch("/api/401");
+    });
+    button.click();
+
+    // Should pass because 401 is expected and not treated as an error
+    await vi.waitFor(() =>
+      expect(sendToServerMock).toHaveBeenCalledWith(
+        [
+          expect.objectContaining({
+            type: "response-status",
+            status: "passed",
+            statusReason: "",
+          }),
+        ],
+        config
+      )
+    );
+  });
+
+  it("should NOT treat 409 Conflict as an error", async () => {
+    document.body.innerHTML = `
+      <button 
+        fs-trigger="click" 
+        fs-assert-response-status="409" 
+        fs-assert="conflict-check" 
+        fs-feature="resource-management">
+        Create Duplicate Resource
+      </button>
+    `;
+
+    const button = document.querySelector("button") as HTMLButtonElement;
+    button.addEventListener("click", async () => {
+      await fetch("/api/409");
+    });
+    button.click();
+
+    // Should pass because 409 is expected and not treated as an error
+    await vi.waitFor(() =>
+      expect(sendToServerMock).toHaveBeenCalledWith(
+        [
+          expect.objectContaining({
+            type: "response-status",
+            status: "passed",
+            statusReason: "",
+          }),
+        ],
+        config
+      )
+    );
+  });
+
+  it("should NOT treat 422 Unprocessable Entity as an error", async () => {
+    document.body.innerHTML = `
+      <button 
+        fs-trigger="click" 
+        fs-assert-response-status="422" 
+        fs-assert="validation-check" 
+        fs-feature="form-validation">
+        Submit Invalid Form
+      </button>
+    `;
+
+    const button = document.querySelector("button") as HTMLButtonElement;
+    button.addEventListener("click", async () => {
+      await fetch("/api/422");
+    });
+    button.click();
+
+    // Should pass because 422 is expected and not treated as an error
+    await vi.waitFor(() =>
+      expect(sendToServerMock).toHaveBeenCalledWith(
+        [
+          expect.objectContaining({
+            type: "response-status",
+            status: "passed",
+            statusReason: "",
           }),
         ],
         config
