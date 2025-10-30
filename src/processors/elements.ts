@@ -10,7 +10,7 @@ import type {
   ElementProcessor,
 } from "../types";
 
-interface ElementAssertionMetadata {
+export interface ElementAssertionMetadata {
   details: Record<string, string>;
   types: Record<string, number | string | boolean>;
   modifiers: Record<string, AssertionModiferValue>;
@@ -62,6 +62,7 @@ export function processElements(
     // Process each element that has assertion attributes
     for (const element of elementsToProcess) {
       const assertionMetadata = parseAssertions(element);
+      console.log(assertionMetadata)
       const newAssertions = createAssertions(element, assertionMetadata);
       allAssertions.push(...newAssertions);
     }
@@ -89,7 +90,7 @@ function isProcessableElement(
  * Returns the assertion metadta from an element
  * Defers casting assertion values until they are used
  */
-function parseAssertions(element: HTMLElement): ElementAssertionMetadata {
+export function parseAssertions(element: HTMLElement): ElementAssertionMetadata {
   let assertionMetaData: ElementAssertionMetadata = {
     details: {},
     types: {},

@@ -95,6 +95,7 @@ export type AssertionType =
   | "visible"
   | "hidden"
   | "loaded"
+  | "defer"
   | "response-headers"
   | "response-status";
 
