@@ -9,6 +9,7 @@ import {
   AssertionCollectionResolver,
 } from "../types";
 import { isVisible } from "../utils/elements";
+import { parseAssertions, ElementAssertionMetadata } from "../processors/elements";
 
 type FailureReasonCode = AssertionType | AssertionModifiers | "";
 
@@ -157,13 +158,106 @@ function handleAssertion(
   );
 }
 
+/**
+ * Evaluates a conditional element against a deferred assertion
+ * Parses assertion attributes from the conditional element and evaluates them
+ * Returns a completed assertion if conditions pass, null otherwise
+ */
+function evaluateConditionalElement(
+  conditionalElement: HTMLElement,
+  deferredAssertion: Assertion
+): CompletedAssertion | null {
+  // Parse assertion attributes from the conditional element (excluding fs-when)
+  const assertionMetadata: ElementAssertionMetadata = parseAssertions(conditionalElement);
+
+  // Skip if no assertion types found (only fs-when attribute)
+  if (Object.keys(assertionMetadata.types).length === 0) {
+    return null;
+  }
+
+  // Evaluate each assertion type on the conditional element
+  for (const [assertionType, typeValue] of Object.entries(assertionMetadata.types)) {
+    // Create a temporary assertion for evaluation
+    const tempAssertion: Assertion = {
+      ...deferredAssertion,
+      type: assertionType as AssertionType,
+      typeValue: typeValue as string,
+      modifiers: assertionMetadata.modifiers
+    };
+
+    // Use existing handleAssertion logic to evaluate the conditional element
+    const result = handleAssertion(
+      [conditionalElement],
+      tempAssertion,
+      (el) => el === conditionalElement
+    );
+
+    if (result && result.status === "passed") {
+      // Complete the original deferred assertion with conditional element details
+      return completeAssertion(
+        {
+          ...deferredAssertion,
+          elementSnapshot: conditionalElement.outerHTML, // Update with conditional element
+          typeValue: `${assertionType}:${typeValue}` // Show what resolved it
+        },
+        true,
+        `Resolved by conditional element with ${assertionType}="${typeValue}"`
+      );
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Handles deferred assertion resolution for DOM mutations
+ * Finds conditional elements with fs-when attributes and matches them to pending deferred assertions
+ * Uses evaluateConditionalElement to check if conditions pass
+ */
+function handleDeferredResolution(
+  elements: HTMLElement[],
+  assertions: Assertion[]
+): CompletedAssertion[] {
+  const deferredAssertions = assertions.filter(a => a.type === "defer");
+  if (deferredAssertions.length === 0) return [];
+
+  const completedAssertions: CompletedAssertion[] = [];
+
+  // Find elements with fs-when attributes among the mutated elements
+  const conditionalElements = elements.filter(el =>
+    el.hasAttribute("fs-when")
+  );
+
+  for (const conditionalElement of conditionalElements) {
+    const whenKey = conditionalElement.getAttribute("fs-when");
+
+    // Find matching deferred assertion
+    const matchingAssertion = deferredAssertions.find(
+      assertion => assertion.assertionKey === whenKey
+    );
+
+    if (matchingAssertion) {
+      const result = evaluateConditionalElement(
+        conditionalElement,
+        matchingAssertion
+      );
+
+      if (result) {
+        completedAssertions.push(result);
+      }
+    }
+  }
+
+  return completedAssertions;
+}
+
 export const elementResolver: ElementResolver = (
   addedElements: HTMLElement[],
   removedElements: HTMLElement[],
   updatedElements: HTMLElement[],
   assertions: Assertion[]
 ): CompletedAssertion[] => {
-  return assertions.reduce((acc: CompletedAssertion[], assertion) => {
+  const standardAssertions = assertions.reduce((acc: CompletedAssertion[], assertion) => {
     if (!domAssertions.includes(assertion.type)) {
       return acc;
     }
@@ -198,9 +292,62 @@ export const elementResolver: ElementResolver = (
 
     return acc;
   }, []);
+
+  // Handle deferred assertion resolution for mutated elements
+  const deferredResolutions = handleDeferredResolution(
+    [...addedElements, ...updatedElements], // Check added and updated elements
+    assertions
+  );
+
+  return [...standardAssertions, ...deferredResolutions];
 };
 
+/**
+ * Resolver to check existing DOM elements for fs-when attributes
+ * Only called from checkAssertions() to handle pre-existing conditional elements
+ */
+export const deferredResolver: AssertionCollectionResolver = (
+  assertions: Assertion[],
+  _config
+): CompletedAssertion[] => {
+  const deferredAssertions = assertions.filter(a => a.type === "defer");
+  if (deferredAssertions.length === 0) return [];
 
+  const completedAssertions: CompletedAssertion[] = [];
+
+  // Query all conditional elements once
+  const allConditionalElements = Array.from(
+    document.querySelectorAll("[fs-when]")
+  ) as HTMLElement[];
+
+  // Match conditional elements to deferred assertions
+  for (const conditionalElement of allConditionalElements) {
+    const whenKey = conditionalElement.getAttribute("fs-when");
+
+    // Find matching deferred assertion
+    const matchingAssertion = deferredAssertions.find(
+      assertion => assertion.assertionKey === whenKey
+    );
+
+    if (matchingAssertion) {
+      const result = evaluateConditionalElement(
+        conditionalElement,
+        matchingAssertion
+      );
+
+      if (result) {
+        completedAssertions.push(result);
+        // Remove the resolved assertion from further processing
+        const index = deferredAssertions.indexOf(matchingAssertion);
+        if (index > -1) {
+          deferredAssertions.splice(index, 1);
+        }
+      }
+    }
+  }
+
+  return completedAssertions;
+};
 
 export const immediateResolver: AssertionCollectionResolver = (
   assertions: Assertion[],

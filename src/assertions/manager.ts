@@ -16,7 +16,7 @@ import { sendToCollector } from "./server";
 import { eventProcessor } from "../processors/events";
 import { createElementProcessor } from "../processors/elements";
 import { mutationHandler } from "../processors/mutations";
-import { documentResolver, elementResolver, immediateResolver } from "../resolvers/dom";
+import { documentResolver, elementResolver, immediateResolver, deferredResolver } from "../resolvers/dom";
 import { httpErrorResolver, httpResponseResolver } from "../resolvers/http";
 import { globalErrorResolver } from "../resolvers/error";
 
@@ -179,7 +179,11 @@ export function createAssertionManager(config: Configuration) {
     settle(
       documentResolver(getAssertionsForMpaMode(pendingAssertions), config)
     );
+    // TODO use property resolver to find fs-when=<fs-assert>
     settle(propertyResolver(pendingAssertions, config));
+
+    // Check deferred assertions against existing DOM elements
+    settle(deferredResolver(pendingAssertions, config));
   };
 
   const settle = (completeAssertions: CompletedAssertion[]): void => {

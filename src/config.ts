@@ -20,6 +20,7 @@ export const domAssertions = [
   "visible",
   "hidden",
   "loaded",
+  "defer"
 ];
 export const httpResponseAssertions = ["response-status", "response-headers"];
 export const httpResponseHeaderKey = "fs-resp-for";
