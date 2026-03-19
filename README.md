@@ -281,6 +281,55 @@ interface EventPayload {
 ```
 
 
+## Framework Usage
+
+The `fs-*` attributes are standard HTML attributes that work in any framework rendering to the DOM.
+
+#### React JSX
+```jsx
+<button onClick={handleAdd}
+  fs-feature="cart" fs-assert="add-item" fs-trigger="click"
+  fs-assert-updated="#cart-count">
+  Add to Cart
+</button>
+```
+React passes unknown attributes through to the DOM on native elements. For custom components, ensure props are forwarded to the root DOM element.
+
+#### Vue SFC
+```vue
+<template>
+  <button @click="handleAdd"
+    fs-feature="cart" fs-assert="add-item" fs-trigger="click"
+    fs-assert-updated="#cart-count">
+    Add to Cart
+  </button>
+</template>
+```
+
+#### Svelte
+```svelte
+<button on:click={handleAdd}
+  fs-feature="cart" fs-assert="add-item" fs-trigger="click"
+  fs-assert-updated="#cart-count">
+  Add to Cart
+</button>
+```
+
+## Common Patterns
+
+See the [interactive examples](https://www.faultsense.org/examples) for live demos of each pattern.
+
+| Pattern | Trigger | Assertion Type | Example |
+|---|---|---|---|
+| Button click updates content | `click` | `updated` + `text-matches` | [Counter](https://www.faultsense.org/examples/counter) |
+| Form adds item to list | `click` / `submit` | `added` | [Todo](https://www.faultsense.org/examples/todo) |
+| Modal open/close | `click` | `visible` / `removed` | [Modal](https://www.faultsense.org/examples/modal) |
+| Tab switching | `click` | `visible` + `updated` | [Tabs](https://www.faultsense.org/examples/tabs) |
+| Multi-step wizard | `click` | `visible` | [Wizard](https://www.faultsense.org/examples/wizard) |
+| Form with API validation | `submit` | `response-status` + `response-headers` | [Form](https://www.faultsense.org/examples/form) |
+| Full page reload (MPA) | `click` | `visible` + `mpa` | [MPA](https://www.faultsense.org/examples/mpa) |
+| API request + DOM update | `click` | `updated` + `response-status` | [Network](https://www.faultsense.org/examples/network) |
+
 ## Package Info
 
 - **Size**: 6.5 KB gzipped

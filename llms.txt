@@ -1,0 +1,101 @@
+# Faultsense
+
+> Faultsense is a lightweight (6.5KB gzipped) browser agent that validates feature correctness in production through declarative HTML attribute assertions. Think E2E test assertions, but running against real user sessions.
+
+- Docs: https://www.faultsense.org/docs
+- Full reference: [llms-full.txt](./llms-full.txt)
+- Examples: https://www.faultsense.org/examples
+- GitHub: https://github.com/Fault-Sense/faultsense-agent
+
+## How It Works
+
+Add `fs-*` HTML attributes to the element a user interacts with. The attributes declare: what event triggers the assertion, what DOM or network outcome is expected, and how to verify it. The agent monitors real user sessions and reports pass/fail results to a collector.
+
+## Attribute Reference
+
+### Required Identifiers
+
+- `fs-feature="<key>"` — Feature group (e.g., "checkout", "cart")
+- `fs-assert="<key>"` — Unique assertion ID (e.g., "add-item", "submit-order")
+
+### Trigger (exactly 1 required)
+
+`fs-trigger="<value>"` where value is one of:
+- `click`, `dblclick`, `change`, `blur`, `submit` — User interaction events
+- `mount`, `unmount` — Element added/removed from DOM
+- `load`, `error` — Resource loading (img, video, iframe)
+
+### Assertion Types (at least 1 required)
+
+DOM assertions — value is a CSS selector:
+- `fs-assert-added="<selector>"` — Element matching selector is added to DOM
+- `fs-assert-removed="<selector>"` — Element matching selector is removed from DOM
+- `fs-assert-updated="<selector>"` — Element or its subtree is mutated (text, attributes, children)
+- `fs-assert-visible="<selector>"` — Element exists and is visible (has layout dimensions)
+- `fs-assert-hidden="<selector>"` — Element exists and is not visible
+- `fs-assert-loaded="<selector>"` — Media element (img/video) finishes loading
+
+Network assertions — value is the expected value:
+- `fs-assert-response-status="<code>"` — HTTP response status matches (e.g., "200", "201")
+- `fs-assert-response-headers='<json>'` — Response headers match (e.g., '{"content-type":"application/json"}')
+
+### Modifiers (optional)
+
+- `fs-assert-text-matches="<string|regex>"` — Text content of the asserted element matches
+- `fs-assert-attrs-match='<json>'` — Attributes match (e.g., '{"src":"/img/logo.png"}')
+- `fs-assert-classlist='<json>'` — Classes present/absent (e.g., '{"active":true,"hidden":false}')
+- `fs-assert-timeout="<ms>"` — Override default timeout (default: 1000ms)
+- `fs-assert-mpa="true"` — Persist assertion across page navigation (resolved on next page load)
+
+### Network Association
+
+Network assertions require linking a request/response to an assertion via the `fs-resp-for` header:
+- Request header: `fetch(url, { headers: { "fs-resp-for": "<assertion-key>" } })`
+- Response header: Server sets `fs-resp-for: <assertion-key>` on the response
+- Query param: `fetch(url + "?fs-resp-for=<assertion-key>")`
+
+## Placement Rule
+
+Attributes go on the element that receives the user event. In event mode, only the exact `event.target` element is processed.
+
+## Examples
+
+### Button click updates DOM element
+
+```html
+<button
+  fs-feature="counter"
+  fs-assert="increment"
+  fs-trigger="click"
+  fs-assert-updated="#count"
+  fs-assert-text-matches="Count: [1-9]\d*">
+  Increment
+</button>
+<span id="count">Count: 0</span>
+```
+
+### Form submission with network validation
+
+```html
+<form
+  fs-feature="contact"
+  fs-assert="submit-form"
+  fs-trigger="submit"
+  fs-assert-response-status="201"
+  fs-assert-timeout="2000">
+  <input name="email" type="email" />
+  <button type="submit">Send</button>
+</form>
+```
+
+### Initial state validation on page load
+
+```html
+<div
+  fs-feature="todo-app"
+  fs-assert="initial-state"
+  fs-trigger="mount"
+  fs-assert-visible=".todos-empty">
+  <!-- app content -->
+</div>
+```

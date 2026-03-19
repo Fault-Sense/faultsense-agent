@@ -1,0 +1,363 @@
+# Faultsense — Full Reference
+
+> Faultsense is a lightweight (6.5KB gzipped), zero-dependency browser agent that validates feature correctness in production through declarative HTML attribute assertions. It runs against real user sessions — like E2E test assertions built into your HTML.
+
+- Docs: https://www.faultsense.org/docs
+- Examples: https://www.faultsense.org/examples
+- GitHub: https://github.com/Fault-Sense/faultsense-agent
+
+## Core Concept
+
+Developers add `fs-*` attributes to HTML elements to declare: (1) what user event triggers the assertion, (2) what DOM or network outcome is expected, and (3) optional modifiers to refine the check. The agent monitors real user sessions and reports pass/fail to a collector.
+
+An element with `fs-*` attributes creates one assertion per assertion type. If an element has both `fs-assert-updated` and `fs-assert-response-status`, two separate assertions are created — each resolved independently.
+
+---
+
+## API Reference
+
+### Identifier Attributes
+
+| Attribute | Required | Description |
+|---|---|---|
+| `fs-feature="<key>"` | Yes | Groups assertions under a feature (e.g., "checkout") |
+| `fs-assert="<key>"` | Yes | Unique assertion identifier (e.g., "submit-order") |
+| `fs-feature-label="<label>"` | No | Human-readable feature name |
+| `fs-assert-label="<label>"` | No | Human-readable assertion name |
+
+### Triggers
+
+`fs-trigger="<value>"` — Exactly one required per element.
+
+| Trigger | When it fires | Typical elements |
+|---|---|---|
+| `click` | Element is clicked | button, a, div, span |
+| `dblclick` | Element is double-clicked | Any |
+| `change` | Input value changes | input, select, textarea, checkbox |
+| `blur` | Element loses focus | input, textarea |
+| `submit` | Form is submitted | form |
+| `mount` | Element is added to the DOM | Any (useful for page load validation) |
+| `unmount` | Element is removed from the DOM | Any |
+| `load` | Resource finishes loading | img, video, iframe |
+| `error` | Resource fails to load | img, video, iframe |
+
+### Assertion Types
+
+At least one required. Value depends on the type.
+
+**DOM Assertions** — value is a CSS selector:
+
+| Attribute | Resolves when |
+|---|---|
+| `fs-assert-added="<selector>"` | A new element matching the selector appears in the DOM |
+| `fs-assert-removed="<selector>"` | An element matching the selector is removed from the DOM |
+| `fs-assert-updated="<selector>"` | The matched element or anything in its subtree is mutated (text change, attribute change, child added/removed) |
+| `fs-assert-visible="<selector>"` | The matched element exists and has layout dimensions (offsetWidth/offsetHeight > 0 or getClientRects().length > 0) |
+| `fs-assert-hidden="<selector>"` | The matched element exists but has no layout dimensions |
+| `fs-assert-loaded="<selector>"` | A media element (img/video) matching the selector finishes loading |
+
+**Network Assertions** — value is the expected value:
+
+| Attribute | Resolves when |
+|---|---|
+| `fs-assert-response-status="<code>"` | An associated HTTP response has this exact status code (e.g., "200") |
+| `fs-assert-response-headers='<json>'` | An associated HTTP response headers are a superset of this JSON object |
+
+### Modifiers
+
+Optional attributes that refine how assertions are checked.
+
+| Attribute | Description |
+|---|---|
+| `fs-assert-text-matches="<string\|regex>"` | Text content of the asserted DOM element must match. Evaluated as `new RegExp(value).test(el.textContent)`. |
+| `fs-assert-attrs-match='<json>'` | Attributes of the asserted element must match. JSON object of `{ "attr": "value" }` pairs. |
+| `fs-assert-classlist='<json>'` | Classes on the asserted element. JSON object of `{ "class": true/false }` where true = must have, false = must not have. |
+| `fs-assert-timeout="<ms>"` | Override the default timeout (1000ms). Assertion fails if not resolved within this time. |
+| `fs-assert-mpa="true"` | Multi-page assertion. Persisted to localStorage and resolved on the next page load when the agent re-initializes. |
+
+### Network Association
+
+Network assertions require linking an HTTP request/response to a specific assertion. This is done via the `fs-resp-for` mechanism — the value must match the `fs-assert` key.
+
+Three options (use any one):
+1. **Request header**: `fetch(url, { headers: { "fs-resp-for": "my-assertion-key" } })`
+2. **Response header**: Server returns `fs-resp-for: my-assertion-key` header
+3. **Query parameter**: `fetch(url + "?fs-resp-for=my-assertion-key")`
+
+---
+
+## Placement Rules
+
+1. **Attributes go on the trigger element** — the element the user directly interacts with. In event mode, only the exact `event.target` is processed.
+2. **For forms**: Use `fs-trigger="submit"` on the `<form>` element, OR `fs-trigger="click"` on the submit `<button>`. Both work.
+3. **For mount/unmount**: Place on the element being observed for addition/removal.
+4. **For load/error**: Place on the media element itself (`<img>`, `<video>`, `<iframe>`).
+5. **One trigger per element**: `fs-trigger` accepts exactly one value.
+6. **Multiple assertion types on one element**: Valid. Each creates a separate assertion resolved independently.
+7. **Framework components**: `fs-*` attributes must reach the actual DOM element. In React, native elements (`<button>`, `<div>`) pass through unknown attributes. Wrapper components need to forward props via `{...rest}` or spread.
+
+---
+
+## Common Patterns
+
+### 1. Button Click → DOM Update (Counter)
+
+```html
+<button
+  fs-feature="counter"
+  fs-assert="increment"
+  fs-trigger="click"
+  fs-assert-updated="#counter"
+  fs-assert-text-matches="Count: [1-9]\d*">
+  Increment
+</button>
+<div id="counter">Count: 0</div>
+```
+
+Asserts: clicking increments the count and the display updates with a positive number.
+
+### 2. Form Submit → Element Added (Todo)
+
+```html
+<button type="submit"
+  fs-feature="todo-app"
+  fs-assert="add-todo"
+  fs-trigger="click"
+  fs-assert-added=".todo-item">
+  Add Todo
+</button>
+```
+
+Asserts: submitting adds a new todo item to the DOM.
+
+### 3. Modal Open/Close (Dialog)
+
+```html
+<!-- Open trigger -->
+<button
+  fs-feature="modal"
+  fs-assert="open-modal"
+  fs-trigger="click"
+  fs-assert-visible=".modal-overlay">
+  Open Modal
+</button>
+
+<!-- Close trigger (inside modal) -->
+<button
+  fs-feature="modal"
+  fs-assert="close-modal"
+  fs-trigger="click"
+  fs-assert-removed=".modal-content">
+  Cancel
+</button>
+```
+
+Asserts: clicking opens the modal (visible), clicking cancel removes it.
+
+### 4. Tab Switching (Tabbed Interface)
+
+```html
+<button class="tab-button" data-tab="settings"
+  fs-feature="tabs"
+  fs-assert="switch-tab"
+  fs-trigger="click"
+  fs-assert-visible=".tab-content[data-tab='settings']">
+  Settings
+</button>
+```
+
+Asserts: clicking the tab makes the corresponding content panel visible.
+
+### 5. Multi-Step Wizard
+
+```html
+<button class="next-button"
+  fs-feature="wizard"
+  fs-assert="navigate-next"
+  fs-trigger="click"
+  fs-assert-visible=".wizard-step[data-step='2']">
+  Next
+</button>
+```
+
+Asserts: clicking next shows the next wizard step.
+
+### 6. Form Submit → Network Response
+
+```html
+<form
+  fs-feature="contact-form"
+  fs-assert="submit-form"
+  fs-trigger="submit"
+  fs-assert-response-status="201"
+  fs-assert-response-headers='{"content-type":"application/json"}'
+  fs-assert-timeout="2000">
+  <input name="email" type="email" />
+  <button type="submit">Send</button>
+</form>
+```
+
+Asserts: form submission returns HTTP 201 with JSON content-type. Requires `fs-resp-for: submit-form` header on the request or response.
+
+### 7. MPA Navigation (Multi-Page App)
+
+```html
+<button
+  fs-feature="mpa-form"
+  fs-assert="submit-mpa"
+  fs-trigger="click"
+  fs-assert-mpa="true"
+  fs-assert-visible=".success-message">
+  Submit
+</button>
+```
+
+Asserts: after a full page reload, the success message is visible. The assertion is stored in localStorage and resolved when the agent initializes on the next page.
+
+### 8. API Request → DOM Update + Response Status
+
+```html
+<button
+  fs-feature="data-loader"
+  fs-assert="load-posts"
+  fs-trigger="click"
+  fs-assert-updated="#results"
+  fs-assert-response-status="200"
+  fs-assert-timeout="2600">
+  Load Posts
+</button>
+<div id="results"></div>
+```
+
+Asserts: clicking loads data, updates the results container, and the API returns 200. Two separate assertions created (DOM + network).
+
+---
+
+## Framework Syntax
+
+The `fs-*` attributes are standard HTML attributes. They work in any framework that renders to the DOM.
+
+### Plain HTML
+
+```html
+<button fs-feature="cart" fs-assert="add-item" fs-trigger="click"
+  fs-assert-updated="#cart-count">
+  Add to Cart
+</button>
+```
+
+### React JSX
+
+```jsx
+<button fs-feature="cart" fs-assert="add-item" fs-trigger="click"
+  fs-assert-updated="#cart-count"
+  onClick={handleAddToCart}>
+  Add to Cart
+</button>
+```
+
+React passes unknown attributes through to the DOM on native elements (`button`, `div`, etc.). For custom components, ensure props are forwarded to the root DOM element.
+
+### Vue SFC
+
+```vue
+<template>
+  <button fs-feature="cart" fs-assert="add-item" fs-trigger="click"
+    fs-assert-updated="#cart-count"
+    @click="handleAddToCart">
+    Add to Cart
+  </button>
+</template>
+```
+
+Vue passes unknown attributes through via `inheritAttrs` (default: true).
+
+### Svelte
+
+```svelte
+<button fs-feature="cart" fs-assert="add-item" fs-trigger="click"
+  fs-assert-updated="#cart-count"
+  on:click={handleAddToCart}>
+  Add to Cart
+</button>
+```
+
+Svelte passes unknown attributes through on native elements.
+
+---
+
+## Common Mistakes
+
+1. **Putting `fs-trigger` on a parent instead of the interacted element.** The agent only processes the exact `event.target`. If the user clicks a `<span>` inside a `<button>`, the `<button>` is the target (due to event bubbling), but a `<div>` wrapper above it is not.
+
+2. **Forgetting `fs-resp-for` for network assertions.** `fs-assert-response-status` and `fs-assert-response-headers` require associating the HTTP request/response via the `fs-resp-for` header or query param. Without it, the assertion will always time out.
+
+3. **Using `added` when `updated` is correct.** Use `added` when the element doesn't exist yet and will be created. Use `updated` when the element already exists and its content/attributes will change.
+
+4. **Using `visible` when `added` is correct.** `visible` checks an existing element's layout dimensions. `added` checks for a new element appearing in the DOM. If the element is conditionally rendered (doesn't exist until triggered), use `added`.
+
+5. **Missing required attributes.** Every instrumented element needs: `fs-feature`, `fs-assert`, `fs-trigger`, and at least one assertion type (`fs-assert-added`, `fs-assert-updated`, etc.).
+
+6. **Using `text-matches` with exact dynamic values.** If the expected text is dynamic (user names, prices, timestamps), use a regex pattern instead of an exact string. `fs-assert-text-matches="\\d+"` is better than `fs-assert-text-matches="42"`.
+
+---
+
+## Event Payload
+
+Each resolved assertion sends this payload to the collector:
+
+```typescript
+{
+  assertion_key: string;        // from fs-assert
+  assertion_label: string;      // from fs-assert-label (or "")
+  assertion_trigger: string;    // from fs-trigger
+  assertion_type: string;       // "added" | "removed" | "updated" | "visible" | "hidden" | "loaded" | "response-status" | "response-headers"
+  assertion_type_value: string; // the selector or expected value
+  assertion_type_modifiers: {}; // modifier key-value pairs
+  element_snapshot: string;     // outerHTML of the trigger element at assertion creation time
+  feature_key: string;          // from fs-feature
+  feature_label: string;        // from fs-feature-label (or "")
+  release_label: string;        // from configuration
+  status: "passed" | "failed";
+  status_reason: string;        // failure explanation (or "")
+  timestamp: string;            // ISO 8601 timestamp
+}
+```
+
+---
+
+## Installation
+
+### Script tag (auto-init)
+
+```html
+<script defer id="fs-agent"
+  src="https://unpkg.com/faultsense@latest/dist/faultsense-agent.min.js"
+  data-release-label="0.0.0"
+  data-collector-url="console"
+  data-debug="true">
+</script>
+```
+
+### Manual init
+
+```html
+<script src="https://unpkg.com/faultsense@latest/dist/faultsense-agent.min.js"></script>
+<script>
+  Faultsense.init({
+    releaseLabel: '0.0.0',
+    collectorURL: Faultsense.collectors.consoleCollector,
+    debug: true
+  });
+</script>
+```
+
+### Configuration
+
+| Option | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `releaseLabel` | string | Yes | — | App version or commit hash |
+| `collectorURL` | string or function | Yes | — | Backend endpoint URL or custom collector function |
+| `apiKey` | string | If URL | — | API key (required when collectorURL is a URL) |
+| `timeout` | number | No | 1000 | Default assertion timeout in ms |
+| `debug` | boolean | No | false | Enable console logging |
