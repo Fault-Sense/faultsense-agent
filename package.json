@@ -26,7 +26,7 @@
     "url": "https://github.com/Fault-Sense/faultsense-agent/issues"
   },
   "scripts": {
-    "build": "esbuild src/index.ts --bundle --target=es2020 --outfile=./dist/faultsense-agent.min.js --global-name=Faultsense --format=iife --minify",
+    "build": "esbuild src/index.ts --bundle --target=es2022 --outfile=./dist/faultsense-agent.min.js --global-name=Faultsense --format=iife --minify",
     "size": "echo \"📦 faultsense-agent.min.js\" && ls -lh dist/faultsense-agent.min.js | awk '{print \"   Raw: \" $5 \"B\"}' && echo \"   Gzipped: $(echo \"scale=1; $(gzip -c dist/faultsense-agent.min.js | wc -c | tr -d ' ') / 1024\" | bc)kb\"",
     "build:size": "npm run build && npm run size",
     "prepublishOnly": "npm run build",
@@ -45,6 +45,7 @@
     "esbuild": "^0.25.11",
     "jsdom": "^25.0.0",
     "msw": "^2.4.6",
+    "typescript": "^5.9.3",
     "vitest": "^3.2.4"
   }
 }

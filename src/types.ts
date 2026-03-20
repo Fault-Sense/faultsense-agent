@@ -118,7 +118,7 @@ export interface Assertion {
   endTime?: number;
   status?: AssertionStatus;
   statusReason?: string;
-  modifiers: Record<AssertionModifiers, AssertionModiferValue>;
+  modifiers: Partial<Record<AssertionModifiers, AssertionModiferValue>>;
   previousStartTime?: number;
   previousEndTime?: number;
   previousStatus?: AssertionStatus;
@@ -137,7 +137,7 @@ export interface ApiPayload {
   assertion_trigger: string;
   assertion_type_value: string;
   assertion_type: AssertionType;
-  assertion_type_modifiers: Record<AssertionModifiers, AssertionModiferValue>;
+  assertion_type_modifiers: Partial<Record<AssertionModifiers, AssertionModiferValue>>;
   element_snapshot: string;
   release_label: string;
   status_reason: string;
