@@ -60,10 +60,9 @@ describe("Faultsense Agent - Assertion Type modifer: text-matches", () => {
   it("Should pass if the childs text matches the string literal", async () => {
     document.body.innerHTML = `
       <p id="note"></p>
-      <button fs-trigger="click" 
-      fs-assert-updated="#note" 
-      fs-assert-text-matches="Hello World" 
-      fs-assert="panel-text-update" 
+      <button fs-trigger="click"
+      fs-assert-updated='#note[text-matches=Hello World]'
+      fs-assert="panel-text-update"
       fs-feature="updater">Click</button>
     `;
 
@@ -93,10 +92,9 @@ describe("Faultsense Agent - Assertion Type modifer: text-matches", () => {
   it("Should fail if the childs text does not match the string literal", async () => {
     document.body.innerHTML = `
       <p id="note"></p>
-      <button fs-trigger="click" 
-      fs-assert-updated="#note" 
-      fs-assert-text-matches="Hello World" 
-      fs-assert="panel-text-update" 
+      <button fs-trigger="click"
+      fs-assert-updated='#note[text-matches=Hello World]'
+      fs-assert="panel-text-update"
       fs-feature="updater">Click</button>
     `;
 
@@ -126,10 +124,9 @@ describe("Faultsense Agent - Assertion Type modifer: text-matches", () => {
   it("Should pass if the childs text matches the regex", async () => {
     document.body.innerHTML = `
       <p id="note">Count: 0</p>
-      <button fs-trigger="click" 
-      fs-assert-updated="#note" 
-      fs-assert-text-matches="Count: \\d+" 
-      fs-assert="panel-text-update" 
+      <button fs-trigger="click"
+      fs-assert-updated='#note[text-matches=Count: \\d+]'
+      fs-assert="panel-text-update"
       fs-feature="updater">Click</button>
     `;
 
@@ -159,10 +156,9 @@ describe("Faultsense Agent - Assertion Type modifer: text-matches", () => {
   it("Should fail if the childs text does not match the regex", async () => {
     document.body.innerHTML = `
       <p id="note">Count: 0</p>
-      <button fs-trigger="click" 
-      fs-assert-updated="#note" 
-      fs-assert-text-matches="Count: [a-z]+" 
-      fs-assert="panel-text-update" 
+      <button fs-trigger="click"
+      fs-assert-updated='#note[text-matches=Count: [a-z]+]'
+      fs-assert="panel-text-update"
       fs-feature="updater">Click</button>
     `;
 
@@ -193,8 +189,7 @@ describe("Faultsense Agent - Assertion Type modifer: text-matches", () => {
     document.body.innerHTML = `
       <p id="note"></p>
       <button fs-trigger="click"
-      fs-assert-updated="#note"
-      fs-assert-text-matches="Count: [a-z]+"
+      fs-assert-updated='#note[text-matches=Count: [a-z]+]'
       fs-assert="panel-text-update"
       fs-feature="updater">Click</button>
     `;
@@ -227,11 +222,10 @@ describe("Faultsense Agent - Assertion Type modifer: text-matches", () => {
 
     document.body.innerHTML = `
       <div id="counter">Count: 0</div>
-      <button id="increment-btn" 
-        fs-trigger="click" 
-        fs-assert-updated="#counter" 
-        fs-assert-text-matches="Count: 1"
-        fs-assert="dynamic-counter" 
+      <button id="increment-btn"
+        fs-trigger="click"
+        fs-assert-updated='#counter[text-matches=Count: 1]'
+        fs-assert="dynamic-counter"
         fs-feature="counter">
         Increment
       </button>
@@ -248,7 +242,7 @@ describe("Faultsense Agent - Assertion Type modifer: text-matches", () => {
 
       // Update the text-matches attribute to expect the next count value
       const nextExpectedCount = count + 1;
-      button.setAttribute("fs-assert-text-matches", `Count: ${nextExpectedCount}`);
+      button.setAttribute("fs-assert-updated", `#counter[text-matches=Count: ${nextExpectedCount}]`);
     });
 
     // First click: count goes from 0 to 1, display shows "Count: 1"
@@ -257,7 +251,7 @@ describe("Faultsense Agent - Assertion Type modifer: text-matches", () => {
 
     // Verify state
     expect(counter.textContent).toBe("Count: 1");
-    expect(button.getAttribute("fs-assert-text-matches")).toBe("Count: 2");
+    expect(button.getAttribute("fs-assert-updated")).toBe("#counter[text-matches=Count: 2]");
 
 
     await vi.waitFor(() =>
@@ -280,7 +274,7 @@ describe("Faultsense Agent - Assertion Type modifer: text-matches", () => {
 
     // Verify state
     expect(counter.textContent).toBe("Count: 2");
-    expect(button.getAttribute("fs-assert-text-matches")).toBe("Count: 3");
+    expect(button.getAttribute("fs-assert-updated")).toBe("#counter[text-matches=Count: 3]");
 
 
     await vi.waitFor(() =>

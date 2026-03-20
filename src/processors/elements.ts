@@ -2,7 +2,8 @@ import {
   supportedAssertions,
   assertionPrefix,
   assertionTriggerAttr,
-  responseConditionPattern,
+  statusSuffixPattern,
+  inlineModifiers,
   domAssertions,
 } from "../config";
 import type {
@@ -35,24 +36,110 @@ export class AssertionError extends Error {
 }
 
 /**
+ * Parse a type attribute value into a selector and inline modifiers.
+ * Format: "selector[key=value][key=value]..."
+ * Handles nested brackets in values (e.g., regex character classes like [a-z])
+ */
+function parseTypeValue(raw: string): { selector: string; modifiers: Record<string, string> } {
+  const firstBracket = raw.indexOf('[');
+  if (firstBracket === -1) {
+    return { selector: raw, modifiers: {} };
+  }
+
+  const selector = raw.slice(0, firstBracket);
+  const modifiers: Record<string, string> = {};
+
+  // Walk the string character by character to handle nested brackets
+  let i = firstBracket;
+  while (i < raw.length) {
+    if (raw[i] !== '[') { i++; continue; }
+
+    // Find the key (up to '=')
+    const eqIndex = raw.indexOf('=', i + 1);
+    if (eqIndex === -1) break;
+    const key = raw.slice(i + 1, eqIndex);
+
+    // Find the matching closing bracket, tracking nesting depth
+    let depth = 1;
+    let j = eqIndex + 1;
+    while (j < raw.length && depth > 0) {
+      if (raw[j] === '[') depth++;
+      else if (raw[j] === ']') depth--;
+      if (depth > 0) j++;
+    }
+
+    if (depth === 0) {
+      modifiers[key] = raw.slice(eqIndex + 1, j);
+      i = j + 1;
+    } else {
+      break;
+    }
+  }
+
+  return { selector, modifiers };
+}
+
+/**
+ * Resolve inline modifiers to the format resolvers expect.
+ * Reserved keys (text-matches, classlist) pass through.
+ * Unreserved keys become attrs-match entries.
+ */
+function resolveInlineModifiers(
+  inlineMods: Record<string, string>
+): Record<string, string> {
+  const resolved: Record<string, string> = {};
+  const attrChecks: Record<string, string> = {};
+
+  for (const [key, value] of Object.entries(inlineMods)) {
+    if (inlineModifiers.includes(key) || key === "response-status") {
+      resolved[key] = value;
+    } else {
+      attrChecks[key] = value;
+    }
+  }
+
+  // Convert classlist from "active:true,hidden:false" to JSON
+  if (resolved["classlist"]) {
+    const classMap: Record<string, boolean> = {};
+    for (const pair of resolved["classlist"].split(",")) {
+      const [cls, val] = pair.split(":");
+      classMap[cls.trim()] = val.trim() === "true";
+    }
+    resolved["classlist"] = JSON.stringify(classMap);
+  }
+
+  // Convert attribute checks to attrs-match JSON
+  if (Object.keys(attrChecks).length > 0) {
+    resolved["attrs-match"] = JSON.stringify(attrChecks);
+  }
+
+  return resolved;
+}
+
+/**
  * Parse dynamic assertion types from element attributes.
- * Decomposes compound attribute names (e.g., "fs-assert-resp-200-added")
- * into fully resolved type entries.
+ * Matches: fs-assert-{knownType}-{status} (e.g., fs-assert-added-200, fs-assert-removed-4xx)
  */
 function parseDynamicTypes(element: HTMLElement): AssertionTypeEntry[] {
   const prefix = assertionPrefix.types;
   const types: AssertionTypeEntry[] = [];
 
   for (const attr of Array.from(element.attributes)) {
-    if (attr.name.startsWith(`${prefix}resp-`)) {
-      const suffix = attr.name.slice(`${prefix}resp-`.length);
-      const match = suffix.match(responseConditionPattern);
-      if (match && domAssertions.includes(match[2])) {
-        types.push({
-          type: match[2],
-          value: attr.value,
-          modifiers: { "response-status": match[1] },
-        });
+    if (!attr.name.startsWith(prefix)) continue;
+    const suffix = attr.name.slice(prefix.length);
+
+    for (const domType of domAssertions) {
+      if (suffix.startsWith(`${domType}-`)) {
+        const statusPart = suffix.slice(domType.length + 1);
+        if (statusSuffixPattern.test(statusPart)) {
+          const { selector, modifiers } = parseTypeValue(attr.value);
+          types.push({
+            type: domType,
+            value: selector,
+            modifiers: { ...modifiers, "response-status": statusPart },
+          });
+        }
+        break;
       }
     }
   }
@@ -143,7 +230,12 @@ function parseAssertions(element: HTMLElement): ElementAssertionMetadata {
     for (const key of keys) {
       const value = element.getAttribute(`${assertionPrefix.types}${key}`);
       if (value !== null) {
-        assertionMetaData.types.push({ type: key, value });
+        const parsed = parseTypeValue(value);
+        assertionMetaData.types.push({
+          type: key,
+          value: parsed.selector,
+          modifiers: Object.keys(parsed.modifiers).length > 0 ? parsed.modifiers : undefined,
+        });
       }
     }
   };
@@ -202,9 +294,10 @@ function createAssertions(
   }
 
   return metadata.types.map((typeEntry) => {
-    const mergedModifiers = typeEntry.modifiers
-      ? { ...metadata.modifiers, ...typeEntry.modifiers }
-      : metadata.modifiers;
+    const resolvedMods = typeEntry.modifiers
+      ? resolveInlineModifiers(typeEntry.modifiers)
+      : {};
+    const mergedModifiers = { ...metadata.modifiers, ...resolvedMods };
 
     return {
       assertionKey: metadata.details["assert"],
@@ -222,7 +315,7 @@ function createAssertions(
       type: typeEntry.type as AssertionType,
       typeValue: typeEntry.value as string,
       modifiers: mergedModifiers,
-      httpPending: typeEntry.modifiers ? true : undefined,
+      httpPending: resolvedMods["response-status"] ? true : undefined,
     };
   });
 }

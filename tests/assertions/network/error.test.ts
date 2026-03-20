@@ -80,7 +80,7 @@ describe("Faultsense Agent - HTTP Errors with Response-Conditional Assertions", 
     document.body.innerHTML = `
       <button
         fs-trigger="click"
-        fs-assert-resp-200-added=".success"
+        fs-assert-added-200=".success"
         fs-assert="server-check"
         fs-feature="network">
         Click me
@@ -114,8 +114,8 @@ describe("Faultsense Agent - HTTP Errors with Response-Conditional Assertions", 
     document.body.innerHTML = `
       <button
         fs-trigger="click"
-        fs-assert-resp-200-added=".success"
-        fs-assert-resp-5xx-added=".error"
+        fs-assert-added-200=".success"
+        fs-assert-added-5xx=".error"
         fs-assert="server-check"
         fs-feature="network">
         Click me
@@ -153,7 +153,7 @@ describe("Faultsense Agent - HTTP Errors with Response-Conditional Assertions", 
     document.body.innerHTML = `
       <button
         fs-trigger="click"
-        fs-assert-resp-200-added=".success"
+        fs-assert-added-200=".success"
         fs-assert="server-check"
         fs-feature="network">
         Click me

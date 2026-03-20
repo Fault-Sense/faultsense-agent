@@ -5,7 +5,7 @@ import { init } from "../../src/index";
 import * as resolveModule from "../../src/assertions/server";
 import { isVisible } from "../../src/utils/elements";
 
-describe.only("Faultsense Agent - Assertion Type modifer: attrs-match", () => {
+describe("Faultsense Agent - Assertion Type modifer: attrs-match", () => {
   let consoleErrorMock: ReturnType<typeof vi.spyOn>;
   let sendToServerMock: ReturnType<typeof vi.spyOn>;
   let cleanupFn: ReturnType<typeof init>;
@@ -61,10 +61,9 @@ describe.only("Faultsense Agent - Assertion Type modifer: attrs-match", () => {
   it("Should pass if a subset of the target attributes match", async () => {
     document.body.innerHTML = `
       <img id="logo" class="foo bar baz" id="logo" width="100" height="100" alt="alt text" />
-      <button fs-trigger="click" 
-      fs-assert-updated="#logo" 
-      fs-assert-attrs-match='{ "src": "/path/to/foo.png", "width": "100", "height": "100",  "alt": "alt text" }'
-      fs-assert="img-src-update" 
+      <button fs-trigger="click"
+      fs-assert-updated='#logo[src=/path/to/foo.png][width=100][height=100][alt=alt text]'
+      fs-assert="img-src-update"
       fs-feature="updater">Click</button>
     `;
 
@@ -89,13 +88,12 @@ describe.only("Faultsense Agent - Assertion Type modifer: attrs-match", () => {
     );
   });
 
-  it.only("Should fail if any of the subset of the target attributes do not match", async () => {
+  it("Should fail if any of the subset of the target attributes do not match", async () => {
     document.body.innerHTML = `
       <img id="logo" class="foo bar baz" id="logo" width="100" height="100" alt="alt text" />
-      <button fs-trigger="click" 
-      fs-assert-updated="#logo" 
-      fs-assert-attrs-match='{ "src": "/path/to/bar.png", "width": "100", "height": "100",  "alt": "some text" }'
-      fs-assert="img-src-update" 
+      <button fs-trigger="click"
+      fs-assert-updated='#logo[src=/path/to/bar.png][width=100][height=100][alt=some text]'
+      fs-assert="img-src-update"
       fs-feature="updater">Click</button>
     `;
 
@@ -113,7 +111,7 @@ describe.only("Faultsense Agent - Assertion Type modifer: attrs-match", () => {
           expect.objectContaining({
             status: "failed",
             statusReason:
-              'Attributes do not match all: "{ "src": "/path/to/bar.png", "width": "100", "height": "100",  "alt": "some text" }"',
+              'Attributes do not match all: "{"src":"/path/to/bar.png","width":"100","height":"100","alt":"some text"}"',
           }),
         ],
         config

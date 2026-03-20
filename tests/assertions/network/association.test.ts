@@ -85,7 +85,7 @@ describe("Faultsense Agent - Response Association", () => {
     document.body.innerHTML = `
       <button
         fs-trigger="click"
-        fs-assert-resp-200-added=".result"
+        fs-assert-added-200=".result"
         fs-assert="server-check"
         fs-feature="network">
         Click me
@@ -113,7 +113,7 @@ describe("Faultsense Agent - Response Association", () => {
     document.body.innerHTML = `
       <button
         fs-trigger="click"
-        fs-assert-resp-200-added=".result"
+        fs-assert-added-200=".result"
         fs-assert="server-check"
         fs-feature="network">
         Click me
@@ -141,7 +141,7 @@ describe("Faultsense Agent - Response Association", () => {
     document.body.innerHTML = `
       <button
         fs-trigger="click"
-        fs-assert-resp-200-added=".result"
+        fs-assert-added-200=".result"
         fs-assert="server-check"
         fs-feature="network">
         Click me

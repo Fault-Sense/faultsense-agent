@@ -61,10 +61,9 @@ describe.only("Faultsense Agent - Assertion Type modifer: classlist", () => {
   it("Should pass the target has the classes", async () => {
     document.body.innerHTML = `
       <img id="logo" class="foo bar baz" id="logo" width="100" height="100" alt="alt text" />
-      <button fs-trigger="click" 
-      fs-assert-updated="#logo" 
-      fs-assert-classlist='{ "foo": true, "bar": true, "baz": true, "test": true }'
-      fs-assert="img-src-update" 
+      <button fs-trigger="click"
+      fs-assert-updated='#logo[classlist=foo:true,bar:true,baz:true,test:true]'
+      fs-assert="img-src-update"
       fs-feature="updater">Click</button>
     `;
 
@@ -91,10 +90,9 @@ describe.only("Faultsense Agent - Assertion Type modifer: classlist", () => {
   it("Should pass the target omits the classes", async () => {
     document.body.innerHTML = `
       <img id="logo" class="foo bar baz" id="logo" width="100" height="100" alt="alt text" />
-      <button fs-trigger="click" 
-      fs-assert-updated="#logo" 
-      fs-assert-classlist='{ "random": false, "junk": false }'
-      fs-assert="img-src-update" 
+      <button fs-trigger="click"
+      fs-assert-updated='#logo[classlist=random:false,junk:false]'
+      fs-assert="img-src-update"
       fs-feature="updater">Click</button>
     `;
 
@@ -121,10 +119,9 @@ describe.only("Faultsense Agent - Assertion Type modifer: classlist", () => {
   it("Should fail if required are omitted or vice versa", async () => {
     document.body.innerHTML = `
       <img id="logo" class="foo" id="logo" width="100" height="100" alt="alt text" />
-      <button fs-trigger="click" 
-      fs-assert-updated="#logo" 
-      fs-assert-classlist='{ "foo": true, "test": false, "bar": false }'
-      fs-assert="img-src-update" 
+      <button fs-trigger="click"
+      fs-assert-updated='#logo[classlist=foo:true,test:false,bar:false]'
+      fs-assert="img-src-update"
       fs-feature="updater">Click</button>
     `;
 
@@ -141,7 +138,36 @@ describe.only("Faultsense Agent - Assertion Type modifer: classlist", () => {
           expect.objectContaining({
             status: "failed",
             statusReason:
-              'Expected classlist does not match: "{ "foo": true, "test": false, "bar": false }"',
+              'Expected classlist does not match: "{"foo":true,"test":false,"bar":false}"',
+          }),
+        ],
+        config
+      )
+    );
+  });
+
+  it("Should handle various spacing in classlist values", async () => {
+    document.body.innerHTML = `
+      <img id="logo" class="foo bar" width="100" height="100" alt="alt text" />
+      <button fs-trigger="click"
+      fs-assert-updated='#logo[classlist=foo : true , bar : true , baz : false]'
+      fs-assert="img-src-update"
+      fs-feature="updater">Click</button>
+    `;
+
+    const button = document.querySelector("button") as HTMLButtonElement;
+    button.addEventListener("click", () => {
+      document.getElementById("logo")?.classList.add("test");
+    });
+    button.click();
+
+    await vi.waitFor(() =>
+      expect(sendToServerMock).toHaveBeenNthCalledWith(
+        1,
+        [
+          expect.objectContaining({
+            status: "passed",
+            statusReason: "",
           }),
         ],
         config

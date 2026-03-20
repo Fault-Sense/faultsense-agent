@@ -22,8 +22,11 @@ export const domAssertions = [
   "loaded",
 ];
 
-// Pattern: resp-{status}-{domType} where status is exact (200) or range (2xx)
-export const responseConditionPattern = /^(\d{1}xx|\d{3})-(.+)$/;
+// Status suffix pattern for response-conditional types: added-200, removed-4xx
+export const statusSuffixPattern = /^(\d{3}|\d{1}xx)$/;
+
+// Reserved inline modifier keys (everything else is treated as an attribute check)
+export const inlineModifiers = ["text-matches", "classlist"];
 export const httpResponseHeaderKey = "fs-resp-for";
 
 export const supportedAssertions = {
@@ -38,9 +41,6 @@ export const supportedAssertions = {
   modifiers: [
     "mpa",
     "timeout",
-    "text-matches",
-    "attrs-match",
-    "classlist",
   ],
 };
 

@@ -101,7 +101,7 @@ describe("Faultsense Agent - Attribute Validation", () => {
           fs-trigger="click"
           fs-feature="feature1"
           fs-assert="assert1"
-          fs-assert-resp-200-added=".success"
+          fs-assert-added-200=".success"
         >Click</button>`;
 
     const button = document.querySelector("button") as HTMLElement;
@@ -116,8 +116,8 @@ describe("Faultsense Agent - Attribute Validation", () => {
           fs-trigger="click"
           fs-feature="feature1"
           fs-assert="assert1"
-          fs-assert-resp-200-added=".success"
-          fs-assert-resp-4xx-added=".error"
+          fs-assert-added-200=".success"
+          fs-assert-added-4xx=".error"
         >Click</button>`;
 
     const button = document.querySelector("button") as HTMLElement;
