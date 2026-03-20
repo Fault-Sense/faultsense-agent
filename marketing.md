@@ -1,12 +1,33 @@
 # Faultsense — Marketing & Positioning
 
+## H1 Options
+
+**Option A:** E2E Tests That Run in the Field
+
+**Option B:** Your AI Already Writes Tests. Now They Run in Production.
+
+**Option C:** Ship E2E Coverage Without Writing Tests
+
+## Description Options
+
+**Option A (AI-forward):**
+Let your AI coding assistant instrument your app with production-grade E2E assertions. Faultsense validates that features work correctly for every real user, on every release — not just in CI.
+
+**Option B (problem-forward):**
+E2E tests pass in CI and fail in the real world. Faultsense runs the same assertions against real user sessions — real networks, real devices, real browser extensions. Your AI assistant handles the instrumentation.
+
+**Option C (outcome-forward):**
+Know exactly which features are broken, for which users, on which release — before anyone files a ticket. AI instruments the assertions. Real users validate them.
+
+---
+
 ## Tagline
 
-**E2E test assertions that run against real users, not fake environments.**
+**Your AI writes the assertions. Real users run them.**
 
 ## One-liner
 
-Faultsense is a lightweight browser agent that lets AI coding assistants instrument your app with E2E-style assertions that run in production — against every real user, on every release.
+Faultsense is a lightweight browser agent that validates feature correctness in production. AI coding assistants instrument the assertions automatically — the same reasoning they use to write E2E tests, but the assertions run against every real user session.
 
 ## The Problem
 
@@ -18,44 +39,44 @@ You find out when a user complains. Or you don't find out at all.
 
 ## The Solution
 
-Faultsense embeds test assertions directly in your HTML. When a user clicks a button, submits a form, or loads a page, Faultsense validates that the expected outcome actually happened — the right element appeared, the right content loaded, the API returned the right response.
+Faultsense embeds assertions directly in your app. When a user clicks a button, submits a form, or loads a page, the agent validates that the expected outcome actually happened — the right element appeared, the right content loaded, the API triggered the right UI change.
 
-When it didn't? You know immediately, which feature broke, for which users, on which release.
+When it didn't? You know immediately — which feature, which users, which release.
 
 ## How It Works
 
-1. **Instrument** — Add `fs-*` attributes to your HTML, the same way you'd write a Playwright or Cypress assertion. Your AI coding assistant already knows how.
-2. **Monitor** — The agent runs silently in production, validating assertions against real user sessions.
-3. **Know** — Get pass/fail results per feature, per release, across all your users.
+1. **Ask your AI** — Tell your coding assistant to add Faultsense assertions to a component. It already knows how — same reasoning as writing Playwright tests.
+2. **Deploy** — The agent runs silently in production, validating assertions against real user sessions.
+3. **Know** — Get pass/fail results per assertion, per release, across all your users.
+
+### What the AI generates
 
 ```html
 <button
-  fs-feature="checkout"
-  fs-assert="submit-order"
+  fs-assert="checkout/submit-order"
   fs-trigger="click"
-  fs-assert-visible=".order-confirmation"
-  fs-assert-response-status="201">
+  fs-assert-added-201=".order-confirmation"
+  fs-assert-added-4xx=".error-message[text-matches=try again]">
   Place Order
 </button>
 ```
 
-This says: "When a user clicks Place Order, the order confirmation should appear and the API should return 201." If it doesn't, Faultsense reports a failure — with the feature name, the release, and what went wrong.
+This says: "When a user clicks Place Order: if the API returns 201, the order confirmation should appear. If 4xx, an error message with 'try again' should appear." If neither happens, Faultsense reports a failure.
+
+Your AI coding assistant generates this from reading your component — the same way it writes Playwright or Cypress tests. You review it, ship it, and every real user session validates it.
 
 ## The AI Angle
 
-AI coding assistants already write E2E tests. They read your component, understand what it does, and generate Playwright assertions like `await expect(locator).toBeVisible()`.
+AI coding assistants already write E2E tests. They read your component, understand what it does, and generate assertions. Faultsense is the same reasoning, deployed to production:
 
-Faultsense assertions are the same reasoning, simpler syntax. Instead of a test file with async/await chains, it's HTML attributes on the element itself:
-
-| E2E Test (Playwright) | Faultsense |
+| What your AI does today | What it does with Faultsense |
 |---|---|
-| `await page.click('.submit-btn')` | `fs-trigger="click"` |
-| `await expect(page.locator('.result')).toBeVisible()` | `fs-assert-visible=".result"` |
-| `expect(response.status()).toBe(200)` | `fs-assert-response-status="200"` |
+| Writes `await expect(locator).toBeVisible()` | Adds `fs-assert-visible=".result"` |
+| Writes `expect(response.status()).toBe(200)` | Adds `fs-assert-added-200=".success"` |
+| Runs once in CI against test data | Runs for every user, every session, every release |
+| Catches bugs before deploy | Catches bugs after deploy, in the real world |
 
-Tell your AI assistant "add faultsense assertions to this component" and it works — because it already knows how to reason about what should happen when a user interacts with your UI.
-
-The difference: Playwright runs once in CI. Faultsense runs for every user, every session, every release.
+**You don't need to learn a new API.** Tell your AI "add faultsense assertions to this component" and it works. The assertions are just HTML attributes — your AI already knows how to reason about what should happen when a user interacts with your UI.
 
 ## Why Not Just...
 
@@ -79,17 +100,73 @@ Error tracking catches thrown exceptions. The most dangerous bugs don't throw �
 
 Synthetic monitors run scripted tests on a schedule in fake environments. Faultsense assertions run on every real user session in production — real networks, real data, real devices, real browser extensions.
 
+## Progressive Example: Asserting a Todo Delete
+
+Start simple, then layer on more precise assertions as your confidence needs grow.
+
+### Level 1: Did the UI respond?
+
+Assert that clicking "Remove" actually removes the todo item from the DOM.
+
+```html
+<button
+  fs-assert="todos/remove-item"
+  fs-trigger="click"
+  fs-assert-removed=".todo-item">
+  Remove
+</button>
+```
+
+This catches the basics — the button works, the item disappears. But it doesn't know *why* it disappeared. What if the API failed and the UI just hid it anyway?
+
+### Level 2: Did the server accept it?
+
+Assert that the item is removed only when the API confirms the deletion with a 201.
+
+```html
+<button
+  fs-assert="todos/remove-item"
+  fs-trigger="click"
+  fs-assert-removed-201=".todo-item">
+  Remove
+</button>
+```
+
+Now you know the delete was real — the server accepted it AND the UI reflected it. If the API returns 500, the assertion fails with the actual status.
+
+### Level 3: Does the optimistic update recover correctly?
+
+Modern apps remove the item immediately (optimistic update) then wait for the server. If the server rejects it, the item should revert. Assert the full lifecycle:
+
+```html
+<button
+  fs-assert="todos/remove-item"
+  fs-trigger="click"
+  fs-assert-removed=".todo-item"
+  fs-assert-visible-4xx=".todo-item[text-matches=Buy groceries]">
+  Remove
+</button>
+```
+
+Three things are asserted:
+- `fs-assert-removed` — The item is removed immediately (optimistic update works)
+- `fs-assert-visible-4xx` — If the API returns 4xx, the item reappears
+- `[text-matches=Buy groceries]` — And it still has the original text (rollback is correct)
+
+This is the kind of assertion no E2E test catches — real users, real networks, real failure recovery.
+
 ## Who It's For
 
+- **Teams that use AI coding assistants** — Your AI already writes tests. Faultsense gives those assertions a place to run in the real world.
 - **Teams replacing or augmenting E2E tests** — Same assertions, 100x the coverage, zero CI infrastructure.
-- **Teams shipping fast and breaking things** — Know which features broke, for which users, before anyone files a ticket.
+- **Teams shipping fast** — Know which features broke, for which users, before anyone files a ticket.
 - **Teams with complex frontend logic** — Checkout flows, multi-step wizards, real-time data — the stuff that breaks silently.
-- **Teams that care about correctness, not just uptime** — Your app can be "up" and still be broken for 10% of users.
 
 ## Key Facts
 
 - **6.5 KB gzipped** — Lighter than a small image.
 - **Zero dependencies** — Nothing to conflict with your stack.
+- **AI-instrumented** — Your coding assistant generates the assertions. No new API to learn.
 - **Framework agnostic** — Works with React, Vue, Svelte, plain HTML, anything that renders to the DOM.
 - **Collector agnostic** — Plug into any telemetry backend, or use the hosted option.
 - **MPA and SPA support** — First-class support for both, including assertions that persist across page navigations.
