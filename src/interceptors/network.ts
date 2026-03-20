@@ -51,22 +51,12 @@ export function interceptNetwork(
         const clonedResponse = response.clone();
         const responseText = await processResponseText(clonedResponse, responseHeaders);
 
-        if (!response.ok) {
-          errorHandler({
-            message: `HTTP Error: ${response.statusText}`,
-            status: response.status,
-            responseText,
-            requestHeaders,
-            responseHeaders,
-            url,
-          });
-        } else {
-          // Pass request info and standardized response info to responseHandler
-          responseHandler(
-            { url, params, headers: requestHeaders },
-            { status: response.status, responseText, responseHeaders }
-          );
-        }
+        // All HTTP responses go through responseHandler so response-conditional
+        // assertions can match any status code (2xx, 4xx, 5xx)
+        responseHandler(
+          { url, params, headers: requestHeaders },
+          { status: response.status, responseText, responseHeaders }
+        );
       }
 
       return response;
@@ -118,31 +108,20 @@ export function interceptNetwork(
               return;
             }
 
-            if (this.status >= 200 && this.status < 300) {
-              // Success: Call the standardized response handler
-              responseHandler(
-                {
-                  url: this._url || "",
-                  params: this._params,
-                  headers: this._requestHeaders,
-                },
-                {
-                  status: this.status,
-                  responseText: this.responseText || "",
-                  responseHeaders,
-                }
-              );
-            } else {
-              // Call error handler for HTTP error status
-              errorHandler({
-                message: `HTTP Error: ${this.statusText}`,
+            // All HTTP responses go through responseHandler so response-conditional
+            // assertions can match any status code (2xx, 4xx, 5xx)
+            responseHandler(
+              {
+                url: this._url || "",
+                params: this._params,
+                headers: this._requestHeaders,
+              },
+              {
                 status: this.status,
                 responseText: this.responseText || "",
-                requestHeaders: this._requestHeaders,
                 responseHeaders,
-                url: this._url || "",
-              });
-            }
+              }
+            );
           }
         }
       });

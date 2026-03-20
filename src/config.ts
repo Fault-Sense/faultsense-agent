@@ -21,7 +21,9 @@ export const domAssertions = [
   "hidden",
   "loaded",
 ];
-export const httpResponseAssertions = ["response-status", "response-headers"];
+
+// Pattern: resp-{status}-{domType} where status is exact (200) or range (2xx)
+export const responseConditionPattern = /^(\d{1}xx|\d{3})-(.+)$/;
 export const httpResponseHeaderKey = "fs-resp-for";
 
 export const supportedAssertions = {
@@ -32,7 +34,7 @@ export const supportedAssertions = {
     "assert-label",
     "trigger",
   ],
-  types: [...domAssertions, ...httpResponseAssertions],
+  types: [...domAssertions],
   modifiers: [
     "mpa",
     "timeout",

@@ -56,12 +56,23 @@ At least one required. Value depends on the type.
 | `fs-assert-hidden="<selector>"` | The matched element exists but has no layout dimensions |
 | `fs-assert-loaded="<selector>"` | A media element (img/video) matching the selector finishes loading |
 
-**Network Assertions** — value is the expected value:
+**Response-Conditional Assertions** — HTTP response status determines which DOM assertion to check:
 
-| Attribute | Resolves when |
-|---|---|
-| `fs-assert-response-status="<code>"` | An associated HTTP response has this exact status code (e.g., "200") |
-| `fs-assert-response-headers='<json>'` | An associated HTTP response headers are a superset of this JSON object |
+`fs-assert-resp-<status>-<dom-type>="<selector>"`
+
+| Component | Description | Examples |
+|---|---|---|
+| `<status>` | Exact code or range | `200`, `404`, `2xx`, `4xx`, `5xx` |
+| `<dom-type>` | DOM assertion type | `added`, `removed`, `updated`, `visible`, `hidden` |
+| `<selector>` | CSS selector for the DOM element | `.success-msg`, `#error` |
+
+Exact codes take priority over ranges. Multiple conditions per element create independent assertions. When one matches, siblings are silently dismissed. If no condition matches the actual status, all assertions fail immediately.
+
+Example:
+```html
+<button fs-assert-resp-200-removed=".todo-item"
+        fs-assert-resp-4xx-added=".error-msg" ...>
+```
 
 ### Modifiers
 
@@ -182,22 +193,22 @@ Asserts: clicking the tab makes the corresponding content panel visible.
 
 Asserts: clicking next shows the next wizard step.
 
-### 6. Form Submit → Network Response
+### 6. Form Submit → Response-Conditional Assertions
 
 ```html
 <form
   fs-feature="contact-form"
   fs-assert="submit-form"
   fs-trigger="submit"
-  fs-assert-response-status="201"
-  fs-assert-response-headers='{"content-type":"application/json"}'
+  fs-assert-resp-2xx-added=".success-msg"
+  fs-assert-resp-4xx-added=".validation-errors"
   fs-assert-timeout="2000">
   <input name="email" type="email" />
   <button type="submit">Send</button>
 </form>
 ```
 
-Asserts: form submission returns HTTP 201 with JSON content-type. Requires `fs-resp-for: submit-form` header on the request or response.
+Asserts: on 2xx response, success message appears. On 4xx, validation errors appear. Requires `fs-resp-for: submit-form` header on the request or response.
 
 ### 7. MPA Navigation (Multi-Page App)
 
@@ -214,22 +225,22 @@ Asserts: form submission returns HTTP 201 with JSON content-type. Requires `fs-r
 
 Asserts: after a full page reload, the success message is visible. The assertion is stored in localStorage and resolved when the agent initializes on the next page.
 
-### 8. API Request → DOM Update + Response Status
+### 8. API Request → Response-Conditional DOM Update
 
 ```html
 <button
   fs-feature="data-loader"
   fs-assert="load-posts"
   fs-trigger="click"
-  fs-assert-updated="#results"
-  fs-assert-response-status="200"
+  fs-assert-resp-200-updated="#results"
+  fs-assert-resp-5xx-added=".error"
   fs-assert-timeout="2600">
   Load Posts
 </button>
 <div id="results"></div>
 ```
 
-Asserts: clicking loads data, updates the results container, and the API returns 200. Two separate assertions created (DOM + network).
+Asserts: on 200, the results container updates. On 5xx, an error element appears. Requires `fs-resp-for: load-posts` header on the request or response.
 
 ---
 
@@ -290,7 +301,7 @@ Svelte passes unknown attributes through on native elements.
 
 1. **Putting `fs-trigger` on a parent instead of the interacted element.** The agent only processes the exact `event.target`. If the user clicks a `<span>` inside a `<button>`, the `<button>` is the target (due to event bubbling), but a `<div>` wrapper above it is not.
 
-2. **Forgetting `fs-resp-for` for network assertions.** `fs-assert-response-status` and `fs-assert-response-headers` require associating the HTTP request/response via the `fs-resp-for` header or query param. Without it, the assertion will always time out.
+2. **Forgetting `fs-resp-for` for response-conditional assertions.** `fs-assert-resp-*-*` assertions require associating the HTTP request/response via the `fs-resp-for` header or query param. Without it, the assertion will always time out.
 
 3. **Using `added` when `updated` is correct.** Use `added` when the element doesn't exist yet and will be created. Use `updated` when the element already exists and its content/attributes will change.
 

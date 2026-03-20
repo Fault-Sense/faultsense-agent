@@ -11,6 +11,10 @@ function getFailureReasonForAssertion(
     assertion: Assertion,
     timeout: number
 ): string {
+    if (assertion.httpPending) {
+        return `HTTP response not received within ${timeout}ms. Make sure the server responds with the header "${httpResponseHeaderKey}: ${assertion.assertionKey}" or the outgoing request has a "${httpResponseHeaderKey}=${assertion.assertionKey}" parameter.`;
+    }
+
     switch (assertion.type) {
         case "added":
             return `Expected ${assertion.typeValue} to be added within ${timeout}ms.`;
@@ -24,9 +28,6 @@ function getFailureReasonForAssertion(
             return `Expected ${assertion.typeValue} to be hidden within ${timeout}ms.`;
         case "loaded":
             return `Expected ${assertion.typeValue} to be loaded within ${timeout}ms.`;
-        case "response-headers":
-        case "response-status":
-            return `HTTP response not received within ${timeout}ms. Make sure the server responds with the header "${httpResponseHeaderKey}: ${assertion.assertionKey}" or the outgoing request has a "${httpResponseHeaderKey}=${assertion.assertionKey}" parameter.`;
         default:
             return `Unknown assertion type: ${assertion.type}`;
     }

@@ -1,19 +1,28 @@
 import { Assertion, AssertionStatus, CompletedAssertion } from "../types";
 import { clearAssertionTimeout } from "./timeout";
 
-export function findAassertion(
+export function findAssertion(
   assertion: Assertion,
   allAssertions: Assertion[]
 ): Assertion | undefined {
   return allAssertions.find(
     (existing) =>
       existing.assertionKey === assertion.assertionKey &&
-      existing.type === assertion.type
+      existing.type === assertion.type &&
+      existing.modifiers["response-status"] === assertion.modifiers["response-status"]
   );
 }
 
 export const getPendingAssertions = (assertions: Assertion[]): Assertion[] => {
   return assertions.filter((a) => !a.endTime);
+};
+
+export const getPendingDomAssertions = (assertions: Assertion[]): Assertion[] => {
+  return assertions.filter((a) => !a.endTime && !a.httpPending);
+};
+
+export const getPendingHttpAssertions = (assertions: Assertion[]): Assertion[] => {
+  return assertions.filter((a) => !a.endTime && a.httpPending);
 };
 
 export const getAssertionsForMpaMode = (
@@ -58,9 +67,23 @@ export function getAssertionsToSettle(
   return completedAssertions.filter(
     (assertion) =>
       assertion.endTime &&
+      assertion.status !== "dismissed" &&
       assertion.previousStatus !== assertion.status &&
       assertion.previousStatusReason !== assertion.statusReason
   );
+}
+
+export function dismissAssertion(assertion: Assertion): CompletedAssertion | null {
+  if (assertion.status !== "dismissed") {
+    clearAssertionTimeout(assertion);
+
+    return Object.assign(assertion, {
+      status: "dismissed" as const,
+      endTime: Date.now(),
+      statusReason: "",
+    }) as CompletedAssertion;
+  }
+  return null;
 }
 
 export function completeAssertion(

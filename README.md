@@ -131,6 +131,8 @@ Triggers follow the form of `fs-trigger=<trigger>`. The following triggers are s
 
 `click` - when the element is clicked
 
+`dblclick` - when the element is double-clicked
+
 `change` - when an input element's value changes
 
 `blur` - when an input element loses focus

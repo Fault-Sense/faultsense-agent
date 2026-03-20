@@ -38,8 +38,7 @@ When asked to add Faultsense assertions to a component, reason about it the same
 | `fs-assert-visible` | Element exists and visible | `".dashboard"` |
 | `fs-assert-hidden` | Element exists but hidden | `".loading-spinner"` |
 | `fs-assert-loaded` | Media finished loading | `"#hero-image"` |
-| `fs-assert-response-status` | HTTP status matches | `"200"` |
-| `fs-assert-response-headers` | Response headers match | `'{"content-type":"application/json"}'` |
+| `fs-assert-resp-{status}-{type}` | Response-conditional DOM assertion | `fs-assert-resp-200-added=".success"` |
 | `fs-assert-text-matches` | Text content matches | `"Count: \\d+"` |
 | `fs-assert-attrs-match` | Attributes match | `'{"src":"/img/logo.png"}'` |
 | `fs-assert-classlist` | Classes present/absent | `'{"active":true}'` |
@@ -56,6 +55,8 @@ When asked to add Faultsense assertions to a component, reason about it the same
 
 - **Don't put `fs-trigger` on a parent wrapper** — only the exact event target is processed
 - **Network assertions need `fs-resp-for`** — without the header/param linking request to assertion key, the assertion times out
+- **Network assertions are DOM assertions gated by HTTP status** — `fs-assert-resp-200-added=".success"` means "when response is 200, assert .success is added." The assertion type is always a DOM type.
+- **Multiple response conditions on one element** — `fs-assert-resp-200-added` and `fs-assert-resp-4xx-added` create independent assertions. When one matches, siblings are dismissed silently.
 - **`added` vs `updated`** — `added` = element doesn't exist yet; `updated` = element exists, content changes
 - **`visible` vs `added`** — `visible` checks layout dimensions of existing element; `added` checks for new element in DOM
 - **Every element needs** `fs-feature` + `fs-assert` + `fs-trigger` + at least one assertion type
@@ -65,7 +66,7 @@ When asked to add Faultsense assertions to a component, reason about it the same
 - The agent is open source and collector-agnostic. A hosted backend is a separate project.
 - Market positioning (QA/testing tool) does not impact the agent's implementation or architecture.
 - MPA (multi-page app) support is first-class — SPAs and MPAs should be equally supported.
-- Network assertions use a simple `fs-resp-for` HTTP header (on request or response) — no server-side SDK needed. Keep this simple.
+- Network responses are pivot points for DOM assertions, not assertions themselves. `fs-resp-for` HTTP header (on request or response) links a response to an assertion key — no server-side SDK needed. Keep this simple.
 
 ## Notes
 

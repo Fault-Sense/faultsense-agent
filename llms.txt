@@ -35,9 +35,12 @@ DOM assertions — value is a CSS selector:
 - `fs-assert-hidden="<selector>"` — Element exists and is not visible
 - `fs-assert-loaded="<selector>"` — Media element (img/video) finishes loading
 
-Network assertions — value is the expected value:
-- `fs-assert-response-status="<code>"` — HTTP response status matches (e.g., "200", "201")
-- `fs-assert-response-headers='<json>'` — Response headers match (e.g., '{"content-type":"application/json"}')
+Response-conditional — status determines which DOM assertion to check:
+- `fs-assert-resp-<status>-<dom-type>="<selector>"` — When response matches status, assert the DOM condition
+  - Status: exact code (200, 404) or range (2xx, 4xx, 5xx). Exact takes priority over range.
+  - DOM type: `added`, `removed`, `updated`, `visible`, `hidden`
+  - Multiple conditions per element: `fs-assert-resp-200-added=".success"` + `fs-assert-resp-4xx-added=".error"`
+  - When one matches, siblings are silently dismissed. If none match, all fail with the actual status.
 
 ### Modifiers (optional)
 
@@ -74,14 +77,15 @@ Attributes go on the element that receives the user event. In event mode, only t
 <span id="count">Count: 0</span>
 ```
 
-### Form submission with network validation
+### Form submission with response-conditional assertions
 
 ```html
 <form
   fs-feature="contact"
   fs-assert="submit-form"
   fs-trigger="submit"
-  fs-assert-response-status="201"
+  fs-assert-resp-201-added=".success-msg"
+  fs-assert-resp-4xx-added=".error-msg"
   fs-assert-timeout="2000">
   <input name="email" type="email" />
   <button type="submit">Send</button>

@@ -23,10 +23,12 @@ import { globalErrorResolver } from "../resolvers/error";
 
 import { eventTriggerAliases } from "../config";
 import {
-  findAassertion,
+  findAssertion,
   getAssertionsForMpaMode,
   getAssertionsToSettle,
   getPendingAssertions,
+  getPendingDomAssertions,
+  getPendingHttpAssertions,
   isAssertionCompleted,
   isAssertionPending,
   retryCompletedAssertion,
@@ -75,7 +77,7 @@ export function createAssertionManager(config: Configuration) {
 
     newAssertions.filter((a) => !a.mpa_mode).forEach((newAssertion) => {
       // Check if an existing assertion matches by `assertionKey` and `type`
-      const existingAssertion = findAassertion(newAssertion, activeAssertions);
+      const existingAssertion = findAssertion(newAssertion, activeAssertions);
       if (existingAssertion && isAssertionCompleted(existingAssertion)) {
         retryCompletedAssertion(existingAssertion, newAssertion);
 
@@ -118,7 +120,7 @@ export function createAssertionManager(config: Configuration) {
 
     const completed = eventResolver(
       event,
-      getPendingAssertions(activeAssertions)
+      getPendingDomAssertions(activeAssertions)
     );
     settle(completed);
   };
@@ -129,7 +131,7 @@ export function createAssertionManager(config: Configuration) {
     const created = mutationHandler<Assertion>(
       mutationsList,
       elementProcessor,
-      getPendingAssertions(activeAssertions)
+      getPendingDomAssertions(activeAssertions)
     );
 
     enqueueAssertions(created);
@@ -142,24 +144,27 @@ export function createAssertionManager(config: Configuration) {
     const completed = mutationHandler<CompletedAssertion>(
       mutationsList,
       elementResolver,
-      getPendingAssertions(activeAssertions)
+      getPendingDomAssertions(activeAssertions)
     );
     settle(completed);
   };
 
   const handleHttpResponse: HttpResponseHandler = (request, response): void => {
-    settle(
-      httpResponseResolver(
-        request,
-        response,
-        getPendingAssertions(activeAssertions)
-      )
-    );
+    const httpAssertions = getPendingHttpAssertions(activeAssertions);
+    const completed = httpResponseResolver(request, response, httpAssertions);
+    settle(completed);
+
+    // Run immediate DOM check on assertions that were just activated
+    for (const assertion of httpAssertions) {
+      if (!assertion.httpPending) {
+        checkImmediateResolved(assertion);
+      }
+    }
   };
 
   const handleHttpError: HttpErrorHandler = (errorInfo): void => {
     settle(
-      httpErrorResolver(errorInfo, getPendingAssertions(activeAssertions))
+      httpErrorResolver(errorInfo, getPendingHttpAssertions(activeAssertions))
     );
   };
 
@@ -170,7 +175,7 @@ export function createAssertionManager(config: Configuration) {
   };
 
   const checkAssertions = (): void => {
-    const pendingAssertions = getPendingAssertions(activeAssertions);
+    const pendingAssertions = getPendingDomAssertions(activeAssertions);
     if (!pendingAssertions.length) {
       return;
     }

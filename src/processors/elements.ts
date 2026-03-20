@@ -2,6 +2,8 @@ import {
   supportedAssertions,
   assertionPrefix,
   assertionTriggerAttr,
+  responseConditionPattern,
+  domAssertions,
 } from "../config";
 import type {
   Assertion,
@@ -10,9 +12,15 @@ import type {
   ElementProcessor,
 } from "../types";
 
+interface AssertionTypeEntry {
+  type: string;
+  value: string;
+  modifiers?: Record<string, string>;
+}
+
 interface ElementAssertionMetadata {
   details: Record<string, string>;
-  types: Record<string, number | string | boolean>;
+  types: AssertionTypeEntry[];
   modifiers: Record<string, AssertionModiferValue>;
 }
 
@@ -24,6 +32,32 @@ export class AssertionError extends Error {
     this.name = "AssertionError";
     this.details = details;
   }
+}
+
+/**
+ * Parse dynamic assertion types from element attributes.
+ * Decomposes compound attribute names (e.g., "fs-assert-resp-200-added")
+ * into fully resolved type entries.
+ */
+function parseDynamicTypes(element: HTMLElement): AssertionTypeEntry[] {
+  const prefix = assertionPrefix.types;
+  const types: AssertionTypeEntry[] = [];
+
+  for (const attr of Array.from(element.attributes)) {
+    if (attr.name.startsWith(`${prefix}resp-`)) {
+      const suffix = attr.name.slice(`${prefix}resp-`.length);
+      const match = suffix.match(responseConditionPattern);
+      if (match && domAssertions.includes(match[2])) {
+        types.push({
+          type: match[2],
+          value: attr.value,
+          modifiers: { "response-status": match[1] },
+        });
+      }
+    }
+  }
+
+  return types;
 }
 
 export function createElementProcessor(triggers: string[], eventMode: boolean = false): ElementProcessor {
@@ -86,47 +120,49 @@ function isProcessableElement(
 }
 
 /**
- * Returns the assertion metadta from an element
+ * Returns the assertion metadata from an element
  * Defers casting assertion values until they are used
  */
 function parseAssertions(element: HTMLElement): ElementAssertionMetadata {
   let assertionMetaData: ElementAssertionMetadata = {
     details: {},
-    types: {},
+    types: [],
     modifiers: {},
   };
 
-  const process = (
-    keys: string[],
-    assertions: ElementAssertionMetadata,
-    section: "details" | "types" | "modifiers"
-  ): ElementAssertionMetadata => {
-    return keys.reduce((acc, key) => {
-      const attributeValue = element.getAttribute(
-        `${assertionPrefix[section]}${key}`
-      );
-      if (attributeValue !== null) {
-        acc[section][key] = attributeValue;
+  const processDetails = (keys: string[]): void => {
+    for (const key of keys) {
+      const value = element.getAttribute(`${assertionPrefix.details}${key}`);
+      if (value !== null) {
+        assertionMetaData.details[key] = value;
       }
-      return acc;
-    }, assertions);
+    }
   };
 
-  assertionMetaData = process(
-    supportedAssertions.details,
-    assertionMetaData,
-    "details"
-  );
-  assertionMetaData = process(
-    supportedAssertions.types,
-    assertionMetaData,
-    "types"
-  );
-  assertionMetaData = process(
-    supportedAssertions.modifiers,
-    assertionMetaData,
-    "modifiers"
-  );
+  const processTypes = (keys: string[]): void => {
+    for (const key of keys) {
+      const value = element.getAttribute(`${assertionPrefix.types}${key}`);
+      if (value !== null) {
+        assertionMetaData.types.push({ type: key, value });
+      }
+    }
+  };
+
+  const processModifiers = (keys: string[]): void => {
+    for (const key of keys) {
+      const value = element.getAttribute(`${assertionPrefix.modifiers}${key}`);
+      if (value !== null) {
+        assertionMetaData.modifiers[key] = value;
+      }
+    }
+  };
+
+  processDetails(supportedAssertions.details);
+  processTypes(supportedAssertions.types);
+  processModifiers(supportedAssertions.modifiers);
+
+  assertionMetaData.types.push(...parseDynamicTypes(element));
+
   return assertionMetaData;
 }
 
@@ -138,7 +174,7 @@ function isValidAssertionMetadata(
 
   if (!assertionMetadata.details["feature"]) {
     console.error("[Faultsense]: Missing 'fs-feature' on assertion.", details);
-    return false; // Return false to indicate the validation failed
+    return false;
   }
 
   if (!assertionMetadata.details["assert"]) {
@@ -149,38 +185,9 @@ function isValidAssertionMetadata(
     return false;
   }
 
-  // we only parse valid assertion types
-  // invalid assertion types are ignored
-  const assertionTypes = Object.keys(assertionMetadata.types);
-  if (assertionTypes.length === 0) {
+  if (assertionMetadata.types.length === 0) {
     console.error("[Faultsense]: An assertion type must be provided.", details);
     return false;
-  } else {
-    // TODO implement a more scabalbe way to validate assertion types/modifiers
-    if (assertionTypes.includes("response-headers")) {
-      try {
-        const parsed = JSON.parse(
-          assertionMetadata.types["response-headers"] as string
-        );
-        const isValidObject =
-          typeof parsed === "object" &&
-          parsed !== null &&
-          !Array.isArray(parsed);
-        if (!isValidObject) {
-          console.error(
-            "[Faultsense]: 'response-headers' must be a valid JSON object.",
-            details
-          );
-          return false;
-        }
-      } catch (e) {
-        console.error(
-          "[Faultsense]: 'response-headers' must be a valid JSON object.",
-          details
-        );
-        return false;
-      }
-    }
   }
 
   return true;
@@ -194,7 +201,11 @@ function createAssertions(
     return [];
   }
 
-  return Object.keys(metadata.types).map((assertionType) => {
+  return metadata.types.map((typeEntry) => {
+    const mergedModifiers = typeEntry.modifiers
+      ? { ...metadata.modifiers, ...typeEntry.modifiers }
+      : metadata.modifiers;
+
     return {
       assertionKey: metadata.details["assert"],
       assertionLabel: metadata.details["assert-label"] || "",
@@ -203,14 +214,15 @@ function createAssertions(
       featureKey: metadata.details["feature"],
       featureLabel: metadata.details["feature-label"] || "",
       trigger: metadata.details.trigger,
-      type: assertionType as AssertionType,
       mpa_mode: Boolean(metadata.modifiers["mpa"]),
-      typeValue: metadata.types[assertionType] as string,
       startTime: Date.now(),
       status: undefined,
       statusReason: "",
       timeout: Number(metadata.modifiers["timeout"]) || 0,
-      modifiers: metadata.modifiers,
+      type: typeEntry.type as AssertionType,
+      typeValue: typeEntry.value as string,
+      modifiers: mergedModifiers,
+      httpPending: typeEntry.modifiers ? true : undefined,
     };
   });
 }

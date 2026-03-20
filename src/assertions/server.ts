@@ -1,10 +1,10 @@
-import { ApiPaylaod, CompletedAssertion, Configuration } from "../types";
+import { ApiPayload, CompletedAssertion, Configuration } from "../types";
 import { createLogger } from "../utils/logger";
 
 function toPayload(
   assertion: CompletedAssertion,
   config: Configuration
-): ApiPaylaod {
+): ApiPayload {
   return {
     status: assertion.status,
     status_reason: assertion.statusReason || "",

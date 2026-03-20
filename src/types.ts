@@ -1,5 +1,5 @@
 // Custom collector function type
-export type CollectorFunction = (payload: ApiPaylaod) => void;
+export type CollectorFunction = (payload: ApiPayload) => void;
 
 export interface Configuration {
   apiKey: string;
@@ -87,16 +87,14 @@ export type GlobalErrorResolver = (
   activeAssertions: Assertion[]
 ) => CompletedAssertion[];
 
-export type AssertionStatus = "passed" | "failed";
+export type AssertionStatus = "passed" | "failed" | "dismissed";
 export type AssertionType =
   | "added"
   | "removed"
   | "updated"
   | "visible"
   | "hidden"
-  | "loaded"
-  | "response-headers"
-  | "response-status";
+  | "loaded";
 
 export type AssertionModiferValue = string;
 export type AssertionModifiers =
@@ -104,7 +102,8 @@ export type AssertionModifiers =
   | "timeout"
   | "text-matches"
   | "attrs-match"
-  | "classlist";
+  | "classlist"
+  | "response-status";
 
 export interface Assertion {
   featureKey: string;
@@ -118,6 +117,7 @@ export interface Assertion {
   startTime: number;
   type: AssertionType;
   typeValue: string;
+  httpPending?: boolean;
   endTime?: number;
   status?: AssertionStatus;
   statusReason?: string;
@@ -135,7 +135,7 @@ export interface CompletedAssertion
   status: AssertionStatus;
 }
 
-export interface ApiPaylaod {
+export interface ApiPayload {
   assertion_key: string;
   assertion_label: string;
   assertion_trigger: string;

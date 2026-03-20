@@ -1,14 +1,12 @@
-import { completeAssertion } from "../assertions/assertion";
+import { completeAssertion, dismissAssertion } from "../assertions/assertion";
 import {
   Assertion,
   CompletedAssertion,
   HttpErrorResolver,
-  HttpResponseResolver,
   RequestInfo,
   ResponseInfo,
 } from "../types";
-import { httpResponseAssertions, httpResponseHeaderKey } from "../config";
-import { isSubset, prettyPrintHeaders } from "../utils/object";
+import { httpResponseHeaderKey } from "../config";
 
 // Helper function to extract responseHeaderKey from request params (BodyInit or other types)
 function extractParamXRespFor(
@@ -20,7 +18,7 @@ function extractParamXRespFor(
       const parsedParams = JSON.parse(params);
       return parsedParams[fsHeaderKey] || null;
     } catch {
-      return null; // If it's not a JSON string, we can't extract config.httpResponseHeaderKey
+      return null;
     }
   } else if (params instanceof URLSearchParams) {
     return params.get(fsHeaderKey);
@@ -32,15 +30,16 @@ function extractParamXRespFor(
   return null;
 }
 
+function getResponseStatus(assertion: Assertion): string | undefined {
+  return assertion.modifiers["response-status"];
+}
+
 export function isHttpResponseForAssertion(
   assertion: Assertion,
   requestInfo: RequestInfo,
   responseInfo: ResponseInfo
 ): boolean {
-  // assertion.type must be in HTTP response types
-  if (!httpResponseAssertions.includes(assertion.type)) {
-    return false;
-  }
+  if (!getResponseStatus(assertion)) return false;
 
   // assertion key should match the faultsense response header value
   const expected = assertion.assertionKey;
@@ -52,75 +51,70 @@ export function isHttpResponseForAssertion(
   return actual === expected;
 }
 
-export const httpResponseResolver: HttpResponseResolver = (
-  requestInfo,
-  responseInfo,
-  assertions
-) => {
-  const now = Date.now();
-  return assertions.reduce((acc: CompletedAssertion[], assertion) => {
-    // This assertions is not applicable to this response
-    if (!isHttpResponseForAssertion(assertion, requestInfo, responseInfo)) {
-      return acc;
+function statusMatches(condition: string, actual: number): boolean {
+  if (condition.includes('x')) {
+    // Range match: "2xx" matches 200-299, "4xx" matches 400-499
+    const prefix = condition[0];
+    return String(actual)[0] === prefix;
+  }
+  return Number(condition) === actual;
+}
+
+function findMatchingAssertion(assertions: Assertion[], status: number): Assertion | null {
+  // Exact match takes priority over range
+  const exact = assertions.find(a => {
+    const condition = getResponseStatus(a)!;
+    return !condition.includes('x') && statusMatches(condition, status);
+  });
+  if (exact) return exact;
+
+  // Then range match
+  return assertions.find(a => statusMatches(getResponseStatus(a)!, status)) || null;
+}
+
+export function httpResponseResolver(
+  requestInfo: RequestInfo,
+  responseInfo: ResponseInfo,
+  assertions: Assertion[]
+): CompletedAssertion[] {
+  const actualStatus = responseInfo.status;
+  const completed: CompletedAssertion[] = [];
+
+  // Find all response-conditional assertions for this request
+  const responseAssertions = assertions.filter(a =>
+    isHttpResponseForAssertion(a, requestInfo, responseInfo)
+  );
+
+  if (responseAssertions.length === 0) return completed;
+
+  // Find the matching assertion (exact code beats range)
+  const matched = findMatchingAssertion(responseAssertions, actualStatus);
+
+  if (matched) {
+    // Release to DOM resolvers
+    matched.httpPending = false;
+
+    // Dismiss non-matching siblings
+    for (const sibling of responseAssertions) {
+      if (sibling === matched) continue;
+      const dismissed = dismissAssertion(sibling);
+      if (dismissed) completed.push(dismissed);
     }
-
-    if (assertion.type === "response-headers") {
-      let completed;
-      try {
-        const expectedHeaders: Record<string, any> = JSON.parse(
-          assertion.typeValue as string
-        );
-        const actualHeaders = responseInfo.responseHeaders as Record<
-          string,
-          any
-        >;
-        completed = completeAssertion(
-          assertion,
-          isSubset(expectedHeaders, actualHeaders),
-          `Expected HTTP response headers not found in actual headers:\n\nExpected:\n${prettyPrintHeaders(
-            expectedHeaders
-          )}\n\nActual:\n${prettyPrintHeaders(actualHeaders)}`
-        );
-      } catch {
-        completed = completeAssertion(
-          assertion,
-          false,
-          `Expected HTTP response headers is not a valid JSON`
-        );
-      }
-
-      if (completed) {
-        acc.push(completed);
-      }
-
-      return acc;
-    }
-
-    if (assertion.type === "response-status") {
-      let actual = Number(responseInfo.status);
-      let expected = Number(assertion.typeValue) as Number;
-      const completed = completeAssertion(
+  } else {
+    // No condition matched — fail all with the actual status
+    const declaredConditions = responseAssertions.map(a => getResponseStatus(a)).join(', ');
+    for (const assertion of responseAssertions) {
+      const failed = completeAssertion(
         assertion,
-        actual === expected,
-        `HTTP response status (${actual}) does not match the expected status (${expected})`
+        false,
+        `HTTP response status ${actualStatus} did not match any declared condition (${declaredConditions})`
       );
-      if (completed) {
-        acc.push(completed);
-      }
-      return acc;
+      if (failed) completed.push(failed);
     }
+  }
 
-    const completed = completeAssertion(
-      assertion,
-      false,
-      `Assert type: ${assertion.type} not handled for HTTP responses`
-    );
-    if (completed) {
-      acc.push(completed);
-    }
-    return acc;
-  }, []);
-};
+  return completed;
+}
 
 export const httpErrorResolver: HttpErrorResolver = (errorInfo, assertions) => {
   return assertions.reduce((acc: CompletedAssertion[], assertion) => {

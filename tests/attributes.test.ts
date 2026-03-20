@@ -95,13 +95,13 @@ describe("Faultsense Agent - Attribute Validation", () => {
     expect(consoleErrorMock).not.toHaveBeenCalled();
   });
 
-  it("Should allow the response-headers assertion type", async () => {
+  it("Should allow response-conditional assertion types", async () => {
     document.body.innerHTML = `
         <button
           fs-trigger="click"
           fs-feature="feature1"
           fs-assert="assert1"
-          fs-assert-response-headers='{"status": "200", "Content-Type": "application/json"}'
+          fs-assert-resp-200-added=".success"
         >Click</button>`;
 
     const button = document.querySelector("button") as HTMLElement;
@@ -110,18 +110,19 @@ describe("Faultsense Agent - Attribute Validation", () => {
     expect(consoleErrorMock).not.toHaveBeenCalled();
   });
 
-  it("Should fail if the response-headers assertion is not valid JSON", async () => {
+  it("Should allow multiple response-conditional assertions on one element", async () => {
     document.body.innerHTML = `
         <button
           fs-trigger="click"
           fs-feature="feature1"
           fs-assert="assert1"
-          fs-assert-response-headers="200"
+          fs-assert-resp-200-added=".success"
+          fs-assert-resp-4xx-added=".error"
         >Click</button>`;
 
     const button = document.querySelector("button") as HTMLElement;
     button.click();
 
-    expect(consoleErrorMock).toHaveBeenCalled();
+    expect(consoleErrorMock).not.toHaveBeenCalled();
   });
 });
