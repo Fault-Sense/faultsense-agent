@@ -81,7 +81,6 @@ describe("Faultsense Agent - Assertion MPA Mode", () => {
         fs-trigger="click"
         fs-assert-added="#panel"
         fs-assert="mpa-mode-test-click"
-        fs-feature="revealer"
       >Click</button>
     `;
 
@@ -131,7 +130,6 @@ describe("Faultsense Agent - Assertion MPA Mode", () => {
         fs-trigger="click"
         fs-assert-added="#panel"
         fs-assert="mpa-mode-test-click"
-        fs-feature="revealer"
       >Click</button>
     `;
 
@@ -184,7 +182,6 @@ describe("Faultsense Agent - Assertion MPA Mode", () => {
         fs-trigger="click"
         fs-assert-added="#panel"
         fs-assert="mpa-mode-test-click"
-        fs-feature="revealer"
       >Click</button>
     `;
 
@@ -239,8 +236,7 @@ describe("Faultsense Agent - Assertion MPA Mode", () => {
           fs-trigger="click"
           fs-assert-added="#panel"
           fs-assert="not-mpa-mode-test-click"
-          fs-feature="revealer"
-        >Click</button>
+          >Click</button>
       `;
 
     // create the assertion when clicked

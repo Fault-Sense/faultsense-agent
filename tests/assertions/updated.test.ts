@@ -61,7 +61,7 @@ describe("Faultsense Agent - Assertion Type: updated", () => {
   it("Should pass if an elements attributes change", async () => {
     document.body.innerHTML = `
       <div id="panel" class="one"></div>
-      <button fs-trigger="click" fs-assert-updated="#panel" fs-assert="panel-update" fs-feature="updater">Click</button>
+      <button fs-trigger="click" fs-assert-updated="#panel" fs-assert="panel-update">Click</button>
     `;
 
     const button = document.querySelector("button") as HTMLButtonElement;
@@ -88,7 +88,7 @@ describe("Faultsense Agent - Assertion Type: updated", () => {
   it("Should pass if a new attributes are added to the element", async () => {
     document.body.innerHTML = `
       <div id="panel"></div>
-      <button fs-trigger="click" fs-assert-updated="#panel" fs-assert="panel-update" fs-feature="updater">Click</button>
+      <button fs-trigger="click" fs-assert-updated="#panel" fs-assert="panel-update">Click</button>
     `;
 
     const button = document.querySelector("button") as HTMLButtonElement;
@@ -115,7 +115,7 @@ describe("Faultsense Agent - Assertion Type: updated", () => {
   it("Should pass if child elements are added", async () => {
     document.body.innerHTML = `
       <div id="panel"></div>
-      <button fs-trigger="click" fs-assert-updated="#panel" fs-assert="panel-update" fs-feature="updater">Click</button>
+      <button fs-trigger="click" fs-assert-updated="#panel" fs-assert="panel-update">Click</button>
     `;
 
     const button = document.querySelector("button") as HTMLButtonElement;
@@ -144,7 +144,7 @@ describe("Faultsense Agent - Assertion Type: updated", () => {
       <div id="panel">
         <div id="panel-body"></div>
       </div>
-      <button fs-trigger="click" fs-assert-updated="#panel" fs-assert="panel-update" fs-feature="updater">Click</button>
+      <button fs-trigger="click" fs-assert-updated="#panel" fs-assert="panel-update">Click</button>
     `;
 
     const button = document.querySelector("button") as HTMLButtonElement;
@@ -172,7 +172,7 @@ describe("Faultsense Agent - Assertion Type: updated", () => {
       <div id="panel">
         <div id="panel-body"></div>
       </div>
-      <button fs-trigger="click" fs-assert-updated="#panel" fs-assert="panel-update" fs-feature="updater">Click</button>
+      <button fs-trigger="click" fs-assert-updated="#panel" fs-assert="panel-update">Click</button>
     `;
 
     const button = document.querySelector("button") as HTMLButtonElement;
@@ -200,7 +200,7 @@ describe("Faultsense Agent - Assertion Type: updated", () => {
       <div id="panel">
         <div id="panel-body"></div>
       </div>
-      <button fs-trigger="click" fs-assert-updated="#panel" fs-assert="panel-update" fs-feature="updater">Click</button>
+      <button fs-trigger="click" fs-assert-updated="#panel" fs-assert="panel-update">Click</button>
     `;
 
     const button = document.querySelector("button") as HTMLButtonElement;
@@ -230,7 +230,7 @@ describe("Faultsense Agent - Assertion Type: updated", () => {
       <div id="panel">
         <p id="panel-body"></p>
       </div>
-      <button fs-trigger="click" fs-assert-updated="#panel" fs-assert="panel-update" fs-feature="updater">Click</button>
+      <button fs-trigger="click" fs-assert-updated="#panel" fs-assert="panel-update">Click</button>
     `;
 
     const button = document.querySelector("button") as HTMLButtonElement;
@@ -260,7 +260,7 @@ describe("Faultsense Agent - Assertion Type: updated", () => {
       <div id="panel">
         <div id="panel-body"></div>
       </div>
-      <button fs-trigger="click" fs-assert-updated="#panel" fs-assert="panel-update" fs-feature="updater">Click</button>
+      <button fs-trigger="click" fs-assert-updated="#panel" fs-assert="panel-update">Click</button>
     `;
 
     const button = document.querySelector("button") as HTMLButtonElement;

@@ -64,7 +64,7 @@ describe.only("Faultsense Agent - Assertion Type modifer: classlist", () => {
       <button fs-trigger="click"
       fs-assert-updated='#logo[classlist=foo:true,bar:true,baz:true,test:true]'
       fs-assert="img-src-update"
-      fs-feature="updater">Click</button>
+     >Click</button>
     `;
 
     const button = document.querySelector("button") as HTMLButtonElement;
@@ -93,7 +93,7 @@ describe.only("Faultsense Agent - Assertion Type modifer: classlist", () => {
       <button fs-trigger="click"
       fs-assert-updated='#logo[classlist=random:false,junk:false]'
       fs-assert="img-src-update"
-      fs-feature="updater">Click</button>
+     >Click</button>
     `;
 
     const button = document.querySelector("button") as HTMLButtonElement;
@@ -122,7 +122,7 @@ describe.only("Faultsense Agent - Assertion Type modifer: classlist", () => {
       <button fs-trigger="click"
       fs-assert-updated='#logo[classlist=foo:true,test:false,bar:false]'
       fs-assert="img-src-update"
-      fs-feature="updater">Click</button>
+     >Click</button>
     `;
 
     const button = document.querySelector("button") as HTMLButtonElement;
@@ -152,7 +152,7 @@ describe.only("Faultsense Agent - Assertion Type modifer: classlist", () => {
       <button fs-trigger="click"
       fs-assert-updated='#logo[classlist=foo : true , bar : true , baz : false]'
       fs-assert="img-src-update"
-      fs-feature="updater">Click</button>
+     >Click</button>
     `;
 
     const button = document.querySelector("button") as HTMLButtonElement;

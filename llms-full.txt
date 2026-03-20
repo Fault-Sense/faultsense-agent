@@ -8,22 +8,33 @@
 
 ## Core Concept
 
-Developers add `fs-*` attributes to HTML elements to declare: (1) what user event triggers the assertion, (2) what DOM or network outcome is expected, and (3) optional modifiers to refine the check. The agent monitors real user sessions and reports pass/fail to a collector.
+Developers add `fs-*` attributes to HTML elements to declare: (1) what user event triggers the assertion, (2) what DOM or network outcome is expected, and (3) optional inline modifiers to refine the check. The agent monitors real user sessions and reports pass/fail to a collector.
 
-An element with `fs-*` attributes creates one assertion per assertion type. If an element has both `fs-assert-updated` and `fs-assert-response-status`, two separate assertions are created — each resolved independently.
+An element with multiple `fs-assert-*` attributes creates one assertion per type. Each is resolved independently.
 
 ---
 
 ## API Reference
 
-### Identifier Attributes
+### Required Attributes
 
-| Attribute | Required | Description |
-|---|---|---|
-| `fs-feature="<key>"` | Yes | Groups assertions under a feature (e.g., "checkout") |
-| `fs-assert="<key>"` | Yes | Unique assertion identifier (e.g., "submit-order") |
-| `fs-feature-label="<label>"` | No | Human-readable feature name |
-| `fs-assert-label="<label>"` | No | Human-readable assertion name |
+| Attribute | Description |
+|---|---|
+| `fs-assert="<key>"` | Assertion key. Use `/` to group hierarchically (e.g., `"checkout/submit-order"`) |
+| `fs-trigger="<value>"` | Event that triggers the assertion (exactly one per element) |
+
+### Assertion Key Convention
+
+Use `/` separators to group related assertions, like file paths or package names. Nest as deep as needed:
+
+```
+fs-assert="checkout/add-to-cart"
+fs-assert="checkout/submit-order"
+fs-assert="profile/media/upload-photo"
+fs-assert="auth/login"
+```
+
+Keys must be stable across releases. Human-readable labels are configured on the collector side, not in the HTML.
 
 ### Triggers
 
@@ -43,69 +54,92 @@ An element with `fs-*` attributes creates one assertion per assertion type. If a
 
 ### Assertion Types
 
-At least one required. Value depends on the type.
+At least one required. Value is a CSS selector, optionally with inline modifiers in brackets.
 
-**DOM Assertions** — value is a CSS selector:
+**DOM Assertions:**
 
 | Attribute | Resolves when |
 |---|---|
 | `fs-assert-added="<selector>"` | A new element matching the selector appears in the DOM |
 | `fs-assert-removed="<selector>"` | An element matching the selector is removed from the DOM |
-| `fs-assert-updated="<selector>"` | The matched element or anything in its subtree is mutated (text change, attribute change, child added/removed) |
-| `fs-assert-visible="<selector>"` | The matched element exists and has layout dimensions (offsetWidth/offsetHeight > 0 or getClientRects().length > 0) |
+| `fs-assert-updated="<selector>"` | The matched element or its subtree is mutated (text, attributes, children) |
+| `fs-assert-visible="<selector>"` | The matched element exists and has layout dimensions |
 | `fs-assert-hidden="<selector>"` | The matched element exists but has no layout dimensions |
 | `fs-assert-loaded="<selector>"` | A media element (img/video) matching the selector finishes loading |
 
-**Response-Conditional Assertions** — HTTP response status determines which DOM assertion to check:
+**Response-Conditional Assertions** — append HTTP status to type name:
 
-`fs-assert-resp-<status>-<dom-type>="<selector>"`
+`fs-assert-{type}-{status}="<selector>"`
 
 | Component | Description | Examples |
 |---|---|---|
-| `<status>` | Exact code or range | `200`, `404`, `2xx`, `4xx`, `5xx` |
-| `<dom-type>` | DOM assertion type | `added`, `removed`, `updated`, `visible`, `hidden` |
-| `<selector>` | CSS selector for the DOM element | `.success-msg`, `#error` |
+| `{type}` | DOM assertion type | `added`, `removed`, `updated`, `visible`, `hidden` |
+| `{status}` | Exact code or range | `200`, `404`, `2xx`, `4xx`, `5xx` |
 
 Exact codes take priority over ranges. Multiple conditions per element create independent assertions. When one matches, siblings are silently dismissed. If no condition matches the actual status, all assertions fail immediately.
 
 Example:
 ```html
-<button fs-assert-resp-200-removed=".todo-item"
-        fs-assert-resp-4xx-added=".error-msg" ...>
+<button fs-assert-removed-200=".todo-item"
+        fs-assert-added-4xx=".error-msg" ...>
 ```
 
-### Modifiers
+### Inline Modifiers
 
-Optional attributes that refine how assertions are checked.
+Modifiers are chained in the attribute value using CSS-like bracket syntax after the selector:
+
+```html
+fs-assert-updated='#count[text-matches=\d+]'
+fs-assert-updated='#logo[src=/img/new.png][alt=New Logo]'
+fs-assert-updated='.panel[classlist=active:true,hidden:false]'
+fs-assert-added-200='.success[text-matches=Order #\d+]'
+```
+
+**Reserved modifier keys:**
+
+| Key | Description |
+|---|---|
+| `[text-matches=<pattern>]` | Text content must match (regex or string). Evaluated as `new RegExp(value).test(el.textContent)`. |
+| `[classlist=<class:bool,...>]` | Classes on the element. Format: `active:true,hidden:false` where `true` = must have, `false` = must not have. |
+
+**Unreserved keys** are treated as attribute checks:
+
+| Example | Checks |
+|---|---|
+| `[src=/img/logo.png]` | Element has `src="/img/logo.png"` |
+| `[data-state=active]` | Element has `data-state="active"` |
+| `[aria-expanded=true]` | Element has `aria-expanded="true"` |
+
+Multiple attribute checks can be chained: `#logo[src=/img/new.png][width=100][alt=Logo]`
+
+### Element-Level Attributes
+
+These apply to the element, not to a specific assertion type:
 
 | Attribute | Description |
 |---|---|
-| `fs-assert-text-matches="<string\|regex>"` | Text content of the asserted DOM element must match. Evaluated as `new RegExp(value).test(el.textContent)`. |
-| `fs-assert-attrs-match='<json>'` | Attributes of the asserted element must match. JSON object of `{ "attr": "value" }` pairs. |
-| `fs-assert-classlist='<json>'` | Classes on the asserted element. JSON object of `{ "class": true/false }` where true = must have, false = must not have. |
 | `fs-assert-timeout="<ms>"` | Override the default timeout (1000ms). Assertion fails if not resolved within this time. |
-| `fs-assert-mpa="true"` | Multi-page assertion. Persisted to localStorage and resolved on the next page load when the agent re-initializes. |
+| `fs-assert-mpa="true"` | Multi-page assertion. Persisted to localStorage and resolved on the next page load. |
 
 ### Network Association
 
-Network assertions require linking an HTTP request/response to a specific assertion. This is done via the `fs-resp-for` mechanism — the value must match the `fs-assert` key.
+Response-conditional assertions require linking an HTTP request/response to an assertion key via `fs-resp-for`:
 
-Three options (use any one):
-1. **Request header**: `fetch(url, { headers: { "fs-resp-for": "my-assertion-key" } })`
-2. **Response header**: Server returns `fs-resp-for: my-assertion-key` header
-3. **Query parameter**: `fetch(url + "?fs-resp-for=my-assertion-key")`
+1. **Request header**: `fetch(url, { headers: { "fs-resp-for": "checkout/submit-order" } })`
+2. **Response header**: Server returns `fs-resp-for: checkout/submit-order` header
+3. **Query parameter**: `fetch(url + "?fs-resp-for=checkout/submit-order")`
 
 ---
 
 ## Placement Rules
 
-1. **Attributes go on the trigger element** — the element the user directly interacts with. In event mode, only the exact `event.target` is processed.
-2. **For forms**: Use `fs-trigger="submit"` on the `<form>` element, OR `fs-trigger="click"` on the submit `<button>`. Both work.
+1. **Attributes go on the trigger element** — the element the user directly interacts with. Only the exact `event.target` is processed.
+2. **For forms**: Use `fs-trigger="submit"` on the `<form>` element, OR `fs-trigger="click"` on the submit `<button>`.
 3. **For mount/unmount**: Place on the element being observed for addition/removal.
 4. **For load/error**: Place on the media element itself (`<img>`, `<video>`, `<iframe>`).
 5. **One trigger per element**: `fs-trigger` accepts exactly one value.
 6. **Multiple assertion types on one element**: Valid. Each creates a separate assertion resolved independently.
-7. **Framework components**: `fs-*` attributes must reach the actual DOM element. In React, native elements (`<button>`, `<div>`) pass through unknown attributes. Wrapper components need to forward props via `{...rest}` or spread.
+7. **Framework components**: `fs-*` attributes must reach the actual DOM element. In React, native elements pass through unknown attributes. Wrapper components need to forward props.
 
 ---
 
@@ -115,11 +149,9 @@ Three options (use any one):
 
 ```html
 <button
-  fs-feature="counter"
-  fs-assert="increment"
+  fs-assert="counter/increment"
   fs-trigger="click"
-  fs-assert-updated="#counter"
-  fs-assert-text-matches="Count: [1-9]\d*">
+  fs-assert-updated='#counter[text-matches=Count: [1-9]\d*]'>
   Increment
 </button>
 <div id="counter">Count: 0</div>
@@ -131,8 +163,7 @@ Asserts: clicking increments the count and the display updates with a positive n
 
 ```html
 <button type="submit"
-  fs-feature="todo-app"
-  fs-assert="add-todo"
+  fs-assert="todo/add-item"
   fs-trigger="click"
   fs-assert-added=".todo-item">
   Add Todo
@@ -146,8 +177,7 @@ Asserts: submitting adds a new todo item to the DOM.
 ```html
 <!-- Open trigger -->
 <button
-  fs-feature="modal"
-  fs-assert="open-modal"
+  fs-assert="modal/open"
   fs-trigger="click"
   fs-assert-visible=".modal-overlay">
   Open Modal
@@ -155,8 +185,7 @@ Asserts: submitting adds a new todo item to the DOM.
 
 <!-- Close trigger (inside modal) -->
 <button
-  fs-feature="modal"
-  fs-assert="close-modal"
+  fs-assert="modal/close"
   fs-trigger="click"
   fs-assert-removed=".modal-content">
   Cancel
@@ -169,8 +198,7 @@ Asserts: clicking opens the modal (visible), clicking cancel removes it.
 
 ```html
 <button class="tab-button" data-tab="settings"
-  fs-feature="tabs"
-  fs-assert="switch-tab"
+  fs-assert="tabs/switch-tab"
   fs-trigger="click"
   fs-assert-visible=".tab-content[data-tab='settings']">
   Settings
@@ -183,8 +211,7 @@ Asserts: clicking the tab makes the corresponding content panel visible.
 
 ```html
 <button class="next-button"
-  fs-feature="wizard"
-  fs-assert="navigate-next"
+  fs-assert="wizard/navigate-next"
   fs-trigger="click"
   fs-assert-visible=".wizard-step[data-step='2']">
   Next
@@ -197,25 +224,23 @@ Asserts: clicking next shows the next wizard step.
 
 ```html
 <form
-  fs-feature="contact-form"
-  fs-assert="submit-form"
+  fs-assert="contact/submit-form"
   fs-trigger="submit"
-  fs-assert-resp-2xx-added=".success-msg"
-  fs-assert-resp-4xx-added=".validation-errors"
+  fs-assert-added-2xx=".success-msg"
+  fs-assert-added-4xx=".validation-errors"
   fs-assert-timeout="2000">
   <input name="email" type="email" />
   <button type="submit">Send</button>
 </form>
 ```
 
-Asserts: on 2xx response, success message appears. On 4xx, validation errors appear. Requires `fs-resp-for: submit-form` header on the request or response.
+Asserts: on 2xx response, success message appears. On 4xx, validation errors appear. Requires `fs-resp-for: contact/submit-form` header on the request or response.
 
 ### 7. MPA Navigation (Multi-Page App)
 
 ```html
 <button
-  fs-feature="mpa-form"
-  fs-assert="submit-mpa"
+  fs-assert="mpa-form/submit"
   fs-trigger="click"
   fs-assert-mpa="true"
   fs-assert-visible=".success-message">
@@ -229,18 +254,17 @@ Asserts: after a full page reload, the success message is visible. The assertion
 
 ```html
 <button
-  fs-feature="data-loader"
-  fs-assert="load-posts"
+  fs-assert="data/load-posts"
   fs-trigger="click"
-  fs-assert-resp-200-updated="#results"
-  fs-assert-resp-5xx-added=".error"
+  fs-assert-updated-200="#results"
+  fs-assert-added-5xx=".error"
   fs-assert-timeout="2600">
   Load Posts
 </button>
 <div id="results"></div>
 ```
 
-Asserts: on 200, the results container updates. On 5xx, an error element appears. Requires `fs-resp-for: load-posts` header on the request or response.
+Asserts: on 200, the results container updates. On 5xx, an error element appears. Requires `fs-resp-for: data/load-posts` header on the request or response.
 
 ---
 
@@ -251,7 +275,7 @@ The `fs-*` attributes are standard HTML attributes. They work in any framework t
 ### Plain HTML
 
 ```html
-<button fs-feature="cart" fs-assert="add-item" fs-trigger="click"
+<button fs-assert="cart/add-item" fs-trigger="click"
   fs-assert-updated="#cart-count">
   Add to Cart
 </button>
@@ -260,20 +284,20 @@ The `fs-*` attributes are standard HTML attributes. They work in any framework t
 ### React JSX
 
 ```jsx
-<button fs-feature="cart" fs-assert="add-item" fs-trigger="click"
+<button fs-assert="cart/add-item" fs-trigger="click"
   fs-assert-updated="#cart-count"
   onClick={handleAddToCart}>
   Add to Cart
 </button>
 ```
 
-React passes unknown attributes through to the DOM on native elements (`button`, `div`, etc.). For custom components, ensure props are forwarded to the root DOM element.
+React passes unknown attributes through to the DOM on native elements. For custom components, ensure props are forwarded to the root DOM element.
 
 ### Vue SFC
 
 ```vue
 <template>
-  <button fs-feature="cart" fs-assert="add-item" fs-trigger="click"
+  <button fs-assert="cart/add-item" fs-trigger="click"
     fs-assert-updated="#cart-count"
     @click="handleAddToCart">
     Add to Cart
@@ -286,7 +310,7 @@ Vue passes unknown attributes through via `inheritAttrs` (default: true).
 ### Svelte
 
 ```svelte
-<button fs-feature="cart" fs-assert="add-item" fs-trigger="click"
+<button fs-assert="cart/add-item" fs-trigger="click"
   fs-assert-updated="#cart-count"
   on:click={handleAddToCart}>
   Add to Cart
@@ -301,15 +325,15 @@ Svelte passes unknown attributes through on native elements.
 
 1. **Putting `fs-trigger` on a parent instead of the interacted element.** The agent only processes the exact `event.target`. If the user clicks a `<span>` inside a `<button>`, the `<button>` is the target (due to event bubbling), but a `<div>` wrapper above it is not.
 
-2. **Forgetting `fs-resp-for` for response-conditional assertions.** `fs-assert-resp-*-*` assertions require associating the HTTP request/response via the `fs-resp-for` header or query param. Without it, the assertion will always time out.
+2. **Forgetting `fs-resp-for` for response-conditional assertions.** `fs-assert-{type}-{status}` assertions require associating the HTTP request/response via the `fs-resp-for` header or query param. Without it, the assertion will always time out.
 
 3. **Using `added` when `updated` is correct.** Use `added` when the element doesn't exist yet and will be created. Use `updated` when the element already exists and its content/attributes will change.
 
 4. **Using `visible` when `added` is correct.** `visible` checks an existing element's layout dimensions. `added` checks for a new element appearing in the DOM. If the element is conditionally rendered (doesn't exist until triggered), use `added`.
 
-5. **Missing required attributes.** Every instrumented element needs: `fs-feature`, `fs-assert`, `fs-trigger`, and at least one assertion type (`fs-assert-added`, `fs-assert-updated`, etc.).
+5. **Missing required attributes.** Every instrumented element needs: `fs-assert`, `fs-trigger`, and at least one assertion type.
 
-6. **Using `text-matches` with exact dynamic values.** If the expected text is dynamic (user names, prices, timestamps), use a regex pattern instead of an exact string. `fs-assert-text-matches="\\d+"` is better than `fs-assert-text-matches="42"`.
+6. **Using `text-matches` with exact dynamic values.** If the expected text is dynamic (user names, prices, timestamps), use a regex pattern instead of an exact string. `[text-matches=\\d+]` is better than `[text-matches=42]`.
 
 ---
 
@@ -319,15 +343,12 @@ Each resolved assertion sends this payload to the collector:
 
 ```typescript
 {
-  assertion_key: string;        // from fs-assert
-  assertion_label: string;      // from fs-assert-label (or "")
+  assertion_key: string;        // from fs-assert (e.g., "checkout/submit-order")
   assertion_trigger: string;    // from fs-trigger
-  assertion_type: string;       // "added" | "removed" | "updated" | "visible" | "hidden" | "loaded" | "response-status" | "response-headers"
-  assertion_type_value: string; // the selector or expected value
+  assertion_type: string;       // "added" | "removed" | "updated" | "visible" | "hidden" | "loaded"
+  assertion_type_value: string; // the CSS selector
   assertion_type_modifiers: {}; // modifier key-value pairs
   element_snapshot: string;     // outerHTML of the trigger element at assertion creation time
-  feature_key: string;          // from fs-feature
-  feature_label: string;        // from fs-feature-label (or "")
   release_label: string;        // from configuration
   status: "passed" | "failed";
   status_reason: string;        // failure explanation (or "")

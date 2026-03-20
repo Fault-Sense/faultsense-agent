@@ -264,11 +264,6 @@ function isValidAssertionMetadata(
 ): boolean {
   const details = { element };
 
-  if (!assertionMetadata.details["feature"]) {
-    console.error("[Faultsense]: Missing 'fs-feature' on assertion.", details);
-    return false;
-  }
-
   if (!assertionMetadata.details["assert"]) {
     console.error(
       "[Faultsense]: Missing 'fs-assert' on assertion.",
@@ -301,11 +296,8 @@ function createAssertions(
 
     return {
       assertionKey: metadata.details["assert"],
-      assertionLabel: metadata.details["assert-label"] || "",
       endTime: undefined,
       elementSnapshot: element.outerHTML,
-      featureKey: metadata.details["feature"],
-      featureLabel: metadata.details["feature-label"] || "",
       trigger: metadata.details.trigger,
       mpa_mode: Boolean(metadata.modifiers["mpa"]),
       startTime: Date.now(),

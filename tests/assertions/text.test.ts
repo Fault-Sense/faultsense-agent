@@ -63,7 +63,7 @@ describe("Faultsense Agent - Assertion Type modifer: text-matches", () => {
       <button fs-trigger="click"
       fs-assert-updated='#note[text-matches=Hello World]'
       fs-assert="panel-text-update"
-      fs-feature="updater">Click</button>
+     >Click</button>
     `;
 
     const button = document.querySelector("button") as HTMLButtonElement;
@@ -95,7 +95,7 @@ describe("Faultsense Agent - Assertion Type modifer: text-matches", () => {
       <button fs-trigger="click"
       fs-assert-updated='#note[text-matches=Hello World]'
       fs-assert="panel-text-update"
-      fs-feature="updater">Click</button>
+     >Click</button>
     `;
 
     const button = document.querySelector("button") as HTMLButtonElement;
@@ -127,7 +127,7 @@ describe("Faultsense Agent - Assertion Type modifer: text-matches", () => {
       <button fs-trigger="click"
       fs-assert-updated='#note[text-matches=Count: \\d+]'
       fs-assert="panel-text-update"
-      fs-feature="updater">Click</button>
+     >Click</button>
     `;
 
     const button = document.querySelector("button") as HTMLButtonElement;
@@ -159,7 +159,7 @@ describe("Faultsense Agent - Assertion Type modifer: text-matches", () => {
       <button fs-trigger="click"
       fs-assert-updated='#note[text-matches=Count: [a-z]+]'
       fs-assert="panel-text-update"
-      fs-feature="updater">Click</button>
+     >Click</button>
     `;
 
     const button = document.querySelector("button") as HTMLButtonElement;
@@ -191,7 +191,7 @@ describe("Faultsense Agent - Assertion Type modifer: text-matches", () => {
       <button fs-trigger="click"
       fs-assert-updated='#note[text-matches=Count: [a-z]+]'
       fs-assert="panel-text-update"
-      fs-feature="updater">Click</button>
+     >Click</button>
     `;
 
     const button = document.querySelector("button") as HTMLButtonElement;
@@ -226,7 +226,7 @@ describe("Faultsense Agent - Assertion Type modifer: text-matches", () => {
         fs-trigger="click"
         fs-assert-updated='#counter[text-matches=Count: 1]'
         fs-assert="dynamic-counter"
-        fs-feature="counter">
+       >
         Increment
       </button>
     `;

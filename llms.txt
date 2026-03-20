@@ -13,53 +13,65 @@ Add `fs-*` HTML attributes to the element a user interacts with. The attributes 
 
 ## Attribute Reference
 
-### Required Identifiers
+### Required
 
-- `fs-feature="<key>"` — Feature group (e.g., "checkout", "cart")
-- `fs-assert="<key>"` — Unique assertion ID (e.g., "add-item", "submit-order")
-
-### Trigger (exactly 1 required)
-
-`fs-trigger="<value>"` where value is one of:
-- `click`, `dblclick`, `change`, `blur`, `submit` — User interaction events
-- `mount`, `unmount` — Element added/removed from DOM
-- `load`, `error` — Resource loading (img, video, iframe)
+- `fs-assert="<key>"` — Assertion key. Use `/` to group: `"checkout/add-to-cart"`, `"profile/media/upload-photo"`
+- `fs-trigger="<value>"` — One of: `click`, `dblclick`, `change`, `blur`, `submit`, `mount`, `unmount`, `load`, `error`
 
 ### Assertion Types (at least 1 required)
 
-DOM assertions — value is a CSS selector:
-- `fs-assert-added="<selector>"` — Element matching selector is added to DOM
-- `fs-assert-removed="<selector>"` — Element matching selector is removed from DOM
-- `fs-assert-updated="<selector>"` — Element or its subtree is mutated (text, attributes, children)
-- `fs-assert-visible="<selector>"` — Element exists and is visible (has layout dimensions)
-- `fs-assert-hidden="<selector>"` — Element exists and is not visible
-- `fs-assert-loaded="<selector>"` — Media element (img/video) finishes loading
+Value is a CSS selector, optionally with inline modifiers in brackets:
 
-Response-conditional — status determines which DOM assertion to check:
-- `fs-assert-resp-<status>-<dom-type>="<selector>"` — When response matches status, assert the DOM condition
-  - Status: exact code (200, 404) or range (2xx, 4xx, 5xx). Exact takes priority over range.
-  - DOM type: `added`, `removed`, `updated`, `visible`, `hidden`
-  - Multiple conditions per element: `fs-assert-resp-200-added=".success"` + `fs-assert-resp-4xx-added=".error"`
-  - When one matches, siblings are silently dismissed. If none match, all fail with the actual status.
+- `fs-assert-added="<selector>"` — Element added to DOM
+- `fs-assert-removed="<selector>"` — Element removed from DOM
+- `fs-assert-updated="<selector>"` — Element or subtree mutated
+- `fs-assert-visible="<selector>"` — Element exists and visible
+- `fs-assert-hidden="<selector>"` — Element exists but hidden
+- `fs-assert-loaded="<selector>"` — Media element finished loading
 
-### Modifiers (optional)
+Response-conditional — append status to type name:
+- `fs-assert-{type}-{status}="<selector>"` — e.g., `fs-assert-added-200=".success"`, `fs-assert-removed-4xx=".error"`
+- Status: exact (200, 404) or range (2xx, 4xx, 5xx). Exact takes priority.
+- Multiple conditions per element create independent assertions. When one matches, siblings are dismissed.
 
-- `fs-assert-text-matches="<string|regex>"` — Text content of the asserted element matches
-- `fs-assert-attrs-match='<json>'` — Attributes match (e.g., '{"src":"/img/logo.png"}')
-- `fs-assert-classlist='<json>'` — Classes present/absent (e.g., '{"active":true,"hidden":false}')
+### Inline Modifiers (in the value)
+
+Chained CSS-like brackets after the selector:
+
+- `[text-matches=pattern]` — Text content regex/string match
+- `[classlist=active:true,hidden:false]` — Class presence check
+- `[attr=value]` — Any other key is an attribute check
+
+Example: `fs-assert-updated='#count[text-matches=\d+]'`
+
+### Element-Level Attributes
+
 - `fs-assert-timeout="<ms>"` — Override default timeout (default: 1000ms)
-- `fs-assert-mpa="true"` — Persist assertion across page navigation (resolved on next page load)
+- `fs-assert-mpa="true"` — Persist assertion across page navigation
 
 ### Network Association
 
-Network assertions require linking a request/response to an assertion via the `fs-resp-for` header:
+Response-conditional assertions require linking via `fs-resp-for`:
 - Request header: `fetch(url, { headers: { "fs-resp-for": "<assertion-key>" } })`
-- Response header: Server sets `fs-resp-for: <assertion-key>` on the response
+- Response header: Server sets `fs-resp-for: <assertion-key>`
 - Query param: `fetch(url + "?fs-resp-for=<assertion-key>")`
+
+### Assertion Key Convention
+
+Use `/` separators to group assertions hierarchically. Nest as deep as needed:
+
+```
+fs-assert="checkout/add-to-cart"
+fs-assert="checkout/submit-order"
+fs-assert="profile/media/upload-photo"
+fs-assert="auth/login"
+```
+
+Keys must be stable across releases. Human-readable labels are configured on the collector side, not in the HTML.
 
 ## Placement Rule
 
-Attributes go on the element that receives the user event. In event mode, only the exact `event.target` element is processed.
+Attributes go on the element that receives the user event. Only the exact `event.target` is processed.
 
 ## Examples
 
@@ -67,25 +79,22 @@ Attributes go on the element that receives the user event. In event mode, only t
 
 ```html
 <button
-  fs-feature="counter"
-  fs-assert="increment"
+  fs-assert="counter/increment"
   fs-trigger="click"
-  fs-assert-updated="#count"
-  fs-assert-text-matches="Count: [1-9]\d*">
+  fs-assert-updated='#count[text-matches=Count: [1-9]\d*]'>
   Increment
 </button>
 <span id="count">Count: 0</span>
 ```
 
-### Form submission with response-conditional assertions
+### Form with response-conditional assertions
 
 ```html
 <form
-  fs-feature="contact"
-  fs-assert="submit-form"
+  fs-assert="contact/submit-form"
   fs-trigger="submit"
-  fs-assert-resp-201-added=".success-msg"
-  fs-assert-resp-4xx-added=".error-msg"
+  fs-assert-added-201=".success-msg"
+  fs-assert-added-4xx=".error-msg"
   fs-assert-timeout="2000">
   <input name="email" type="email" />
   <button type="submit">Send</button>
@@ -96,8 +105,7 @@ Attributes go on the element that receives the user event. In event mode, only t
 
 ```html
 <div
-  fs-feature="todo-app"
-  fs-assert="initial-state"
+  fs-assert="todo/initial-state"
   fs-trigger="mount"
   fs-assert-visible=".todos-empty">
   <!-- app content -->

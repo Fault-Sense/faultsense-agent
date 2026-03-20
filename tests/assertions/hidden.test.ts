@@ -59,7 +59,7 @@ describe("Faultsense Agent - Assertion Type: hidden", () => {
 
   it("hidden should pass if the element exists and is hidden (mount trigger)", async () => {
     document.body.innerHTML = `
-      <button fs-trigger="mount" fs-assert-hidden="#panel" fs-assert="btn-click" fs-feature="revealer">Click</button>
+      <button fs-trigger="mount" fs-assert-hidden="#panel" fs-assert="btn-click">Click</button>
       <div id="panel" style="display:none;"></div>
     `;
 
@@ -89,7 +89,7 @@ describe("Faultsense Agent - Assertion Type: hidden", () => {
 
   it("hidden should pass if the element exists and is hidden", async () => {
     document.body.innerHTML = `
-      <button fs-trigger="click" fs-assert-hidden="#panel" fs-assert="btn-click" fs-feature="revealer">Click</button>
+      <button fs-trigger="click" fs-assert-hidden="#panel" fs-assert="btn-click">Click</button>
       <div id="panel" style="display: block; width: 100px; height: 100px;"></div>
     `;
 
@@ -117,7 +117,7 @@ describe("Faultsense Agent - Assertion Type: hidden", () => {
 
   it("hidden should fail if the element exists but is visisble", async () => {
     document.body.innerHTML = `
-      <button fs-trigger="click" fs-assert-hidden="#panel" fs-assert="btn-click" fs-feature="revealer">Click</button>
+      <button fs-trigger="click" fs-assert-hidden="#panel" fs-assert="btn-click">Click</button>
       <div id="panel" style="display: block; width: 100px; height: 100px;"></div>
     `;
 
@@ -139,7 +139,7 @@ describe("Faultsense Agent - Assertion Type: hidden", () => {
 
   it("hidden should fail if the element does not exist", async () => {
     document.body.innerHTML = `
-        <button fs-trigger="click" fs-assert-hidden="#panel" fs-assert="btn-click" fs-feature="revealer">Click</button>
+        <button fs-trigger="click" fs-assert-hidden="#panel" fs-assert="btn-click">Click</button>
       `;
 
     const button = document.querySelector("button") as HTMLButtonElement;

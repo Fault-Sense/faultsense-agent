@@ -60,7 +60,7 @@ describe("Faultsense Agent - Assertions with global errors", () => {
 
   it("Assertions should fail if any unhandled error is thrown", async () => {
     document.body.innerHTML = `
-      <button fs-trigger="click" fs-assert-added="#panel" fs-assert="btn-click" fs-feature="revealer">Click</button>
+      <button fs-trigger="click" fs-assert-added="#panel" fs-assert="btn-click">Click</button>
     `;
 
     const button = document.querySelector("button") as HTMLButtonElement;
@@ -90,7 +90,7 @@ describe("Faultsense Agent - Assertions with global errors", () => {
 
   it("Assertions should fail if an unhandledrejection error is thrown", async () => {
     document.body.innerHTML = `
-      <button fs-trigger="click" fs-assert-added="#panel" fs-assert="btn-click" fs-feature="revealer">Click</button>
+      <button fs-trigger="click" fs-assert-added="#panel" fs-assert="btn-click">Click</button>
     `;
 
     // Simulate an unhandled promise rejection

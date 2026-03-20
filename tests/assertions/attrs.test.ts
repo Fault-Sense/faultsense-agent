@@ -64,7 +64,7 @@ describe("Faultsense Agent - Assertion Type modifer: attrs-match", () => {
       <button fs-trigger="click"
       fs-assert-updated='#logo[src=/path/to/foo.png][width=100][height=100][alt=alt text]'
       fs-assert="img-src-update"
-      fs-feature="updater">Click</button>
+     >Click</button>
     `;
 
     const button = document.querySelector("button") as HTMLButtonElement;
@@ -94,7 +94,7 @@ describe("Faultsense Agent - Assertion Type modifer: attrs-match", () => {
       <button fs-trigger="click"
       fs-assert-updated='#logo[src=/path/to/bar.png][width=100][height=100][alt=some text]'
       fs-assert="img-src-update"
-      fs-feature="updater">Click</button>
+     >Click</button>
     `;
 
     const button = document.querySelector("button") as HTMLButtonElement;

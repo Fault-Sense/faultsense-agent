@@ -94,7 +94,7 @@ describe("Faultsense Agent - Response-Conditional Assertions", () => {
         fs-trigger="click"
         fs-assert-added-200=".success-msg"
         fs-assert="server-check"
-        fs-feature="network">
+>
         Click me
       </button>
     `;
@@ -131,7 +131,7 @@ describe("Faultsense Agent - Response-Conditional Assertions", () => {
         fs-assert-added-200=".success-msg"
         fs-assert-added-400=".error-msg"
         fs-assert="server-check"
-        fs-feature="network">
+>
         Click me
       </button>
     `;
@@ -172,7 +172,7 @@ describe("Faultsense Agent - Response-Conditional Assertions", () => {
         fs-assert-added-200=".success-msg"
         fs-assert-added-400=".error-msg"
         fs-assert="server-check"
-        fs-feature="network">
+>
         Click me
       </button>
     `;
@@ -211,7 +211,7 @@ describe("Faultsense Agent - Response-Conditional Assertions", () => {
         fs-assert-added-2xx=".success-msg"
         fs-assert-added-4xx=".error-msg"
         fs-assert="server-check"
-        fs-feature="network">
+>
         Click me
       </button>
     `;
@@ -248,7 +248,7 @@ describe("Faultsense Agent - Response-Conditional Assertions", () => {
         fs-assert-added-201=".created-msg"
         fs-assert-added-2xx=".success-msg"
         fs-assert="server-check"
-        fs-feature="network">
+>
         Click me
       </button>
     `;
@@ -284,7 +284,7 @@ describe("Faultsense Agent - Response-Conditional Assertions", () => {
         fs-assert-added-200=".success-msg"
         fs-assert-added-400=".error-msg"
         fs-assert="server-check"
-        fs-feature="network">
+>
         Click me
       </button>
     `;
@@ -317,7 +317,7 @@ describe("Faultsense Agent - Response-Conditional Assertions", () => {
         fs-trigger="click"
         fs-assert-removed-200=".todo-item"
         fs-assert="server-check"
-        fs-feature="network">
+>
         Delete
       </button>
     `;
@@ -352,7 +352,6 @@ describe("Faultsense Agent - Response-Conditional Assertions", () => {
         fs-trigger="click"
         fs-assert-added-200=".success-msg"
         fs-assert="server-check"
-        fs-feature="network"
         fs-assert-timeout="500">
         Click me
       </button>
@@ -388,7 +387,7 @@ describe("Faultsense Agent - Response-Conditional Assertions", () => {
         fs-trigger="click"
         fs-assert-visible-200=".success-msg"
         fs-assert="server-check"
-        fs-feature="network">
+>
         Click me
       </button>
     `;

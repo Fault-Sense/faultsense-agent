@@ -45,7 +45,7 @@ describe("Faultsense Agent - Assertion Types: removed", () => {
 
   it("removed assertion should pass", async () => {
     document.body.innerHTML = `
-      <button fs-trigger="click" fs-assert-removed="#panel" fs-assert="btn-click" fs-feature="hider">Click</button>
+      <button fs-trigger="click" fs-assert-removed="#panel" fs-assert="btn-click">Click</button>
       <div id="panel"></div>
     `;
 
@@ -73,7 +73,7 @@ describe("Faultsense Agent - Assertion Types: removed", () => {
 
   it("removed assertion should not pass", async () => {
     document.body.innerHTML = `
-      <button fs-trigger="click" fs-assert-removed="#panel" fs-assert="btn-click" fs-feature="hider">Click</button>
+      <button fs-trigger="click" fs-assert-removed="#panel" fs-assert="btn-click">Click</button>
       <div id="panel"></div>
     `;
 

@@ -13,9 +13,6 @@ describe("Faultsense Agent - Assertion Storage", () => {
 
     const createMockAssertion = (overrides: Partial<Assertion> = {}): Assertion => ({
         assertionKey: "test-assertion",
-        assertionLabel: "Test Assertion",
-        featureKey: "test-feature",
-        featureLabel: "Test Feature",
         trigger: "click",
         type: "visible",
         typeValue: "#test-element",

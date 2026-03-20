@@ -33,14 +33,13 @@ import { CollectorFunction } from "../types";
  * - Full payload object for debugging
  */
 const consoleCollector: CollectorFunction = (payload) => {
-    console.groupCollapsed(`🔍 FaultSense [${payload.status.toUpperCase()}] ${payload.assertion_label}`);
+    console.groupCollapsed(`🔍 FaultSense [${payload.status.toUpperCase()}] ${payload.assertion_key}`);
     console.log('Status:', payload.status);
     console.log('Trigger:', payload.assertion_trigger);
     console.log('Type:', payload.assertion_type);
     console.log('Type Value:', payload.assertion_type_value);
     console.log('Modifiers:', payload.assertion_type_modifiers);
-    console.log('Feature:', payload.feature_key, payload.feature_label ? `(${payload.feature_label})` : '');
-    console.log('Assertion:', payload.assertion_key, payload.assertion_label ? `(${payload.assertion_label})` : '');
+    console.log('Assertion:', payload.assertion_key);
     console.log('Timestamp:', payload.timestamp);
     console.log('Release:', payload.release_label);
     console.log('Element Snapshot:', payload.element_snapshot);

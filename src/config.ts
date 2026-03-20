@@ -31,10 +31,7 @@ export const httpResponseHeaderKey = "fs-resp-for";
 
 export const supportedAssertions = {
   details: [
-    "feature",
-    "feature-label",
     "assert",
-    "assert-label",
     "trigger",
   ],
   types: [...domAssertions],

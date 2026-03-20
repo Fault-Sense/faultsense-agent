@@ -39,22 +39,8 @@ describe("Faultsense Agent - Attribute Validation", () => {
     vi.spyOn(Date, "now").mockRestore();
   });
 
-  it("Should require a feature key", async () => {
-    document.body.innerHTML = `<button fs-trigger="click">Click</button>`;
-
-    const button = document.querySelector(
-      'button[fs-trigger="click"]'
-    ) as HTMLElement;
-    button.click();
-
-    expect(consoleErrorMock).toHaveBeenCalledWith(
-      "[Faultsense]: Missing 'fs-feature' on assertion.",
-      { element: button }
-    );
-  });
-
   it("Should require an assertion key", async () => {
-    document.body.innerHTML = `<button fs-trigger="click" fs-feature="feature1">Click</button>`;
+    document.body.innerHTML = `<button fs-trigger="click">Click</button>`;
 
     const button = document.querySelector("button") as HTMLElement;
     button.click();
@@ -69,7 +55,6 @@ describe("Faultsense Agent - Attribute Validation", () => {
     document.body.innerHTML = `
         <button 
           fs-trigger="click"
-          fs-feature="feature1"
           fs-assert="assert1">Click</button>`;
 
     const button = document.querySelector("button") as HTMLElement;
@@ -85,7 +70,6 @@ describe("Faultsense Agent - Attribute Validation", () => {
     document.body.innerHTML = `
         <button
           fs-trigger="click"
-          fs-feature="feature1"
           fs-assert="assert1"
           fs-assert-added="#id">Click</button>`;
 
@@ -99,7 +83,6 @@ describe("Faultsense Agent - Attribute Validation", () => {
     document.body.innerHTML = `
         <button
           fs-trigger="click"
-          fs-feature="feature1"
           fs-assert="assert1"
           fs-assert-added-200=".success"
         >Click</button>`;
@@ -114,7 +97,6 @@ describe("Faultsense Agent - Attribute Validation", () => {
     document.body.innerHTML = `
         <button
           fs-trigger="click"
-          fs-feature="feature1"
           fs-assert="assert1"
           fs-assert-added-200=".success"
           fs-assert-added-4xx=".error"

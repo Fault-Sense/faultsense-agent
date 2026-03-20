@@ -29,21 +29,44 @@ When asked to add Faultsense assertions to a component, reason about it the same
 
 | Attribute | Purpose | Example |
 |---|---|---|
-| `fs-feature` | Feature group (required) | `"checkout"` |
-| `fs-assert` | Assertion ID (required) | `"submit-order"` |
+| `fs-assert` | Assertion key (required) | `"checkout/submit-order"` |
 | `fs-trigger` | Event trigger (required) | `"click"`, `"submit"`, `"mount"` |
-| `fs-assert-added` | Element appears in DOM | `"#success-msg"` |
+| `fs-assert-added` | Element appears in DOM | `".success-msg"` |
 | `fs-assert-removed` | Element removed from DOM | `".modal-content"` |
 | `fs-assert-updated` | Element/subtree mutated | `"#cart-count"` |
 | `fs-assert-visible` | Element exists and visible | `".dashboard"` |
 | `fs-assert-hidden` | Element exists but hidden | `".loading-spinner"` |
 | `fs-assert-loaded` | Media finished loading | `"#hero-image"` |
-| `fs-assert-resp-{status}-{type}` | Response-conditional DOM assertion | `fs-assert-resp-200-added=".success"` |
-| `fs-assert-text-matches` | Text content matches | `"Count: \\d+"` |
-| `fs-assert-attrs-match` | Attributes match | `'{"src":"/img/logo.png"}'` |
-| `fs-assert-classlist` | Classes present/absent | `'{"active":true}'` |
+| `fs-assert-{type}-{status}` | Response-conditional | `fs-assert-added-200=".success"` |
 | `fs-assert-timeout` | Custom timeout (ms) | `"2000"` |
 | `fs-assert-mpa` | Persist across page nav | `"true"` |
+
+### Inline Modifiers (in assertion type value)
+
+Modifiers are chained in the value using CSS-like bracket syntax:
+
+```html
+fs-assert-updated='#count[text-matches=\d+]'
+fs-assert-updated='#logo[src=/img/new.png][alt=New Logo]'
+fs-assert-updated='.panel[classlist=active:true,hidden:false]'
+```
+
+- `[text-matches=pattern]` — text content regex/string match
+- `[classlist=class:true,class:false]` — class presence check
+- `[attr=value]` — any other bracket is an attribute check (replaces attrs-match)
+
+### Assertion Key Convention
+
+Use `/` to group related assertions hierarchically, like file paths or package names:
+
+```
+fs-assert="checkout/add-to-cart"
+fs-assert="checkout/submit-order"
+fs-assert="profile/media/upload-photo"
+fs-assert="auth/login"
+```
+
+The key must be stable across releases. Human-readable labels can be configured on the collector side.
 
 ### Placement
 
@@ -55,11 +78,11 @@ When asked to add Faultsense assertions to a component, reason about it the same
 
 - **Don't put `fs-trigger` on a parent wrapper** — only the exact event target is processed
 - **Network assertions need `fs-resp-for`** — without the header/param linking request to assertion key, the assertion times out
-- **Network assertions are DOM assertions gated by HTTP status** — `fs-assert-resp-200-added=".success"` means "when response is 200, assert .success is added." The assertion type is always a DOM type.
-- **Multiple response conditions on one element** — `fs-assert-resp-200-added` and `fs-assert-resp-4xx-added` create independent assertions. When one matches, siblings are dismissed silently.
+- **Network assertions are DOM assertions gated by HTTP status** — `fs-assert-added-200=".success"` means "when response is 200, assert .success is added." The assertion type is always a DOM type.
+- **Multiple response conditions on one element** — `fs-assert-added-200` and `fs-assert-added-4xx` create independent assertions. When one matches, siblings are dismissed silently.
 - **`added` vs `updated`** — `added` = element doesn't exist yet; `updated` = element exists, content changes
 - **`visible` vs `added`** — `visible` checks layout dimensions of existing element; `added` checks for new element in DOM
-- **Every element needs** `fs-feature` + `fs-assert` + `fs-trigger` + at least one assertion type
+- **Every element needs** `fs-assert` + `fs-trigger` + at least one assertion type
 
 ## Project Context
 

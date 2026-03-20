@@ -106,10 +106,7 @@ export type AssertionModifiers =
   | "response-status";
 
 export interface Assertion {
-  featureKey: string;
-  featureLabel: string;
   assertionKey: string;
-  assertionLabel: string;
   elementSnapshot: string;
   mpa_mode: boolean;
   trigger: string;
@@ -137,14 +134,11 @@ export interface CompletedAssertion
 
 export interface ApiPayload {
   assertion_key: string;
-  assertion_label: string;
   assertion_trigger: string;
   assertion_type_value: string;
   assertion_type: AssertionType;
   assertion_type_modifiers: Record<AssertionModifiers, AssertionModiferValue>;
   element_snapshot: string;
-  feature_key: string;
-  feature_label: string;
   release_label: string;
   status_reason: string;
   status: AssertionStatus;

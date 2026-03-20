@@ -65,7 +65,7 @@ describe("Faultsense Agent - Timeout Override", () => {
         fs-assert-visible="#delayed-content" 
         fs-assert-timeout="2000"
         fs-assert="delayed-show" 
-        fs-feature="timeout-test">
+>
         Show Content
       </button>
     `;
@@ -120,7 +120,7 @@ describe("Faultsense Agent - Timeout Override", () => {
         fs-assert-visible="#delayed-content" 
         fs-assert-timeout="1500"
         fs-assert="delayed-show-fail" 
-        fs-feature="timeout-test">
+>
         Show Content (Will Fail)
       </button>
     `;
@@ -166,7 +166,7 @@ describe("Faultsense Agent - Timeout Override", () => {
         fs-trigger="click" 
         fs-assert-visible="#delayed-content" 
         fs-assert="default-timeout" 
-        fs-feature="timeout-test">
+>
         Show Content (Default Timeout)
       </button>
     `;

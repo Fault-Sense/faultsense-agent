@@ -60,7 +60,7 @@ describe("Faultsense Agent - Assertion Type: added", () => {
 
   it("added assertion should pass", async () => {
     document.body.innerHTML = `
-      <button fs-trigger="click" fs-assert-added="#panel" fs-assert="btn-click" fs-feature="revealer">Click</button>
+      <button fs-trigger="click" fs-assert-added="#panel" fs-assert="btn-click">Click</button>
     `;
 
     const button = document.querySelector("button") as HTMLButtonElement;
@@ -90,7 +90,7 @@ describe("Faultsense Agent - Assertion Type: added", () => {
 
   it("added assertion should not pass", async () => {
     document.body.innerHTML = `
-      <button fs-trigger="click" fs-assert-added="#panel" fs-assert="btn-click" fs-feature="revealer">Click</button>
+      <button fs-trigger="click" fs-assert-added="#panel" fs-assert="btn-click">Click</button>
     `;
 
     const button = document.querySelector("button") as HTMLButtonElement;
