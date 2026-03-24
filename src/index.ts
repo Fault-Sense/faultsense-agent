@@ -8,10 +8,9 @@ import {
   setConfiguration,
 } from "./assertions/configuration";
 import { createLogger } from "./utils/logger";
-import { collectors } from "./utils/collectors";
 
-// Export for programmatic use and esbuild global object
-export { collectors };
+// Cleanup hooks registered by external collectors (e.g., panel collector)
+const cleanupHooks: (() => void)[] = [];
 
 export function init(initialConfig: Partial<Configuration>): () => void {
   let observer: MutationObserver | null = null;
@@ -106,6 +105,9 @@ export function init(initialConfig: Partial<Configuration>): () => void {
       observer.disconnect();
       observer = null;
     }
+    // Invoke cleanup hooks registered by external collectors
+    cleanupHooks.forEach(fn => fn());
+    cleanupHooks.length = 0;
   };
 }
 
@@ -120,13 +122,18 @@ export function init(initialConfig: Partial<Configuration>): () => void {
     const collectorUrl = script.getAttribute("data-collector-url");
     let resolvedCollectorUrl: string | CollectorFunction | undefined = collectorUrl || undefined;
 
-    // Handle special collector values
-    if (collectorUrl === "console") {
-      resolvedCollectorUrl = collectors.consoleCollector;
+    // Look up registered collectors by name (e.g., "console", "panel")
+    if (collectorUrl && !collectorUrl.startsWith("http") && !collectorUrl.startsWith("//")) {
+      const registered = window.Faultsense?.collectors?.[collectorUrl];
+      if (registered) {
+        resolvedCollectorUrl = registered;
+      } else {
+        console.warn(`[Faultsense]: No collector registered for '${collectorUrl}'. Did you forget to load the collector script?`);
+      }
     }
 
     return {
-      apiKey: script.getAttribute("data-api-key") || (resolvedCollectorUrl === collectors.consoleCollector ? "console-collector" : undefined),
+      apiKey: script.getAttribute("data-api-key") || (typeof resolvedCollectorUrl === "function" ? "dev-collector" : undefined),
       releaseLabel: script.getAttribute("data-release-label") || undefined,
       collectorURL: resolvedCollectorUrl,
       timeout: Number(script.getAttribute("data-timeout")) || undefined,
@@ -134,17 +141,16 @@ export function init(initialConfig: Partial<Configuration>): () => void {
     };
   }
 
+  // Set up the global early so collector scripts can register before DOMContentLoaded
+  window.Faultsense = window.Faultsense || {};
+  window.Faultsense.collectors = window.Faultsense.collectors || {};
+  window.Faultsense.registerCleanupHook = (fn: () => void) => { cleanupHooks.push(fn); };
+
   // Automatically initialize Faultsense if the fs-agent script tag exists
   document.addEventListener("DOMContentLoaded", function () {
     const config = extractConfigFromScriptTag();
     if (config) {
-      const cleanupFn = init(config);
-
-      if (!window.Faultsense) {
-        window.Faultsense = {};
-        window.Faultsense.cleanup = cleanupFn;
-        window.Faultsense.collectors = collectors;
-      }
+      window.Faultsense!.cleanup = init(config);
 
       if (config.debug) {
         console.log(

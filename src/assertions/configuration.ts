@@ -35,13 +35,8 @@ export function setConfiguration(
 export function isValidConfiguration(config: Configuration) {
   const keys = Object.keys(configValidator) as Array<keyof Configuration>;
   return keys.every((key) => {
-    // Skip apiKey validation if using a function collector (like console collector)
+    // Skip apiKey validation for function collectors (console, panel, etc.)
     if (key === 'apiKey' && typeof config.collectorURL === 'function') {
-      return true;
-    }
-
-    // Skip apiKey validation if no apiKey is provided and we're using console collector
-    if (key === 'apiKey' && !config.apiKey && typeof config.collectorURL === 'function') {
       return true;
     }
 
