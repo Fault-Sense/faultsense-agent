@@ -5,6 +5,8 @@
   "main": "dist/faultsense-agent.min.js",
   "files": [
     "dist/faultsense-agent.min.js",
+    "dist/faultsense-console.min.js",
+    "dist/faultsense-panel.min.js",
     "README.md",
     "LICENSE",
     "assets/"
@@ -26,9 +28,13 @@
     "url": "https://github.com/Fault-Sense/faultsense-agent/issues"
   },
   "scripts": {
-    "build": "esbuild src/index.ts --bundle --target=es2022 --outfile=./dist/faultsense-agent.min.js --global-name=Faultsense --format=iife --minify",
+    "build": "npm run build:agent && npm run build:collectors",
+    "build:agent": "esbuild src/index.ts --bundle --target=es2022 --outfile=./dist/faultsense-agent.min.js --format=iife --minify",
+    "build:console": "esbuild src/collectors/console.ts --bundle --target=es2022 --outfile=./dist/faultsense-console.min.js --format=iife --minify",
+    "build:panel": "esbuild src/collectors/panel.ts --bundle --target=es2022 --outfile=./dist/faultsense-panel.min.js --format=iife --minify",
+    "build:collectors": "npm run build:console && npm run build:panel",
     "size": "echo \"📦 faultsense-agent.min.js\" && ls -lh dist/faultsense-agent.min.js | awk '{print \"   Raw: \" $5 \"B\"}' && echo \"   Gzipped: $(echo \"scale=1; $(gzip -c dist/faultsense-agent.min.js | wc -c | tr -d ' ') / 1024\" | bc)kb\"",
-    "build:size": "npm run build && npm run size",
+    "build:size": "npm run build:agent && npm run size",
     "prepublishOnly": "npm run build",
     "test": "vitest"
   },

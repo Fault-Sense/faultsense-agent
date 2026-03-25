@@ -1,5 +1,6 @@
 import { defaultConfiguration } from "../config";
 import { Configuration } from "../types";
+import { isURL } from "../utils/object";
 
 type Validator = (v: any) => boolean;
 const configValueRequired = (v: string | number | boolean) =>
@@ -35,14 +36,10 @@ export function setConfiguration(
 export function isValidConfiguration(config: Configuration) {
   const keys = Object.keys(configValidator) as Array<keyof Configuration>;
   return keys.every((key) => {
-    // Skip apiKey validation if using a function collector (like console collector)
-    if (key === 'apiKey' && typeof config.collectorURL === 'function') {
-      return true;
-    }
-
-    // Skip apiKey validation if no apiKey is provided and we're using console collector
-    if (key === 'apiKey' && !config.apiKey && typeof config.collectorURL === 'function') {
-      return true;
+    // Skip apiKey validation for non-URL collectors (functions or named collectors like "panel", "console")
+    if (key === 'apiKey') {
+      if (typeof config.collectorURL === 'function') return true;
+      if (typeof config.collectorURL === 'string' && !isURL(config.collectorURL)) return true;
     }
 
     const validators: Validator[] = configValidator[key];

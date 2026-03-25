@@ -151,9 +151,8 @@ declare global {
     Faultsense?: {
       init?: (config: Partial<Configuration>) => () => void;
       cleanup?: () => void;
-      collectors?: {
-        consoleCollector: CollectorFunction;
-      };
+      collectors?: Record<string, CollectorFunction>;
+      registerCleanupHook?: (fn: () => void) => void;
     };
   }
 }

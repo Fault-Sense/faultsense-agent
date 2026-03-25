@@ -23,4 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 
-examples
+examples/*/node_modules
+examples/*/dist
+examples/*/.tanstack
+examples/*/.vinxi

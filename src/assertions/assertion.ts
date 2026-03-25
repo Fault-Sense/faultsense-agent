@@ -9,7 +9,8 @@ export function findAssertion(
     (existing) =>
       existing.assertionKey === assertion.assertionKey &&
       existing.type === assertion.type &&
-      existing.modifiers["response-status"] === assertion.modifiers["response-status"]
+      existing.modifiers["response-status"] === assertion.modifiers["response-status"] &&
+      existing.modifiers["response-json-key"] === assertion.modifiers["response-json-key"]
   );
 }
 

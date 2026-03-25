@@ -3,6 +3,7 @@ import {
   assertionPrefix,
   assertionTriggerAttr,
   statusSuffixPattern,
+  jsonSuffixPattern,
   inlineModifiers,
   domAssertions,
 } from "../config";
@@ -91,7 +92,7 @@ function resolveInlineModifiers(
   const attrChecks: Record<string, string> = {};
 
   for (const [key, value] of Object.entries(inlineMods)) {
-    if (inlineModifiers.includes(key) || key === "response-status") {
+    if (inlineModifiers.includes(key) || key === "response-status" || key === "response-json-key") {
       resolved[key] = value;
     } else {
       attrChecks[key] = value;
@@ -138,6 +139,16 @@ function parseDynamicTypes(element: HTMLElement): AssertionTypeEntry[] {
             value: selector,
             modifiers: { ...modifiers, "response-status": statusPart },
           });
+        } else {
+          const jsonMatch = statusPart.match(jsonSuffixPattern);
+          if (jsonMatch) {
+            const { selector, modifiers } = parseTypeValue(attr.value);
+            types.push({
+              type: domType,
+              value: selector,
+              modifiers: { ...modifiers, "response-json-key": jsonMatch[1] },
+            });
+          }
         }
         break;
       }
@@ -307,7 +318,7 @@ function createAssertions(
       type: typeEntry.type as AssertionType,
       typeValue: typeEntry.value as string,
       modifiers: mergedModifiers,
-      httpPending: resolvedMods["response-status"] ? true : undefined,
+      httpPending: (resolvedMods["response-status"] || resolvedMods["response-json-key"]) ? true : undefined,
     };
   });
 }

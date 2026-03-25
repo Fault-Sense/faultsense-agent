@@ -1,5 +1,6 @@
 import { ApiPayload, CompletedAssertion, Configuration } from "../types";
 import { createLogger } from "../utils/logger";
+import { isURL } from "../utils/object";
 
 function toPayload(
   assertion: CompletedAssertion,
@@ -64,13 +65,32 @@ export function sendToServer(
   }
 }
 
+/**
+ * Resolve a named collector (e.g., "panel", "console") to its registered function.
+ * Named collectors are non-URL strings that map to window.Faultsense.collectors[name].
+ * Resolution is lazy — the collector may register after init but before assertions settle.
+ */
+function resolveCollector(config: Configuration): string | Function {
+  const url = config.collectorURL;
+  if (typeof url === 'function') return url;
+  if (typeof url === 'string' && !isURL(url)) {
+    const registered = window.Faultsense?.collectors?.[url];
+    if (registered) {
+      // Cache the resolved function back into config so subsequent calls skip lookup
+      (config as any).collectorURL = registered;
+      return registered;
+    }
+  }
+  return url;
+}
+
 export function sendToCollector(
   assertions: CompletedAssertion[],
   config: Configuration
 ): void {
-  // Type detection logic to distinguish between string and function collectors
-  if (typeof config.collectorURL === 'function') {
-    sendToFunction(assertions, config);
+  const collector = resolveCollector(config);
+  if (typeof collector === 'function') {
+    sendToFunction(assertions, { ...config, collectorURL: collector });
   } else {
     sendToServer(assertions, config);
   }

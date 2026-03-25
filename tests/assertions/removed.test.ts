@@ -71,6 +71,33 @@ describe("Faultsense Agent - Assertion Types: removed", () => {
     );
   });
 
+  it("removed assertion should pass when target is a descendant of the removed node", async () => {
+    document.body.innerHTML = `
+      <button fs-trigger="click" fs-assert-removed=".nested-target" fs-assert="btn-click">Click</button>
+      <div class="wrapper">
+        <input class="nested-target">
+      </div>
+    `;
+
+    const button = document.querySelector("button") as HTMLButtonElement;
+    button.addEventListener("click", () => {
+      document.querySelector(".wrapper")?.remove();
+    });
+    button.click();
+
+    await vi.waitFor(() =>
+      expect(sendToServerMock).toHaveBeenCalledWith(
+        [
+          expect.objectContaining({
+            status: "passed",
+            statusReason: "",
+          }),
+        ],
+        config
+      )
+    );
+  });
+
   it("removed assertion should not pass", async () => {
     document.body.innerHTML = `
       <button fs-trigger="click" fs-assert-removed="#panel" fs-assert="btn-click">Click</button>
