@@ -14,11 +14,21 @@ export function mutationHandler<T>(
       mutation.addedNodes.forEach((node) => {
         if ((node as HTMLElement).getAttribute) {
           addedElements.push(node as HTMLElement);
+          // Include descendants so `added` resolver can match nested targets
+          // (e.g., React conditional rendering adds a wrapper containing the target)
+          const descendants = (node as HTMLElement).querySelectorAll?.('*');
+          if (descendants) {
+            addedElements.push(...Array.from(descendants) as HTMLElement[]);
+          }
         }
       });
       mutation.removedNodes.forEach((node) => {
         if ((node as HTMLElement).getAttribute) {
           removedElements.push(node as HTMLElement);
+          const descendants = (node as HTMLElement).querySelectorAll?.('*');
+          if (descendants) {
+            removedElements.push(...Array.from(descendants) as HTMLElement[]);
+          }
         }
       });
 

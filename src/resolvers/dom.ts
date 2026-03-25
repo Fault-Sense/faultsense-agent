@@ -127,32 +127,49 @@ function getAssertionModifierFns(
 }
 
 /**
- * Finds a matching element for the assertion and runs the assertion checks
- * completing the assertion if an element matches
+ * Finds matching elements for the assertion and runs modifier checks.
+ * Iterates ALL matching elements — passes if ANY satisfies all modifiers.
+ * This handles framework list re-renders where multiple elements match
+ * the selector but only one satisfies the modifier (e.g., classlist check
+ * after toggling a single item in a list).
  */
 function handleAssertion(
   elements: HTMLElement[],
   assertion: Assertion,
   matchFn: (el: HTMLElement) => boolean
 ): CompletedAssertion | null {
-  const matchingElement = elements.find(matchFn);
-  if (!matchingElement) return null;
+  const matchingElements = elements.filter(matchFn);
+  if (matchingElements.length === 0) return null;
 
-  let hasPassed = true;
-  let failureReason: FailureReasonCode = "";
+  const modifierFns = getAssertionModifierFns(assertion);
 
-  for (const fn of getAssertionModifierFns(assertion)) {
-    const [result, reason] = fn(matchingElement);
-    if (!result) {
-      hasPassed = false;
-      failureReason = reason;
-      break;
+  // No modifiers — first match is sufficient
+  if (modifierFns.length === 0) {
+    return completeAssertion(assertion, true, "");
+  }
+
+  // Check each matching element — pass if any satisfies all modifiers
+  for (const el of matchingElements) {
+    let allPassed = true;
+    for (const fn of modifierFns) {
+      const [result] = fn(el);
+      if (!result) { allPassed = false; break; }
     }
+    if (allPassed) {
+      return completeAssertion(assertion, true, "");
+    }
+  }
+
+  // No element satisfied all modifiers — fail using first match for the reason
+  let failureReason: FailureReasonCode = "";
+  for (const fn of modifierFns) {
+    const [result, reason] = fn(matchingElements[0]);
+    if (!result) { failureReason = reason; break; }
   }
 
   return completeAssertion(
     assertion,
-    hasPassed,
+    false,
     failureReason ? getFailureReasonForAssertion(failureReason, assertion) : ""
   );
 }

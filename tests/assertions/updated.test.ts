@@ -255,6 +255,70 @@ describe("Faultsense Agent - Assertion Type: updated", () => {
     );
   });
 
+  it("Should pass when modifier matches a non-first element among multiple matches", async () => {
+    // Simulates a framework list re-render: multiple .item elements are mutated,
+    // but only the second one has the 'active' class. The resolver should check
+    // all matching elements and pass because one satisfies the modifier.
+    document.body.innerHTML = `
+      <div class="item" id="item-1"></div>
+      <div class="item active" id="item-2"></div>
+      <div class="item" id="item-3"></div>
+      <button fs-trigger="click" fs-assert-updated=".item[classlist=active:true]" fs-assert="list/toggle">Click</button>
+    `;
+
+    const button = document.querySelector("button") as HTMLButtonElement;
+    button.addEventListener("click", () => {
+      // Mutate all items (simulates framework re-render)
+      document.querySelectorAll(".item").forEach((el) => {
+        el.setAttribute("data-rendered", Date.now().toString());
+      });
+    });
+
+    button.click();
+
+    await vi.waitFor(() =>
+      expect(sendToServerMock).toHaveBeenCalledWith(
+        [
+          expect.objectContaining({
+            status: "passed",
+            statusReason: "",
+          }),
+        ],
+        config
+      )
+    );
+  });
+
+  it("Should fail when no matching element satisfies the modifier", async () => {
+    // Multiple .item elements mutated, but none has the 'active' class.
+    document.body.innerHTML = `
+      <div class="item" id="item-1"></div>
+      <div class="item" id="item-2"></div>
+      <button fs-trigger="click" fs-assert-updated=".item[classlist=active:true]" fs-assert="list/toggle">Click</button>
+    `;
+
+    const button = document.querySelector("button") as HTMLButtonElement;
+    button.addEventListener("click", () => {
+      document.querySelectorAll(".item").forEach((el) => {
+        el.setAttribute("data-rendered", Date.now().toString());
+      });
+    });
+
+    button.click();
+
+    await vi.waitFor(() =>
+      expect(sendToServerMock).toHaveBeenCalledWith(
+        [
+          expect.objectContaining({
+            status: "failed",
+            statusReason: expect.stringContaining("classlist"),
+          }),
+        ],
+        config
+      )
+    );
+  });
+
   it("Should fail if no changes to the eleemnt or subtree are found", async () => {
     document.body.innerHTML = `
       <div id="panel">

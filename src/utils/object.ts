@@ -1,3 +1,12 @@
+export function isURL(value: string): boolean {
+  try {
+    new URL(value);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function isSubset(
   subset: Record<string, any>,
   target: Record<string, any>

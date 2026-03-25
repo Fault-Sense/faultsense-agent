@@ -34,12 +34,20 @@ function getResponseStatus(assertion: Assertion): string | undefined {
   return assertion.modifiers["response-status"];
 }
 
+function getResponseJsonKey(assertion: Assertion): string | undefined {
+  return assertion.modifiers["response-json-key"];
+}
+
+function isResponseConditional(assertion: Assertion): boolean {
+  return !!(getResponseStatus(assertion) || getResponseJsonKey(assertion));
+}
+
 export function isHttpResponseForAssertion(
   assertion: Assertion,
   requestInfo: RequestInfo,
   responseInfo: ResponseInfo
 ): boolean {
-  if (!getResponseStatus(assertion)) return false;
+  if (!isResponseConditional(assertion)) return false;
 
   // assertion key should match the faultsense response header value
   const expected = assertion.assertionKey;
@@ -60,7 +68,7 @@ function statusMatches(condition: string, actual: number): boolean {
   return Number(condition) === actual;
 }
 
-function findMatchingAssertion(assertions: Assertion[], status: number): Assertion | null {
+function findMatchingStatusAssertion(assertions: Assertion[], status: number): Assertion | null {
   // Exact match takes priority over range
   const exact = assertions.find(a => {
     const condition = getResponseStatus(a)!;
@@ -72,12 +80,21 @@ function findMatchingAssertion(assertions: Assertion[], status: number): Asserti
   return assertions.find(a => statusMatches(getResponseStatus(a)!, status)) || null;
 }
 
+function findMatchingJsonAssertion(
+  assertions: Assertion[],
+  parsedBody: Record<string, unknown>
+): Assertion | null {
+  return assertions.find(a => {
+    const key = getResponseJsonKey(a)!;
+    return key in parsedBody && parsedBody[key];
+  }) || null;
+}
+
 export function httpResponseResolver(
   requestInfo: RequestInfo,
   responseInfo: ResponseInfo,
   assertions: Assertion[]
 ): CompletedAssertion[] {
-  const actualStatus = responseInfo.status;
   const completed: CompletedAssertion[] = [];
 
   // Find all response-conditional assertions for this request
@@ -87,29 +104,74 @@ export function httpResponseResolver(
 
   if (responseAssertions.length === 0) return completed;
 
-  // Find the matching assertion (exact code beats range)
-  const matched = findMatchingAssertion(responseAssertions, actualStatus);
+  // Separate by condition type
+  const statusAssertions = responseAssertions.filter(a => getResponseStatus(a));
+  const jsonAssertions = responseAssertions.filter(a => getResponseJsonKey(a));
 
-  if (matched) {
-    // Release to DOM resolvers
-    matched.httpPending = false;
+  // Handle status conditions (existing logic)
+  if (statusAssertions.length > 0) {
+    const matched = findMatchingStatusAssertion(statusAssertions, responseInfo.status);
 
-    // Dismiss non-matching siblings
-    for (const sibling of responseAssertions) {
-      if (sibling === matched) continue;
-      const dismissed = dismissAssertion(sibling);
-      if (dismissed) completed.push(dismissed);
+    if (matched) {
+      matched.httpPending = false;
+      for (const sibling of statusAssertions) {
+        if (sibling === matched) continue;
+        const dismissed = dismissAssertion(sibling);
+        if (dismissed) completed.push(dismissed);
+      }
+    } else {
+      const declaredConditions = statusAssertions.map(a => getResponseStatus(a)).join(', ');
+      for (const assertion of statusAssertions) {
+        const failed = completeAssertion(
+          assertion,
+          false,
+          `HTTP response status ${responseInfo.status} did not match any declared condition (${declaredConditions})`
+        );
+        if (failed) completed.push(failed);
+      }
     }
-  } else {
-    // No condition matched — fail all with the actual status
-    const declaredConditions = responseAssertions.map(a => getResponseStatus(a)).join(', ');
-    for (const assertion of responseAssertions) {
-      const failed = completeAssertion(
-        assertion,
-        false,
-        `HTTP response status ${actualStatus} did not match any declared condition (${declaredConditions})`
-      );
-      if (failed) completed.push(failed);
+  }
+
+  // Handle json body conditions
+  if (jsonAssertions.length > 0) {
+    let parsedBody: Record<string, unknown> | null = null;
+    try {
+      parsedBody = JSON.parse(responseInfo.responseText);
+    } catch {
+      // Invalid JSON — fail all json assertions
+      for (const a of jsonAssertions) {
+        const failed = completeAssertion(a, false, "Response body is not valid JSON");
+        if (failed) completed.push(failed);
+      }
+      return completed;
+    }
+
+    if (parsedBody && typeof parsedBody === "object") {
+      const matched = findMatchingJsonAssertion(jsonAssertions, parsedBody);
+
+      if (matched) {
+        matched.httpPending = false;
+        for (const sibling of jsonAssertions) {
+          if (sibling === matched) continue;
+          const dismissed = dismissAssertion(sibling);
+          if (dismissed) completed.push(dismissed);
+        }
+      } else {
+        const declaredKeys = jsonAssertions.map(a => getResponseJsonKey(a)).join(', ');
+        for (const a of jsonAssertions) {
+          const failed = completeAssertion(
+            a,
+            false,
+            `Response body does not contain any declared key (${declaredKeys})`
+          );
+          if (failed) completed.push(failed);
+        }
+      }
+    } else {
+      for (const a of jsonAssertions) {
+        const failed = completeAssertion(a, false, "Response body is not a JSON object");
+        if (failed) completed.push(failed);
+      }
     }
   }
 

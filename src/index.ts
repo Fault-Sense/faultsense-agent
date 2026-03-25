@@ -8,6 +8,7 @@ import {
   setConfiguration,
 } from "./assertions/configuration";
 import { createLogger } from "./utils/logger";
+import { isURL } from "./utils/object";
 
 // Cleanup hooks registered by external collectors (e.g., panel collector)
 const cleanupHooks: (() => void)[] = [];
@@ -123,7 +124,7 @@ export function init(initialConfig: Partial<Configuration>): () => void {
     let resolvedCollectorUrl: string | CollectorFunction | undefined = collectorUrl || undefined;
 
     // Look up registered collectors by name (e.g., "console", "panel")
-    if (collectorUrl && !collectorUrl.startsWith("http") && !collectorUrl.startsWith("//")) {
+    if (collectorUrl && !isURL(collectorUrl)) {
       const registered = window.Faultsense?.collectors?.[collectorUrl];
       if (registered) {
         resolvedCollectorUrl = registered;
@@ -141,9 +142,12 @@ export function init(initialConfig: Partial<Configuration>): () => void {
     };
   }
 
-  // Set up the global early so collector scripts can register before DOMContentLoaded
+  // Merge into the existing global — collectors may have registered before this script loaded.
+  // NOTE: Do not use esbuild's --global-name with this pattern, as it overwrites window.Faultsense
+  // with the module exports after this IIFE runs, destroying any previously registered collectors.
   window.Faultsense = window.Faultsense || {};
   window.Faultsense.collectors = window.Faultsense.collectors || {};
+  window.Faultsense.init = init;
   window.Faultsense.registerCleanupHook = (fn: () => void) => { cleanupHooks.push(fn); };
 
   // Automatically initialize Faultsense if the fs-agent script tag exists

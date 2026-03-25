@@ -88,6 +88,37 @@ describe("Faultsense Agent - Assertion Type: added", () => {
     );
   });
 
+  it("added assertion should pass when target is a descendant of the added node", async () => {
+    document.body.innerHTML = `
+      <div id="container"></div>
+      <button fs-trigger="click" fs-assert-added=".nested-target" fs-assert="btn-click">Click</button>
+    `;
+
+    const button = document.querySelector("button") as HTMLButtonElement;
+    button.addEventListener("click", () => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "wrapper";
+      const target = document.createElement("input");
+      target.className = "nested-target";
+      wrapper.appendChild(target);
+      document.getElementById("container")!.appendChild(wrapper);
+    });
+
+    button.click();
+
+    await vi.waitFor(() =>
+      expect(sendToServerMock).toHaveBeenCalledWith(
+        [
+          expect.objectContaining({
+            status: "passed",
+            statusReason: "",
+          }),
+        ],
+        config
+      )
+    );
+  });
+
   it("added assertion should not pass", async () => {
     document.body.innerHTML = `
       <button fs-trigger="click" fs-assert-added="#panel" fs-assert="btn-click">Click</button>

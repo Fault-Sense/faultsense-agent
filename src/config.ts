@@ -25,6 +25,9 @@ export const domAssertions = [
 // Status suffix pattern for response-conditional types: added-200, removed-4xx
 export const statusSuffixPattern = /^(\d{3}|\d{1}xx)$/;
 
+// JSON body suffix pattern for response-conditional types: added-json-key
+export const jsonSuffixPattern = /^json-(.+)$/;
+
 // Reserved inline modifier keys (everything else is treated as an attribute check)
 export const inlineModifiers = ["text-matches", "classlist"];
 export const httpResponseHeaderKey = "fs-resp-for";
