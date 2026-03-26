@@ -18,7 +18,7 @@ const todos: Todo[] = [
   },
   {
     id: '3',
-    text: 'Delete this todo to see response-conditional assertions',
+    text: 'Delete this todo to see conditional assertions',
     completed: false,
     createdAt: new Date().toISOString(),
   },
@@ -71,6 +71,9 @@ export const deleteTodo = createServerFn({ method: 'POST' })
   .handler(async ({ data }) => {
     const index = todos.findIndex((t) => t.id === data.id)
     if (index === -1) throw new Error('Todo not found')
+    if (todos[index].text === 'FAIL') {
+      throw new Error('Cannot delete this todo')
+    }
     todos.splice(index, 1)
     return { success: true }
   })

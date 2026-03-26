@@ -37,8 +37,8 @@ When asked to add Faultsense assertions to a component, reason about it the same
 | `fs-assert-visible` | Element exists and visible | `".dashboard"` |
 | `fs-assert-hidden` | Element exists but hidden | `".loading-spinner"` |
 | `fs-assert-loaded` | Media finished loading | `"#hero-image"` |
-| `fs-assert-{type}-{status}` | Response-conditional (status) | `fs-assert-added-200=".success"` |
-| `fs-assert-{type}-json-{key}` | Response-conditional (body) | `fs-assert-added-json-todo=".item"` |
+| `fs-assert-{type}-{condition}` | Conditional assertion (UI) | `fs-assert-added-success=".dashboard"` |
+| `fs-assert-grouped` | Group conditionals across types | (no value) |
 | `fs-assert-oob-{type}` | OOB: trigger on parent pass | `fs-assert-oob-updated="todos/toggle"` |
 | `fs-assert-timeout` | Custom timeout (ms) | `"2000"` |
 | `fs-assert-mpa` | Persist across page nav | `"true"` |
@@ -85,8 +85,8 @@ Side-effect elements (count labels, totals) can declare assertions triggered by 
 ```html
 <div id="todo-count"
   fs-assert="todos/count-updated"
-  fs-assert-oob-updated="todos/toggle-complete,todos/add-item,todos/remove-item"
-  fs-assert-updated="[text-matches=\d+/\d+ remaining]">
+  fs-assert-oob-visible="todos/toggle-complete,todos/add-item,todos/remove-item"
+  fs-assert-visible="[text-matches=\d+/\d+ remaining]">
   2/3 remaining
 </div>
 ```
@@ -95,22 +95,24 @@ Side-effect elements (count labels, totals) can declare assertions triggered by 
 - OOB only fires on parent **pass**, not fail
 - No chaining: OOB passing does not trigger further OOB
 - Selector is optional — omit for self-referencing
+- **Use state assertions (`visible`, `hidden`, `added`, `removed`) with OOB, not event assertions (`updated`, `loaded`).** OOB assertions are created after the parent's DOM change already happened. State assertions check current DOM and resolve immediately. Event assertions (`updated`, `loaded`) require witnessing a mutation/event and will miss changes that already occurred.
 
 ### Placement
 
 - Attributes go on the element the user interacts with (the `event.target`)
 - For forms: `fs-trigger="submit"` on the `<form>` or `fs-trigger="click"` on the button
 - `fs-*` attributes must reach the DOM — in React/Vue/Svelte, use native elements or forward props
+- **React boolean attributes:** React drops custom attributes with boolean `true`. Use `fs-assert-grouped=""` not `fs-assert-grouped` in JSX.
 - OOB assertions go on the **side-effect element**, not the trigger element
 
 ### Key Mistakes to Avoid
 
 - **Don't put `fs-trigger` on a parent wrapper** — only the exact event target is processed
-- **Network assertions need `fs-resp-for`** — without the header/param linking request to assertion key, the assertion times out
-- **Network assertions are DOM assertions gated by HTTP status** — `fs-assert-added-200=".success"` means "when response is 200, assert .success is added." The assertion type is always a DOM type.
-- **Multiple response conditions on one element** — `fs-assert-added-200` and `fs-assert-added-4xx` create independent assertions. When one matches, siblings are dismissed silently.
+- **Conditional assertions are UI-based** — `fs-assert-added-success=".dashboard"` and `fs-assert-added-error=".error-msg"` create sibling assertions. First to resolve (selector matches) wins, others are dismissed. No server-side integration needed.
+- **Condition keys are freeform** — any lowercase alphanumeric string with hyphens (e.g., `success`, `error`, `empty`, `rate-limited`). Avoid using assertion type names (`added`, `removed`, etc.) as condition keys.
 - **`added` vs `updated`** — `added` = element doesn't exist yet; `updated` = element exists, content changes
 - **`visible` vs `added`** — `visible` checks layout dimensions of existing element; `added` checks for new element in DOM
+- **Don't use `updated` or `loaded` with OOB** — OOB assertions are created after the DOM change. `updated` and `loaded` need to witness the event and will miss it. Use `visible`, `hidden`, `added`, or `removed` instead.
 - **Every element needs** `fs-assert` + `fs-trigger` + at least one assertion type
 
 ## Project Context
@@ -118,11 +120,12 @@ Side-effect elements (count labels, totals) can declare assertions triggered by 
 - The agent is open source and collector-agnostic. A hosted backend is a separate project.
 - Market positioning (QA/testing tool) does not impact the agent's implementation or architecture.
 - MPA (multi-page app) support is first-class — SPAs and MPAs should be equally supported.
-- Network responses are pivot points for DOM assertions, not assertions themselves. `fs-resp-for` HTTP header (on request or response) links a response to an assertion key — no server-side SDK needed. Keep this simple.
+- Conditional assertions use UI outcomes as the signal, not network responses. No server-side integration required.
 
 ## Notes
 
 - **Queue/Storage refactor:** MPA-marked assertions currently bypass the in-memory queue and go directly to localStorage (`manager.ts:74`). Storage may be better modeled as an implementation detail of the queue. Flagged for future revisit.
+- **Cross-type conditional grouping:** Conditional sibling groups default to `assertionKey + type`. Add `fs-assert-grouped` (no value) to link all conditionals on an element as siblings regardless of type — e.g., `fs-assert-removed-success` + `fs-assert-added-error` become mutually exclusive outcomes.
 
 ## Development
 

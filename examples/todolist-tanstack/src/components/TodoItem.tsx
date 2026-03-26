@@ -17,10 +17,7 @@ export function TodoItem({ todo }: { todo: Todo }) {
   const handleDelete = async () => {
     setError(null)
     try {
-      await deleteTodo({
-        data: { id: todo.id },
-        headers: { 'fs-resp-for': 'todos/remove-item' },
-      })
+      await deleteTodo({ data: { id: todo.id } })
       router.invalidate()
     } catch {
       setError('Failed to delete')
@@ -111,16 +108,18 @@ export function TodoItem({ todo }: { todo: Todo }) {
             >
               Edit
             </button>
-            {/* fs-assert: Response-conditional deletion —
-                on success, todo is removed; on error, error message appears */}
+            {/* fs-assert: Delete removes the todo item on success, or shows an
+                error message on failure. fs-assert-grouped links the two
+                conditional types (removed + added) as mutually exclusive outcomes. */}
             <button
               onClick={handleDelete}
               style={{ ...styles.actionBtn, ...styles.deleteBtn }}
               fs-assert="todos/remove-item"
               fs-trigger="click"
-              fs-assert-removed-200=".todo-item"
-              fs-assert-added-4xx=".error-msg"
-              fs-assert-timeout="2000"
+              fs-assert-grouped=""
+              fs-assert-removed-success=".todo-item"
+              fs-assert-added-error=".error-msg"
+              fs-assert-timeout="5000"
             >
               Delete
             </button>

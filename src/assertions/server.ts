@@ -14,7 +14,10 @@ function toPayload(
     assertion_type_value: assertion.typeValue,
     assertion_key: assertion.assertionKey,
     assertion_trigger: assertion.trigger,
-    assertion_type_modifiers: assertion.modifiers,
+    assertion_type_modifiers: Object.fromEntries(
+      Object.entries(assertion.modifiers).filter(([k]) => k !== "grouped")
+    ) as typeof assertion.modifiers,
+    condition_key: assertion.conditionKey || "",
     release_label: config.releaseLabel,
     element_snapshot: assertion.elementSnapshot
   };

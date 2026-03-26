@@ -9,8 +9,7 @@ export function findAssertion(
     (existing) =>
       existing.assertionKey === assertion.assertionKey &&
       existing.type === assertion.type &&
-      existing.modifiers["response-status"] === assertion.modifiers["response-status"] &&
-      existing.modifiers["response-json-key"] === assertion.modifiers["response-json-key"]
+      existing.conditionKey === assertion.conditionKey
   );
 }
 
@@ -19,11 +18,7 @@ export const getPendingAssertions = (assertions: Assertion[]): Assertion[] => {
 };
 
 export const getPendingDomAssertions = (assertions: Assertion[]): Assertion[] => {
-  return assertions.filter((a) => !a.endTime && !a.httpPending);
-};
-
-export const getPendingHttpAssertions = (assertions: Assertion[]): Assertion[] => {
-  return assertions.filter((a) => !a.endTime && a.httpPending);
+  return assertions.filter((a) => !a.endTime);
 };
 
 export const getAssertionsForMpaMode = (
@@ -49,9 +44,13 @@ export function retryCompletedAssertion(
   assertion.typeValue = newAssertion.typeValue
   assertion.elementSnapshot = newAssertion.elementSnapshot
 
-  // Copy the completed fields to "previous" fields
-  assertion.previousStatus = assertion.status;
-  assertion.previousStatusReason = assertion.statusReason;
+  // Copy the completed fields to "previous" fields.
+  // Skip dismissed — it's an internal state never sent to the collector,
+  // so it shouldn't count as a status change for dedup purposes.
+  if (assertion.status !== "dismissed") {
+    assertion.previousStatus = assertion.status;
+    assertion.previousStatusReason = assertion.statusReason;
+  }
   assertion.previousStartTime = assertion.startTime;
   assertion.previousEndTime = assertion.endTime;
 
@@ -69,9 +68,36 @@ export function getAssertionsToSettle(
     (assertion) =>
       assertion.endTime &&
       assertion.status !== "dismissed" &&
-      assertion.previousStatus !== assertion.status &&
-      assertion.previousStatusReason !== assertion.statusReason
+      (assertion.previousStatus !== assertion.status ||
+       assertion.previousStatusReason !== assertion.statusReason)
   );
+}
+
+export function getSiblingGroup(
+  assertion: Assertion,
+  allAssertions: Assertion[]
+): Assertion[] {
+  if (!assertion.conditionKey) return [];
+  return allAssertions.filter(
+    (a) =>
+      a.assertionKey === assertion.assertionKey &&
+      (assertion.grouped || a.type === assertion.type) &&
+      a.conditionKey !== undefined &&
+      a !== assertion
+  );
+}
+
+export function dismissSiblings(
+  assertion: Assertion,
+  allAssertions: Assertion[]
+): CompletedAssertion[] {
+  const siblings = getSiblingGroup(assertion, allAssertions);
+  const dismissed: CompletedAssertion[] = [];
+  for (const sibling of siblings) {
+    const result = dismissAssertion(sibling);
+    if (result) dismissed.push(result);
+  }
+  return dismissed;
 }
 
 export function dismissAssertion(assertion: Assertion): CompletedAssertion | null {

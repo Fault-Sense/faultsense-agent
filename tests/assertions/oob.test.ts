@@ -222,6 +222,69 @@ describe("Faultsense Agent - OOB (Out-of-Band) Assertions", () => {
     });
   });
 
+  it("should only send OOB to collector once when parent passes multiple times", async () => {
+    vi.useRealTimers();
+
+    document.body.innerHTML = `
+      <button
+        fs-trigger="click"
+        fs-assert-updated="#target"
+        fs-assert="action/do-thing">Click</button>
+      <div id="target">old</div>
+
+      <div id="counter"
+        fs-assert="action/counter-check"
+        fs-assert-oob-visible="action/do-thing"
+        fs-assert-visible="[text-matches=Count: \\d+]">
+        Count: 1
+      </div>
+    `;
+
+    cleanupFn = init(config);
+
+    const button = document.querySelector("button") as HTMLButtonElement;
+    let clickCount = 0;
+    button.addEventListener("click", () => {
+      clickCount++;
+      document.getElementById("target")!.textContent = `updated-${clickCount}`;
+      document.getElementById("counter")!.textContent = `Count: ${clickCount + 1}`;
+    });
+
+    // First click — parent passes, OOB fires and passes
+    button.click();
+
+    await vi.waitFor(() => {
+      const calls = sendToServerMock.mock.calls;
+      const allAssertions = calls.flatMap((c: any[]) => c[0]);
+      expect(allAssertions).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            assertionKey: "action/counter-check",
+            status: "passed",
+          }),
+        ])
+      );
+    });
+
+    const countAfterFirst = sendToServerMock.mock.calls
+      .flatMap((c: any[]) => c[0])
+      .filter((a: any) => a.assertionKey === "action/counter-check").length;
+    expect(countAfterFirst).toBe(1);
+
+    // Second click — parent passes again, OOB retries but status unchanged (passed → passed)
+    button.click();
+
+    // Wait for mutations to process
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    // OOB should still only have been sent once — dedup filters passed → passed
+    const allAssertions = sendToServerMock.mock.calls.flatMap((c: any[]) => c[0]);
+    const oobAssertions = allAssertions.filter(
+      (a: any) => a.assertionKey === "action/counter-check"
+    );
+    expect(oobAssertions).toHaveLength(1);
+  });
+
   it("should NOT chain — OOB passing should not trigger further OOB", async () => {
     vi.useRealTimers();
     document.body.innerHTML = `

@@ -42,45 +42,12 @@ export interface ErrorInfo {
   lineno?: number;
   colno?: number;
 }
-export interface RequestInfo {
-  url: string;
-  params?: any;
-  headers: Record<string, string>;
-}
-export interface ResponseInfo {
-  status: number;
-  responseText: string;
-  responseHeaders?: Record<string, string>;
-}
-export interface HttpErrorInfo {
-  message: string;
-  status: number;
-  responseText: string;
-  requestHeaders: Record<string, string>;
-  responseHeaders?: Record<string, string>;
-  url: string;
-}
-
 export type GlobalErrorHandler = (errorInfo: ErrorInfo) => void;
-export type HttpResponseHandler = (
-  requestInfo: RequestInfo,
-  responseInfo: ResponseInfo
-) => void;
-export type HttpErrorHandler = (errorInfo: HttpErrorInfo) => void;
 
 // Handlers to scan active assertions and mark as completed
 export type AssertionCollectionResolver = (
   activeAssertions: Assertion[],
   config: Configuration
-) => CompletedAssertion[];
-export type HttpResponseResolver = (
-  requestInfo: RequestInfo,
-  responseInfo: ResponseInfo,
-  activeAssertions: Assertion[]
-) => CompletedAssertion[];
-export type HttpErrorResolver = (
-  errorInfo: HttpErrorInfo,
-  activeAssertions: Assertion[]
 ) => CompletedAssertion[];
 export type GlobalErrorResolver = (
   errorInfo: ErrorInfo,
@@ -102,8 +69,7 @@ export type AssertionModifiers =
   | "timeout"
   | "text-matches"
   | "attrs-match"
-  | "classlist"
-  | "response-status";
+  | "classlist";
 
 export interface Assertion {
   assertionKey: string;
@@ -114,7 +80,8 @@ export interface Assertion {
   startTime: number;
   type: AssertionType;
   typeValue: string;
-  httpPending?: boolean;
+  conditionKey?: string;
+  grouped?: boolean;
   oob?: boolean;
   endTime?: number;
   status?: AssertionStatus;
@@ -139,6 +106,7 @@ export interface ApiPayload {
   assertion_type_value: string;
   assertion_type: AssertionType;
   assertion_type_modifiers: Partial<Record<AssertionModifiers, AssertionModiferValue>>;
+  condition_key: string;
   element_snapshot: string;
   release_label: string;
   status_reason: string;

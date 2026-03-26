@@ -1,6 +1,5 @@
 import { Assertion, CompletedAssertion, Configuration } from "../types";
-import { completeAssertion } from "./assertion";
-import { httpResponseHeaderKey } from "../config";
+import { completeAssertion, getSiblingGroup } from "./assertion";
 
 // Timeout timer reference is now part of the base Assertion interface
 
@@ -9,10 +8,17 @@ import { httpResponseHeaderKey } from "../config";
  */
 function getFailureReasonForAssertion(
     assertion: Assertion,
-    timeout: number
+    timeout: number,
+    allAssertions?: Assertion[]
 ): string {
-    if (assertion.httpPending) {
-        return `HTTP response not received within ${timeout}ms. Make sure the server responds with the header "${httpResponseHeaderKey}: ${assertion.assertionKey}" or the outgoing request has a "${httpResponseHeaderKey}=${assertion.assertionKey}" parameter.`;
+    if (assertion.conditionKey) {
+        const allKeys = [assertion.conditionKey];
+        if (allAssertions) {
+            const siblings = getSiblingGroup(assertion, allAssertions);
+            allKeys.push(...siblings.map(s => s.conditionKey!));
+        }
+        const typeLabel = assertion.grouped ? "" : ` for "${assertion.type}"`;
+        return `No conditional assertion${typeLabel} was met within ${timeout}ms. Conditions: ${allKeys.join(", ")}`;
     }
 
     switch (assertion.type) {
@@ -40,7 +46,8 @@ function getFailureReasonForAssertion(
 export function createAssertionTimeout(
     assertion: Assertion,
     config: Configuration,
-    onTimeout: (completedAssertion: CompletedAssertion) => void
+    onTimeout: (completedAssertion: CompletedAssertion) => void,
+    allAssertions?: Assertion[]
 ): void {
     // Clear any existing timeout for this assertion
     clearAssertionTimeout(assertion);
@@ -55,7 +62,7 @@ export function createAssertionTimeout(
         const completed = completeAssertion(
             assertion,
             false,
-            getFailureReasonForAssertion(assertion, timeoutDuration)
+            getFailureReasonForAssertion(assertion, timeoutDuration, allAssertions)
         );
 
         if (completed) {

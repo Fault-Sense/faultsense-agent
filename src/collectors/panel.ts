@@ -264,10 +264,7 @@ function renderRow(payload: ApiPayload): void {
   const detail = document.createElement("div");
   detail.className = "fs-detail";
 
-  const mods = payload.assertion_type_modifiers as Record<string, string> || {};
-  const responseStatus = mods["response-status"];
-  const responseJsonKey = mods["response-json-key"];
-  const conditionSuffix = responseStatus ? `-${responseStatus}` : responseJsonKey ? `-json-${responseJsonKey}` : "";
+  const conditionSuffix = payload.condition_key ? `-${payload.condition_key}` : "";
 
   let detailText = `${payload.assertion_type}${conditionSuffix}`;
   if (payload.assertion_type_value) {
@@ -279,7 +276,7 @@ function renderRow(payload: ApiPayload): void {
   const modKeys = Object.keys(payload.assertion_type_modifiers || {});
   if (modKeys.length > 0) {
     const modStr = modKeys
-      .filter(k => k !== "timeout" && k !== "mpa" && k !== "response-status" && k !== "response-json-key")
+      .filter(k => k !== "timeout" && k !== "mpa" && k !== "grouped")
       .map(k => `${k}=${(payload.assertion_type_modifiers as Record<string, string>)[k]}`)
       .join(", ");
     if (modStr) {

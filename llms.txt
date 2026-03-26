@@ -29,10 +29,11 @@ Value is a CSS selector, optionally with inline modifiers in brackets:
 - `fs-assert-hidden="<selector>"` — Element exists but hidden
 - `fs-assert-loaded="<selector>"` — Media element finished loading
 
-Response-conditional — append status to type name:
-- `fs-assert-{type}-{status}="<selector>"` — e.g., `fs-assert-added-200=".success"`, `fs-assert-removed-4xx=".error"`
-- Status: exact (200, 404) or range (2xx, 4xx, 5xx). Exact takes priority.
-- Multiple conditions per element create independent assertions. When one matches, siblings are dismissed.
+Conditional — append a condition key to the type name:
+- `fs-assert-{type}-{condition-key}="<selector>"` — e.g., `fs-assert-added-success=".dashboard"`, `fs-assert-added-error=".error-msg"`
+- Condition keys are freeform lowercase alphanumeric strings with hyphens (e.g., `success`, `error`, `empty`, `rate-limited`).
+- Multiple condition keys on the same element and type form a sibling group. First to resolve wins, others dismissed.
+- `fs-assert-grouped=""` — Groups all conditionals on the element as siblings regardless of type. Use for mutually exclusive outcomes that need different assertion types (e.g., `removed-success` + `added-error`).
 
 ### Inline Modifiers (in the value)
 
@@ -48,13 +49,7 @@ Example: `fs-assert-updated='#count[text-matches=\d+]'`
 
 - `fs-assert-timeout="<ms>"` — Override default timeout (default: 1000ms)
 - `fs-assert-mpa="true"` — Persist assertion across page navigation
-
-### Network Association
-
-Response-conditional assertions require linking via `fs-resp-for`:
-- Request header: `fetch(url, { headers: { "fs-resp-for": "<assertion-key>" } })`
-- Response header: Server sets `fs-resp-for: <assertion-key>`
-- Query param: `fetch(url + "?fs-resp-for=<assertion-key>")`
+- `fs-assert-grouped=""` — Group all conditionals on element as siblings across types
 
 ### Assertion Key Convention
 
@@ -87,18 +82,32 @@ Attributes go on the element that receives the user event. Only the exact `event
 <span id="count">Count: 0</span>
 ```
 
-### Form with response-conditional assertions
+### Form with conditional assertions
 
 ```html
 <form
   fs-assert="contact/submit-form"
   fs-trigger="submit"
-  fs-assert-added-201=".success-msg"
-  fs-assert-added-4xx=".error-msg"
+  fs-assert-added-success=".success-msg"
+  fs-assert-added-error=".error-msg"
   fs-assert-timeout="2000">
   <input name="email" type="email" />
   <button type="submit">Send</button>
 </form>
+```
+
+### Cross-type grouped conditionals
+
+```html
+<button
+  fs-assert="todos/remove-item"
+  fs-trigger="click"
+  fs-assert-grouped=""
+  fs-assert-removed-success=".todo-item"
+  fs-assert-added-error=".error-msg"
+  fs-assert-timeout="5000">
+  Delete
+</button>
 ```
 
 ### Initial state validation on page load

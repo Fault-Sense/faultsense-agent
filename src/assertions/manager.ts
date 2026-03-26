@@ -5,8 +5,6 @@
  */
 import { loadAssertions, storeAssertions } from "./storage";
 import type {
-  HttpResponseHandler,
-  HttpErrorHandler,
   GlobalErrorHandler,
   Configuration,
   CompletedAssertion,
@@ -17,7 +15,6 @@ import { eventProcessor } from "../processors/events";
 import { createElementProcessor } from "../processors/elements";
 import { mutationHandler } from "../processors/mutations";
 import { documentResolver, elementResolver, immediateResolver } from "../resolvers/dom";
-import { httpErrorResolver, httpResponseResolver } from "../resolvers/http";
 import { globalErrorResolver } from "../resolvers/error";
 
 
@@ -28,7 +25,7 @@ import {
   getAssertionsToSettle,
   getPendingAssertions,
   getPendingDomAssertions,
-  getPendingHttpAssertions,
+  dismissSiblings,
   isAssertionCompleted,
   isAssertionPending,
   retryCompletedAssertion,
@@ -93,10 +90,22 @@ export function createAssertionManager(config: Configuration) {
       } else if (!existingAssertion || !isAssertionPending(existingAssertion)) {
         activeAssertions.push(newAssertion);
 
-        // Create timeout timer for the new assertion
-        createAssertionTimeout(newAssertion, config, (completedAssertion) => {
-          settle([completedAssertion]);
-        });
+        // For conditional assertions, only the first sibling in a group gets a timeout.
+        // When it fires, settle() will dismiss the rest.
+        const shouldCreateTimeout = !newAssertion.conditionKey || !activeAssertions.some(
+          (a) =>
+            a !== newAssertion &&
+            a.assertionKey === newAssertion.assertionKey &&
+            (newAssertion.grouped || a.type === newAssertion.type) &&
+            a.conditionKey !== undefined &&
+            a.timeoutId !== undefined
+        );
+
+        if (shouldCreateTimeout) {
+          createAssertionTimeout(newAssertion, config, (completedAssertion) => {
+            settle([completedAssertion]);
+          }, newAssertion.conditionKey ? activeAssertions : undefined);
+        }
 
         // Check if the assertion condition is already met after current event processing
         checkImmediateResolved(newAssertion);
@@ -150,25 +159,6 @@ export function createAssertionManager(config: Configuration) {
     settle(completed);
   };
 
-  const handleHttpResponse: HttpResponseHandler = (request, response): void => {
-    const httpAssertions = getPendingHttpAssertions(activeAssertions);
-    const completed = httpResponseResolver(request, response, httpAssertions);
-    settle(completed);
-
-    // Run immediate DOM check on assertions that were just activated
-    for (const assertion of httpAssertions) {
-      if (!assertion.httpPending) {
-        checkImmediateResolved(assertion);
-      }
-    }
-  };
-
-  const handleHttpError: HttpErrorHandler = (errorInfo): void => {
-    settle(
-      httpErrorResolver(errorInfo, getPendingHttpAssertions(activeAssertions))
-    );
-  };
-
   const handleGlobalError: GlobalErrorHandler = (errorInfo): void => {
     settle(
       globalErrorResolver(errorInfo, getPendingAssertions(activeAssertions))
@@ -189,6 +179,14 @@ export function createAssertionManager(config: Configuration) {
   };
 
   const settle = (completeAssertions: CompletedAssertion[]): void => {
+    // Dismiss siblings for any resolved conditional assertions
+    for (const completed of completeAssertions) {
+      if (completed.conditionKey && completed.status !== "dismissed") {
+        const dismissed = dismissSiblings(completed, activeAssertions);
+        completeAssertions.push(...dismissed);
+      }
+    }
+
     const toSettle = getAssertionsToSettle(completeAssertions);
 
     // Clear timeout timers for all completed assertions to ensure proper cleanup
@@ -210,8 +208,15 @@ export function createAssertionManager(config: Configuration) {
       const oobAssertions = findAndCreateOobAssertions(passed);
       if (oobAssertions.length > 0) {
         enqueueAssertions(oobAssertions);
-        // Try to resolve immediately since the DOM state is already current
-        const immediateResults = immediateResolver(oobAssertions, config);
+        // Try to resolve immediately since the DOM state is already current.
+        // Use the actual pending assertions from activeAssertions, not the raw
+        // oobAssertions — enqueueAssertions may have matched them to existing
+        // assertions via retryCompletedAssertion, discarding the new objects.
+        const oobKeys = new Set(oobAssertions.map(a => a.assertionKey));
+        const pendingOob = getPendingDomAssertions(activeAssertions).filter(
+          a => a.oob && oobKeys.has(a.assertionKey)
+        );
+        const immediateResults = immediateResolver(pendingOob, config);
         if (immediateResults.length > 0) {
           settle(immediateResults);
         }
@@ -282,8 +287,6 @@ export function createAssertionManager(config: Configuration) {
   return {
     handleEvent,
     handleMutations,
-    handleHttpResponse,
-    handleHttpError,
     handleGlobalError,
     checkAssertions,
     processElements,
