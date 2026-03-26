@@ -41,7 +41,7 @@ export class AssertionError extends Error {
  * Format: "selector[key=value][key=value]..."
  * Handles nested brackets in values (e.g., regex character classes like [a-z])
  */
-function parseTypeValue(raw: string): { selector: string; modifiers: Record<string, string> } {
+export function parseTypeValue(raw: string): { selector: string; modifiers: Record<string, string> } {
   const firstBracket = raw.indexOf('[');
   if (firstBracket === -1) {
     return { selector: raw, modifiers: {} };
@@ -85,7 +85,7 @@ function parseTypeValue(raw: string): { selector: string; modifiers: Record<stri
  * Reserved keys (text-matches, classlist) pass through.
  * Unreserved keys become attrs-match entries.
  */
-function resolveInlineModifiers(
+export function resolveInlineModifiers(
   inlineMods: Record<string, string>
 ): Record<string, string> {
   const resolved: Record<string, string> = {};

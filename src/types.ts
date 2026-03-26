@@ -115,6 +115,7 @@ export interface Assertion {
   type: AssertionType;
   typeValue: string;
   httpPending?: boolean;
+  oob?: boolean;
   endTime?: number;
   status?: AssertionStatus;
   statusReason?: string;

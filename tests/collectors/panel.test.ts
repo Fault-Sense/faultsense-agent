@@ -217,16 +217,19 @@ describe("Panel Collector", () => {
       expect(getRows().length).toBe(initialRows);
     });
 
-    it("should show badge count while minimized", () => {
+    it("should show badge with pass/fail counts while minimized", () => {
       const collector = getCollector();
       collector(makePayload());
       clickButton("Minimize");
 
-      collector(makePayload({ assertion_key: "new-1" }));
-      collector(makePayload({ assertion_key: "new-2" }));
+      collector(makePayload({ assertion_key: "new-1", status: "passed" }));
+      collector(makePayload({ assertion_key: "new-2", status: "failed" }));
+      collector(makePayload({ assertion_key: "new-3", status: "passed" }));
 
       const badge = getBadge();
-      expect(badge.textContent).toContain("2 new");
+      expect(badge.textContent).toContain("Faultsense");
+      expect(badge.textContent).toContain("2"); // 2 passed
+      expect(badge.textContent).toContain("1"); // 1 failed
     });
 
     it("should flush buffer and restore panel on badge click", () => {
@@ -243,41 +246,6 @@ describe("Panel Collector", () => {
 
       // Badge should be hidden after restore
       expect(getBadge().classList.contains("hidden")).toBe(true);
-    });
-  });
-
-  describe("dismiss and restore", () => {
-    it("should hide panel when close is clicked", () => {
-      getCollector()(makePayload());
-      clickButton("Close");
-
-      const panel = getPanel();
-      expect(panel.classList.contains("hidden")).toBe(true);
-    });
-
-    it("should show badge with count when new assertions arrive after dismiss", () => {
-      const collector = getCollector();
-      collector(makePayload());
-      clickButton("Close");
-
-      collector(makePayload({ assertion_key: "after-dismiss" }));
-
-      const badge = getBadge();
-      expect(badge.classList.contains("hidden")).toBe(false);
-      expect(badge.textContent).toContain("1 new");
-    });
-
-    it("should restore panel with buffered assertions on badge click", () => {
-      const collector = getCollector();
-      collector(makePayload({ assertion_key: "before" }));
-      clickButton("Close");
-
-      collector(makePayload({ assertion_key: "after-1" }));
-      collector(makePayload({ assertion_key: "after-2" }));
-      getBadge().click();
-
-      expect(getPanel().classList.contains("hidden")).toBe(false);
-      expect(getRows().length).toBe(3);
     });
   });
 

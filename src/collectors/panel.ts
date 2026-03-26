@@ -7,9 +7,10 @@ let panelBody: HTMLElement | null = null;
 let panelContainer: HTMLElement | null = null;
 let badgeElement: HTMLElement | null = null;
 
-let state: "none" | "visible" | "minimized" | "dismissed" = "none";
+let state: "none" | "visible" | "minimized" = "none";
 const buffer: ApiPayload[] = [];
-let badgeCount = 0;
+let badgePassCount = 0;
+let badgeFailCount = 0;
 
 // --- Styles ---
 const PANEL_CSS = `
@@ -158,9 +159,18 @@ const PANEL_CSS = `
     z-index: 2147483647;
     box-shadow: 0 4px 16px rgba(0,0,0,0.3);
     user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
   }
   .fs-badge:hover { background: #27272a; }
   .fs-badge.hidden { display: none; }
+  .fs-badge-count {
+    font-weight: 600;
+    font-size: 11px;
+  }
+  .fs-badge-count.pass { color: #22c55e; }
+  .fs-badge-count.fail { color: #ef4444; }
 `;
 
 // --- DOM Construction ---
@@ -199,14 +209,7 @@ function createPanel(): void {
   minimizeBtn.title = "Minimize";
   minimizeBtn.addEventListener("click", minimize);
 
-  const closeBtn = document.createElement("button");
-  closeBtn.className = "fs-btn";
-  closeBtn.textContent = "\u00d7"; // multiplication sign as close icon
-  closeBtn.title = "Close";
-  closeBtn.addEventListener("click", dismiss);
-
   controls.appendChild(minimizeBtn);
-  controls.appendChild(closeBtn);
   header.appendChild(title);
   header.appendChild(controls);
 
@@ -315,18 +318,10 @@ function minimize(): void {
   if (!panelContainer || !badgeElement) return;
   state = "minimized";
   panelContainer.classList.add("hidden");
-  badgeCount = 0;
+  badgePassCount = 0;
+  badgeFailCount = 0;
   updateBadge();
   badgeElement.classList.remove("hidden");
-}
-
-function dismiss(): void {
-  if (!panelContainer || !badgeElement) return;
-  state = "dismissed";
-  panelContainer.classList.add("hidden");
-  badgeCount = 0;
-  updateBadge();
-  // Badge starts hidden when dismissed with 0 new — shows when new assertions arrive
 }
 
 function restore(): void {
@@ -337,7 +332,8 @@ function restore(): void {
     renderRow(payload);
   }
   buffer.length = 0;
-  badgeCount = 0;
+  badgePassCount = 0;
+  badgeFailCount = 0;
 
   state = "visible";
   panelContainer.classList.remove("hidden");
@@ -346,10 +342,20 @@ function restore(): void {
 
 function updateBadge(): void {
   if (!badgeElement) return;
-  if (badgeCount > 0) {
-    badgeElement.textContent = `FaultSense \u00b7 ${badgeCount} new`;
-    badgeElement.classList.remove("hidden");
+
+  // Always show "Faultsense" label. Add pass/fail counts when there are buffered items.
+  let html = "Faultsense";
+  const parts: string[] = [];
+  if (badgePassCount > 0) {
+    parts.push(`<span class="fs-badge-count pass">${badgePassCount} \u2713</span>`);
   }
+  if (badgeFailCount > 0) {
+    parts.push(`<span class="fs-badge-count fail">${badgeFailCount} \u2717</span>`);
+  }
+  if (parts.length > 0) {
+    html += ` \u00b7 ${parts.join("  ")}`;
+  }
+  badgeElement.innerHTML = html;
 }
 
 export function cleanupPanel(): void {
@@ -363,7 +369,8 @@ export function cleanupPanel(): void {
   badgeElement = null;
   state = "none";
   buffer.length = 0;
-  badgeCount = 0;
+  badgePassCount = 0;
+  badgeFailCount = 0;
 }
 
 // --- Collector Function ---
@@ -375,9 +382,13 @@ const panelCollector = (payload: ApiPayload): void => {
 
   if (state === "visible") {
     renderRow(payload);
-  } else if (state === "minimized" || state === "dismissed") {
+  } else if (state === "minimized") {
     buffer.push(payload);
-    badgeCount++;
+    if (payload.status === "passed") {
+      badgePassCount++;
+    } else {
+      badgeFailCount++;
+    }
     updateBadge();
   }
 };

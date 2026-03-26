@@ -25,7 +25,16 @@ function HomePage() {
       <main style={styles.main}>
         <AddTodo />
         {todos.length > 0 && (
-          <div id="todo-count" style={styles.count}>
+          // fs-assert OOB: when any CRUD assertion passes, verify the count updated correctly.
+          // No prop drilling needed — the count label declares its own assertion
+          // triggered by the success of toggle/add/delete.
+          <div
+            id="todo-count"
+            style={styles.count}
+            fs-assert="todos/count-updated"
+            fs-assert-oob-updated="todos/toggle-complete,todos/add-item,todos/remove-item"
+            fs-assert-updated='[text-matches=\d+/\d+ remaining]'
+          >
             {uncompleted}/{todos.length} remaining
           </div>
         )}

@@ -37,6 +37,7 @@ import { createAssertionTimeout, clearAssertionTimeout, clearAllTimeouts } from 
 import { eventResolver } from "../resolvers/event";
 import { propertyResolver } from "../resolvers/property";
 import { createLogger } from "../utils/logger";
+import { findAndCreateOobAssertions } from "../processors/oob";
 
 // Assertion Manager with pluggable Processors
 export function createAssertionManager(config: Configuration) {
@@ -198,6 +199,23 @@ export function createAssertionManager(config: Configuration) {
 
     if (toSettle.length) {
       sendToCollector(toSettle, config);
+    }
+
+    // Trigger OOB assertions for any non-OOB assertions that passed.
+    // OOB assertions are created after the DOM change has already happened,
+    // so we immediately try to resolve them via immediateResolver rather than
+    // waiting for a future mutation.
+    const passed = toSettle.filter(a => a.status === "passed" && !a.oob);
+    if (passed.length > 0) {
+      const oobAssertions = findAndCreateOobAssertions(passed);
+      if (oobAssertions.length > 0) {
+        enqueueAssertions(oobAssertions);
+        // Try to resolve immediately since the DOM state is already current
+        const immediateResults = immediateResolver(oobAssertions, config);
+        if (immediateResults.length > 0) {
+          settle(immediateResults);
+        }
+      }
     }
 
     // Notify about assertion count change after settling
