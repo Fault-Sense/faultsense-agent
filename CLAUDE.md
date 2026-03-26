@@ -37,7 +37,9 @@ When asked to add Faultsense assertions to a component, reason about it the same
 | `fs-assert-visible` | Element exists and visible | `".dashboard"` |
 | `fs-assert-hidden` | Element exists but hidden | `".loading-spinner"` |
 | `fs-assert-loaded` | Media finished loading | `"#hero-image"` |
-| `fs-assert-{type}-{status}` | Response-conditional | `fs-assert-added-200=".success"` |
+| `fs-assert-{type}-{status}` | Response-conditional (status) | `fs-assert-added-200=".success"` |
+| `fs-assert-{type}-json-{key}` | Response-conditional (body) | `fs-assert-added-json-todo=".item"` |
+| `fs-assert-oob-{type}` | OOB: trigger on parent pass | `fs-assert-oob-updated="todos/toggle"` |
 | `fs-assert-timeout` | Custom timeout (ms) | `"2000"` |
 | `fs-assert-mpa` | Persist across page nav | `"true"` |
 
@@ -68,11 +70,38 @@ fs-assert="auth/login"
 
 The key must be stable across releases. Human-readable labels can be configured on the collector side.
 
+### Self-Referencing Selectors
+
+Omit the selector to check the element itself — provide only modifiers:
+
+```html
+fs-assert-updated="[text-matches=\d+/\d+ remaining]"
+```
+
+### Out-of-Band (OOB) Assertions
+
+Side-effect elements (count labels, totals) can declare assertions triggered by another assertion's success, eliminating prop drilling:
+
+```html
+<div id="todo-count"
+  fs-assert="todos/count-updated"
+  fs-assert-oob-updated="todos/toggle-complete,todos/add-item,todos/remove-item"
+  fs-assert-updated="[text-matches=\d+/\d+ remaining]">
+  2/3 remaining
+</div>
+```
+
+- `fs-assert-oob-{type}="key1,key2"` — fires when any listed parent assertion passes
+- OOB only fires on parent **pass**, not fail
+- No chaining: OOB passing does not trigger further OOB
+- Selector is optional — omit for self-referencing
+
 ### Placement
 
 - Attributes go on the element the user interacts with (the `event.target`)
 - For forms: `fs-trigger="submit"` on the `<form>` or `fs-trigger="click"` on the button
 - `fs-*` attributes must reach the DOM — in React/Vue/Svelte, use native elements or forward props
+- OOB assertions go on the **side-effect element**, not the trigger element
 
 ### Key Mistakes to Avoid
 
