@@ -5,15 +5,15 @@ import {
   conditionKeySuffixPattern,
   reservedConditionKeys,
   inlineModifiers,
-  allAssertionTypes,
   supportedModifiersByType,
 } from "../config";
 import { parseRoutePattern, validateRoutePattern } from "../resolvers/route";
-import type {
-  Assertion,
-  AssertionModiferValue,
-  AssertionType,
-  ElementProcessor,
+import {
+  allAssertionTypes,
+  type Assertion,
+  type AssertionModiferValue,
+  type AssertionType,
+  type ElementProcessor,
 } from "../types";
 
 interface AssertionTypeEntry {

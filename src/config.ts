@@ -1,4 +1,4 @@
-import { Configuration } from "./types";
+import { AssertionType, Configuration, domAssertionTypes, routeAssertionTypes, allAssertionTypes, domModifiers } from "./types";
 
 export const defaultConfiguration: Partial<Configuration> = {
   gcInterval: 30000,
@@ -14,33 +14,24 @@ export const assertionPrefix = {
 };
 export const assertionTriggerAttr = `${assertionPrefix.details}trigger`;
 
-export const domAssertions = [
-  "added",
-  "removed",
-  "updated",
-  "visible",
-  "hidden",
-  "loaded",
-];
-
-export const routeAssertions = ["route"];
-
-// All assertion types for condition key parsing (parseDynamicTypes iterates this)
-export const allAssertionTypes = [...domAssertions, ...routeAssertions];
+// Re-export for use in resolvers/processors that gate on DOM vs route
+export const domAssertions: string[] = [...domAssertionTypes];
+export const routeAssertions: string[] = [...routeAssertionTypes];
 
 // Condition key suffix pattern for UI-conditional types: added-success, added-error
 export const conditionKeySuffixPattern = /^[a-z][a-z0-9-]*$/;
 
 // Reserved condition keys that cannot be used (conflict with assertion type names)
-export const reservedConditionKeys = [...allAssertionTypes, "oob"];
+export const reservedConditionKeys: string[] = [...allAssertionTypes, "oob"];
 
-// Supported modifiers per assertion type (for generic validation)
-export const supportedModifiersByType: Record<string, string[]> = {
-  added: ["text-matches", "classlist", "attrs-match"],
-  removed: ["text-matches", "classlist", "attrs-match"],
-  updated: ["text-matches", "classlist", "attrs-match"],
-  visible: ["text-matches", "classlist", "attrs-match"],
-  hidden: ["text-matches", "classlist", "attrs-match"],
+// Supported modifiers per assertion type (for generic validation).
+// Record<AssertionType, ...> ensures a compile error if a new type is added without updating this map.
+export const supportedModifiersByType: Record<AssertionType, readonly string[]> = {
+  added: domModifiers,
+  removed: domModifiers,
+  updated: domModifiers,
+  visible: domModifiers,
+  hidden: domModifiers,
   loaded: [],
   route: [],
 };
