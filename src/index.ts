@@ -55,8 +55,6 @@ export function init(initialConfig: Partial<Configuration>): () => void {
     capturePhase
   );
 
-
-
   // Set up a MutationObserver to handle DOM changes
   observer = new MutationObserver((mutations) => {
     assertionManager.handleMutations(mutations);
