@@ -13,7 +13,7 @@ describe("Faultsense Agent - Loaded Assetion", () => {
   let config = {
     apiKey: "TEST_API_KEY",
     releaseLabel: "0.0.0",
-    timeout: 1000,
+    gcInterval: 30000, unloadGracePeriod: 2000,
     collectorURL: "http://localhost:9000",
   };
 
@@ -121,7 +121,7 @@ describe("Faultsense Agent - Loaded Assetion", () => {
 
   it("Should fail if it takes too long to load", async () => {
     document.body.innerHTML = `
-      <img id="my-img" src="/some/img/png" fs-trigger="mount" fs-assert-loaded="#my-img" fs-assert="product-image" /> 
+      <img id="my-img" src="/some/img/png" fs-trigger="mount" fs-assert-loaded="#my-img" fs-assert="product-image" fs-assert-timeout="1000" />
     `;
 
     // do not trigger the load or error events. Instead wait for the timeout
@@ -147,7 +147,7 @@ describe("Faultsense Agent - Loaded Assetion", () => {
   it("Should ignore onload events for untracked elements", async () => {
     document.body.innerHTML = `
       <img id="my-img-untracked" src="/some/img/png"  />
-      <img id="my-img" src="/some/img/png" fs-trigger="mount" fs-assert-loaded="#my-img" fs-assert="product-image" /> 
+      <img id="my-img" src="/some/img/png" fs-trigger="mount" fs-assert-loaded="#my-img" fs-assert="product-image" fs-assert-timeout="1000" />
     `;
     const img = document.querySelector("#my-img-untracked") as HTMLImageElement;
 

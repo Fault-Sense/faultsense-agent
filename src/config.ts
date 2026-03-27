@@ -1,7 +1,8 @@
 import { Configuration } from "./types";
 
 export const defaultConfiguration: Partial<Configuration> = {
-  timeout: 1000,
+  gcInterval: 30000,
+  unloadGracePeriod: 2000,
   collectorURL: "//faultsense.com/collector/",
   debug: false,
 };

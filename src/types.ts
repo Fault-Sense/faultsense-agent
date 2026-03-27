@@ -4,7 +4,8 @@ export type CollectorFunction = (payload: ApiPayload) => void;
 export interface Configuration {
   apiKey: string;
   releaseLabel: string;
-  timeout: number;
+  gcInterval: number;
+  unloadGracePeriod: number;
   collectorURL: string | CollectorFunction;
   debug: boolean;
 }
@@ -87,6 +88,7 @@ export interface Assertion {
   status?: AssertionStatus;
   statusReason?: string;
   modifiers: Partial<Record<AssertionModifiers, AssertionModiferValue>>;
+  attempts?: number[];
   previousStartTime?: number;
   previousEndTime?: number;
   previousStatus?: AssertionStatus;
@@ -101,11 +103,13 @@ export interface CompletedAssertion
 }
 
 export interface ApiPayload {
+  api_key: string;
   assertion_key: string;
   assertion_trigger: string;
   assertion_type_value: string;
   assertion_type: AssertionType;
   assertion_type_modifiers: Partial<Record<AssertionModifiers, AssertionModiferValue>>;
+  attempts: number[];
   condition_key: string;
   element_snapshot: string;
   release_label: string;

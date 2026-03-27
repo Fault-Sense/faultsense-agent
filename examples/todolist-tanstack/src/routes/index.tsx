@@ -44,6 +44,23 @@ function HomePage() {
       </header>
       <main style={styles.main}>
         <AddTodo />
+        <div style={styles.demoRow}>
+          <span style={styles.demoLabel}>Demos:</span>
+          {/* GC demo: asserts on a selector that never appears. No SLA timeout,
+              so it stays pending until the GC sweeps it (default 30s).
+              Click to see it sit in the panel as pending, then eventually fail. */}
+          <button
+            style={styles.demoBtn}
+            fs-assert="demo/gc-timeout"
+            fs-trigger="click"
+            fs-assert-added=".never-exists"
+          >
+            GC Demo (no SLA)
+          </button>
+          <span style={styles.demoHint}>
+            Add "SLOW" todo for SLA demo (500ms timeout, 2s server delay)
+          </span>
+        </div>
         {todos.length > 0 && (
           // fs-assert OOB: when any CRUD assertion passes, verify the count updated correctly.
           // No prop drilling needed — the count label declares its own assertion
@@ -97,5 +114,35 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '0.875rem',
     color: '#71717a',
     textAlign: 'right' as const,
+  },
+  demoRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.75rem',
+    padding: '0.5rem 0.75rem',
+    background: '#fafafa',
+    borderRadius: 6,
+    border: '1px dashed #d4d4d8',
+  },
+  demoLabel: {
+    fontSize: '0.75rem',
+    fontWeight: 600,
+    color: '#71717a',
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.05em',
+  },
+  demoBtn: {
+    padding: '0.25rem 0.75rem',
+    fontSize: '0.8125rem',
+    border: '1px solid #d4d4d8',
+    borderRadius: 4,
+    backgroundColor: '#fff',
+    cursor: 'pointer',
+    color: '#52525b',
+  },
+  demoHint: {
+    fontSize: '0.75rem',
+    color: '#a1a1aa',
+    fontStyle: 'italic' as const,
   },
 }

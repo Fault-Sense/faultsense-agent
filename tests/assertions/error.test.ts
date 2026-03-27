@@ -13,7 +13,7 @@ describe("Faultsense Agent - Assertions with global errors", () => {
   let config = {
     apiKey: "TEST_API_KEY",
     releaseLabel: "0.0.0",
-    timeout: 1000,
+    gcInterval: 30000, unloadGracePeriod: 2000,
     collectorURL: "http://localhost:9000",
   };
 

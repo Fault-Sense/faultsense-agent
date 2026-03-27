@@ -38,6 +38,10 @@ export const addTodo = createServerFn({ method: 'POST' })
     if (!data.text.trim()) {
       return { error: 'Todo text cannot be empty' }
     }
+    // Simulate slow network for "SLOW" todos (SLA timeout demo)
+    if (data.text.trim() === 'SLOW') {
+      await new Promise((resolve) => setTimeout(resolve, 2000))
+    }
     const todo: Todo = {
       id: String(nextId++),
       text: data.text.trim(),

@@ -12,7 +12,7 @@ describe("Faultsense Agent - Conditional Assertion Resolution", () => {
   let config = {
     apiKey: "TEST_API_KEY",
     releaseLabel: "0.0.0",
-    timeout: 1000,
+    gcInterval: 30000, unloadGracePeriod: 2000,
     collectorURL: "http://localhost:9000",
   };
 
@@ -157,7 +157,8 @@ describe("Faultsense Agent - Conditional Assertion Resolution", () => {
         fs-assert="search/execute"
         fs-assert-added-results=".result-card"
         fs-assert-added-empty=".no-results"
-        fs-assert-added-error=".search-error">Click</button>
+        fs-assert-added-error=".search-error"
+        fs-assert-timeout="1000">Click</button>
     `;
 
     const button = document.querySelector("button") as HTMLButtonElement;

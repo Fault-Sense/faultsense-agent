@@ -34,7 +34,8 @@ export function AddTodo() {
         />
         {/* fs-assert: Clicking add should create a new .todo-item on success,
             or show a validation error when submitting blank text.
-            Uses UI-conditional assertions — no server headers needed. */}
+            SLA timeout at 500ms — adding "SLOW" will exceed it (2s server delay).
+            Normal adds resolve well within the SLA. */}
         <button
           type="submit"
           style={styles.button}
@@ -42,6 +43,7 @@ export function AddTodo() {
           fs-trigger="click"
           fs-assert-added-success=".todo-item"
           fs-assert-added-error=".add-error"
+          fs-assert-timeout="500"
         >
           Add
         </button>

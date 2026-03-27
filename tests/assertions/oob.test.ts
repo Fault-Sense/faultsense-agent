@@ -12,7 +12,7 @@ describe("Faultsense Agent - OOB (Out-of-Band) Assertions", () => {
   let config = {
     apiKey: "TEST_API_KEY",
     releaseLabel: "0.0.0",
-    timeout: 1000,
+    gcInterval: 30000, unloadGracePeriod: 2000,
     collectorURL: "http://localhost:9000",
   };
 
@@ -100,7 +100,8 @@ describe("Faultsense Agent - OOB (Out-of-Band) Assertions", () => {
       <button
         fs-trigger="click"
         fs-assert-updated="#target"
-        fs-assert="action/do-thing">Click</button>
+        fs-assert="action/do-thing"
+        fs-assert-timeout="1000">Click</button>
       <div id="target">unchanged</div>
 
       <!-- OOB: should not fire because parent will fail (timeout) -->

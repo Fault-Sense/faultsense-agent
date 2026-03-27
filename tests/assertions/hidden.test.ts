@@ -13,7 +13,7 @@ describe("Faultsense Agent - Assertion Type: hidden", () => {
   let config = {
     apiKey: "TEST_API_KEY",
     releaseLabel: "0.0.0",
-    timeout: 1000,
+    gcInterval: 30000, unloadGracePeriod: 2000,
     collectorURL: "http://localhost:9000",
   };
 
@@ -139,7 +139,7 @@ describe("Faultsense Agent - Assertion Type: hidden", () => {
 
   it("hidden should fail if the element does not exist", async () => {
     document.body.innerHTML = `
-        <button fs-trigger="click" fs-assert-hidden="#panel" fs-assert="btn-click">Click</button>
+        <button fs-trigger="click" fs-assert-hidden="#panel" fs-assert="btn-click" fs-assert-timeout="1000">Click</button>
       `;
 
     const button = document.querySelector("button") as HTMLButtonElement;

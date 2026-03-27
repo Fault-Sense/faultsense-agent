@@ -134,7 +134,8 @@ export function init(initialConfig: Partial<Configuration>): () => void {
       apiKey: script.getAttribute("data-api-key") || (typeof resolvedCollectorUrl === "function" ? "dev-collector" : undefined),
       releaseLabel: script.getAttribute("data-release-label") || undefined,
       collectorURL: resolvedCollectorUrl,
-      timeout: Number(script.getAttribute("data-timeout")) || undefined,
+      gcInterval: Number(script.getAttribute("data-gc-interval")) || undefined,
+      unloadGracePeriod: Number(script.getAttribute("data-unload-grace-period")) || undefined,
       debug: script.getAttribute("data-debug") === "true" || undefined,
     };
   }

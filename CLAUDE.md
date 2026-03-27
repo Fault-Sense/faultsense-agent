@@ -190,6 +190,15 @@ Side-effect elements (count labels, totals, toasts) can declare assertions trigg
 - **Queue/Storage refactor:** MPA-marked assertions currently bypass the in-memory queue and go directly to localStorage (`manager.ts:74`). Storage may be better modeled as an implementation detail of the queue. Flagged for future revisit.
 - **Cross-type conditional grouping:** Conditional sibling groups default to `assertionKey + type`. Add `fs-assert-grouped` (no value) to link all conditionals on an element as siblings regardless of type — e.g., `fs-assert-removed-success` + `fs-assert-added-error` become mutually exclusive outcomes.
 
+## Timeout Model
+
+Assertions resolve naturally when the DOM changes. No default per-assertion timer.
+
+- **GC sweep** (`config.gcInterval`, default 30s) — a background timer cleans up stale assertions that never resolved. GC failure reason: "Assertion did not resolve within Xms."
+- **SLA timeout** (`fs-assert-timeout="2000"`) — opt-in per-assertion timer for performance contracts. SLA failure reason: "Expected X within Yms."
+- **Page unload** — assertions older than `config.unloadGracePeriod` (default 2s) are failed on page close. Fresh assertions are silently dropped (user navigated, not a failure). Uses `sendBeacon` for reliable delivery.
+- **Re-trigger tracking** — when a trigger fires on a pending assertion, the timestamp is recorded in an `attempts[]` array on the assertion. Included in the collector payload for rage-click analysis.
+
 ## Development
 
 - `npm test` — run vitest (jsdom environment)

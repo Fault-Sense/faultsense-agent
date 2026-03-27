@@ -25,12 +25,13 @@ import {
   getAssertionsToSettle,
   getPendingAssertions,
   getPendingDomAssertions,
+  getSiblingGroup,
   dismissSiblings,
   isAssertionCompleted,
   isAssertionPending,
   retryCompletedAssertion,
 } from "./assertion";
-import { createAssertionTimeout, clearAssertionTimeout, clearAllTimeouts } from "./timeout";
+import { createAssertionTimeout, clearAssertionTimeout, clearAllTimeouts, scheduleGc, clearGcTimeout } from "./timeout";
 import { eventResolver } from "../resolvers/event";
 import { propertyResolver } from "../resolvers/property";
 import { createLogger } from "../utils/logger";
@@ -79,40 +80,63 @@ export function createAssertionManager(config: Configuration) {
       if (existingAssertion && isAssertionCompleted(existingAssertion)) {
         retryCompletedAssertion(existingAssertion, newAssertion);
 
-        // Reset timeout timer for the retried assertion
-        createAssertionTimeout(existingAssertion, config, (completedAssertion) => {
-          settle([completedAssertion]);
-        });
+        // Retry all siblings so the full conditional group is restored
+        for (const sibling of getSiblingGroup(existingAssertion, activeAssertions)) {
+          retryCompletedAssertion(sibling, sibling as Assertion);
+        }
+
+        // Reset SLA timeout if the assertion has an explicit timeout
+        if (existingAssertion.timeout > 0) {
+          createAssertionTimeout(existingAssertion, config, (completedAssertion) => {
+            settle([completedAssertion]);
+          });
+        }
 
         // Also run immediate check for retried assertions
         checkImmediateResolved(existingAssertion);
 
-      } else if (!existingAssertion || !isAssertionPending(existingAssertion)) {
+      } else if (existingAssertion && isAssertionPending(existingAssertion)) {
+        // Re-trigger on a pending assertion — track the attempt timestamp
+        if (!existingAssertion.attempts) existingAssertion.attempts = [];
+        existingAssertion.attempts.push(Date.now());
+      } else if (!existingAssertion) {
         activeAssertions.push(newAssertion);
 
         // Invariants have no timeout and no immediate check — they stay pending
         // until the resolver detects a violation. Everything else gets both.
         if (newAssertion.trigger !== "invariant") {
-          // For conditional assertions, only the first sibling in a group gets a timeout.
-          const shouldCreateTimeout = !newAssertion.conditionKey || !activeAssertions.some(
-            (a) =>
-              a !== newAssertion &&
-              a.assertionKey === newAssertion.assertionKey &&
-              (newAssertion.grouped || a.type === newAssertion.type) &&
-              a.conditionKey !== undefined &&
-              a.timeoutId !== undefined
-          );
+          // SLA timeout: only for assertions with explicit fs-assert-timeout.
+          // Assertions without it resolve naturally or are cleaned up by GC.
+          if (newAssertion.timeout > 0) {
+            // For conditional assertions, only the first sibling in a group gets a timeout.
+            const shouldCreateTimeout = !newAssertion.conditionKey || !activeAssertions.some(
+              (a) =>
+                a !== newAssertion &&
+                a.assertionKey === newAssertion.assertionKey &&
+                (newAssertion.grouped || a.type === newAssertion.type) &&
+                a.conditionKey !== undefined &&
+                a.timeoutId !== undefined
+            );
 
-          if (shouldCreateTimeout) {
-            createAssertionTimeout(newAssertion, config, (completedAssertion) => {
-              settle([completedAssertion]);
-            }, newAssertion.conditionKey ? activeAssertions : undefined);
+            if (shouldCreateTimeout) {
+              createAssertionTimeout(newAssertion, config, (completedAssertion) => {
+                settle([completedAssertion]);
+              }, newAssertion.conditionKey ? activeAssertions : undefined);
+            }
           }
 
           checkImmediateResolved(newAssertion);
         }
       }
     });
+
+    // Schedule GC if there are pending assertions without SLA timeouts
+    scheduleGc(config, () => {
+      const now = Date.now();
+      return activeAssertions.filter(
+        (a) => !a.endTime && a.trigger !== "invariant" && !a.timeout && (now - a.startTime) > config.gcInterval
+      );
+    }, (completed) => settle(completed));
 
     // Notify about assertion count change
     if (assertionCountCallback) {
@@ -239,11 +263,13 @@ export function createAssertionManager(config: Configuration) {
     }
   };
 
-  // Set up timeout timers for assertions loaded from storage
+  // Set up SLA timeout timers for assertions loaded from storage that have explicit timeouts
   activeAssertions.forEach(assertion => {
-    createAssertionTimeout(assertion, config, (completedAssertion) => {
-      settle([completedAssertion]);
-    });
+    if (assertion.timeout > 0) {
+      createAssertionTimeout(assertion, config, (completedAssertion) => {
+        settle([completedAssertion]);
+      });
+    }
   });
 
   const processElements = (
@@ -266,7 +292,8 @@ export function createAssertionManager(config: Configuration) {
   };
 
   const clearActiveAssertions = (): void => {
-    // Clear all timeout timers before clearing assertions to prevent orphaned timers
+    // Clear all timers before clearing assertions to prevent orphaned timers
+    clearGcTimeout();
     clearAllTimeouts(activeAssertions);
 
     activeAssertions.length = 0;
@@ -278,10 +305,12 @@ export function createAssertionManager(config: Configuration) {
   };
 
   const handlePageUnload = (): void => {
-    // Auto-pass pending invariants that were never violated — the "all clear" signal.
-    // Only when actually unloading (visibilityState=hidden), not during SSR hydration
-    // which can fire pagehide/beforeunload without a real navigation.
+    // Only run unload logic when actually unloading (visibilityState=hidden),
+    // not during SSR hydration which can fire pagehide without a real navigation.
     if (typeof document !== "undefined" && document.visibilityState === "hidden") {
+      const now = Date.now();
+
+      // Auto-pass pending invariants that were never violated
       const pendingInvariants = activeAssertions.filter(
         (a) => a.trigger === "invariant" && !a.endTime && a.previousStatus !== "failed"
       );
@@ -289,15 +318,35 @@ export function createAssertionManager(config: Configuration) {
         const completed = pendingInvariants.map((inv) =>
           Object.assign(inv, {
             status: "passed" as const,
-            endTime: Date.now(),
+            endTime: now,
             statusReason: "",
           })
         ) as CompletedAssertion[];
         sendToCollector(completed, config);
       }
+
+      // Fail non-invariant assertions older than unloadGracePeriod.
+      // Assertions younger than the grace period are silently dropped —
+      // the user clicked and immediately navigated, not a failure.
+      const staleOnUnload = activeAssertions.filter(
+        (a) => !a.endTime && a.trigger !== "invariant" && (now - a.startTime) > config.unloadGracePeriod
+      );
+      if (staleOnUnload.length > 0) {
+        const failed: CompletedAssertion[] = [];
+        for (const a of staleOnUnload) {
+          const result = Object.assign(a, {
+            status: "failed" as const,
+            endTime: now,
+            statusReason: `Assertion did not resolve before page unload (age: ${now - a.startTime}ms).`,
+          }) as unknown as CompletedAssertion;
+          failed.push(result);
+        }
+        sendToCollector(failed, config);
+      }
     }
 
-    // Clear all timeout timers during page navigation or refresh to prevent orphaned timers
+    // Clear all timers during page navigation or refresh
+    clearGcTimeout();
     clearAllTimeouts(activeAssertions);
 
     // Save active assertions for MPA mode

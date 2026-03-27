@@ -59,6 +59,7 @@ export function retryCompletedAssertion(
   assertion.statusReason = undefined;
   assertion.endTime = undefined;
   assertion.startTime = Date.now();
+  assertion.attempts = undefined;
 }
 
 export function getAssertionsToSettle(
@@ -68,8 +69,7 @@ export function getAssertionsToSettle(
     (assertion) =>
       assertion.endTime &&
       assertion.status !== "dismissed" &&
-      (assertion.previousStatus !== assertion.status ||
-       assertion.previousStatusReason !== assertion.statusReason)
+      assertion.previousStatus !== assertion.status
   );
 }
 
