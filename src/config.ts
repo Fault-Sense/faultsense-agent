@@ -1,4 +1,4 @@
-import { Configuration } from "./types";
+import { AssertionType, Configuration, domAssertionTypes, routeAssertionTypes, allAssertionTypes, domModifiers } from "./types";
 
 export const defaultConfiguration: Partial<Configuration> = {
   gcInterval: 30000,
@@ -14,26 +14,30 @@ export const assertionPrefix = {
 };
 export const assertionTriggerAttr = `${assertionPrefix.details}trigger`;
 
-export const domAssertions = [
-  "added",
-  "removed",
-  "updated",
-  "visible",
-  "hidden",
-  "loaded",
-];
+// Re-export for use in resolvers/processors that gate on DOM vs route
+export const domAssertions: string[] = [...domAssertionTypes];
+export const routeAssertions: string[] = [...routeAssertionTypes];
 
 // Condition key suffix pattern for UI-conditional types: added-success, added-error
 export const conditionKeySuffixPattern = /^[a-z][a-z0-9-]*$/;
 
 // Reserved condition keys that cannot be used (conflict with assertion type names)
-export const reservedConditionKeys = [...domAssertions, "oob"];
+export const reservedConditionKeys: string[] = [...allAssertionTypes, "oob"];
+
+// Supported modifiers per assertion type (for generic validation).
+// Record<AssertionType, ...> ensures a compile error if a new type is added without updating this map.
+export const supportedModifiersByType: Record<AssertionType, readonly string[]> = {
+  added: domModifiers,
+  removed: domModifiers,
+  updated: domModifiers,
+  visible: domModifiers,
+  hidden: domModifiers,
+  loaded: [],
+  route: [],
+};
 
 // OOB (out-of-band) assertion attribute prefix: fs-assert-oob-{type}
 export const oobPrefix = `${assertionPrefix.types}oob-`;
-
-// JSON body suffix pattern for response-conditional types: added-json-key
-export const jsonSuffixPattern = /^json-(.+)$/;
 
 // Reserved inline modifier keys (everything else is treated as an attribute check)
 export const inlineModifiers = ["text-matches", "classlist"];
@@ -43,7 +47,7 @@ export const supportedAssertions = {
     "assert",
     "trigger",
   ],
-  types: [...domAssertions],
+  types: [...allAssertionTypes],
   modifiers: [
     "mpa",
     "timeout",
