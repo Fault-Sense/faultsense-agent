@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { getTodos } from '../server/todos'
 import { TodoList } from '../components/TodoList'
 import { AddTodo } from '../components/AddTodo'
@@ -9,6 +9,7 @@ export const Route = createFileRoute('/todos')({
 })
 
 function TodosPage() {
+  const navigate = useNavigate()
   const todos = Route.useLoaderData()
   const uncompleted = todos.filter((t) => !t.completed).length
 
@@ -16,19 +17,35 @@ function TodosPage() {
     e.currentTarget.style.display = 'none'
   }
 
+  const handleLogout = () => {
+    navigate({ to: '/login' })
+  }
+
   return (
     <div style={styles.container}>
       <header style={styles.header}>
-        <h1
-          id="app-title"
-          style={{ ...styles.title, cursor: 'pointer' }}
-          onClick={handleTitleClick}
-          fs-assert="layout/title-visible"
-          fs-trigger="invariant"
-          fs-assert-visible="#app-title"
-        >
-          Faultsense Todo Demo
-        </h1>
+        <div style={styles.titleRow}>
+          <h1
+            id="app-title"
+            style={{ ...styles.title, cursor: 'pointer' }}
+            onClick={handleTitleClick}
+            fs-assert="layout/title-visible"
+            fs-trigger="invariant"
+            fs-assert-visible="#app-title"
+          >
+            Faultsense Todo Demo
+          </h1>
+          {/* fs-assert route: clicking logout should navigate back to /login */}
+          <button
+            style={styles.logoutBtn}
+            onClick={handleLogout}
+            fs-assert="auth/logout"
+            fs-trigger="click"
+            fs-assert-route="/login"
+          >
+            Logout
+          </button>
+        </div>
         <p style={styles.subtitle}>
           Every interaction is monitored by Faultsense assertions.
           <br />
@@ -85,10 +102,25 @@ const styles: Record<string, React.CSSProperties> = {
     marginBottom: '2rem',
     textAlign: 'center',
   },
+  titleRow: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: '1rem',
+  },
   title: {
     fontSize: '1.75rem',
     fontWeight: 700,
     margin: 0,
+  },
+  logoutBtn: {
+    padding: '0.25rem 0.75rem',
+    fontSize: '0.8125rem',
+    border: '1px solid #d4d4d8',
+    borderRadius: 4,
+    backgroundColor: '#fff',
+    cursor: 'pointer',
+    color: '#52525b',
   },
   subtitle: {
     fontSize: '0.875rem',
