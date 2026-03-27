@@ -5,7 +5,8 @@ import {
   conditionKeySuffixPattern,
   reservedConditionKeys,
   inlineModifiers,
-  domAssertions,
+  allAssertionTypes,
+  supportedModifiersByType,
 } from "../config";
 import type {
   Assertion,
@@ -131,7 +132,7 @@ function parseDynamicTypes(element: HTMLElement): AssertionTypeEntry[] {
     if (!attr.name.startsWith(prefix)) continue;
     const suffix = attr.name.slice(prefix.length);
 
-    for (const domType of domAssertions) {
+    for (const domType of allAssertionTypes) {
       if (suffix.startsWith(`${domType}-`)) {
         const remaining = suffix.slice(domType.length + 1);
 
@@ -299,11 +300,45 @@ function createAssertions(
     return [];
   }
 
-  return metadata.types.map((typeEntry) => {
+  return metadata.types.filter((typeEntry) => {
+    // Validate route regex patterns at parse time to prevent runtime errors
+    if (typeEntry.type === "route" && typeEntry.value) {
+      try {
+        new RegExp(`^${typeEntry.value}$`);
+      } catch (e) {
+        console.warn(
+          `[Faultsense]: Invalid route pattern "${typeEntry.value}" on "${metadata.details["assert"]}". Skipping.`
+        );
+        return false;
+      }
+    }
+    // Route assertions require a pattern
+    if (typeEntry.type === "route" && !typeEntry.value) {
+      console.warn(
+        `[Faultsense]: Route assertion on "${metadata.details["assert"]}" has no pattern. Skipping.`
+      );
+      return false;
+    }
+    return true;
+  }).map((typeEntry) => {
+    // Route assertions pass modifiers through directly (search, hash) —
+    // they don't have DOM-specific semantics like text-matches → attrs-match.
     const resolvedMods = typeEntry.modifiers
-      ? resolveInlineModifiers(typeEntry.modifiers)
+      ? (typeEntry.type === "route" ? typeEntry.modifiers : resolveInlineModifiers(typeEntry.modifiers))
       : {};
     const mergedModifiers = { ...metadata.modifiers, ...resolvedMods };
+
+    // Warn about unsupported modifiers for this assertion type
+    const allowedMods = supportedModifiersByType[typeEntry.type];
+    if (allowedMods) {
+      for (const mod of Object.keys(resolvedMods)) {
+        if (!allowedMods.includes(mod)) {
+          console.warn(
+            `[Faultsense]: Modifier "${mod}" does not apply to "${typeEntry.type}" assertions. Found on "${metadata.details["assert"]}".`
+          );
+        }
+      }
+    }
 
     return {
       assertionKey: metadata.details["assert"],

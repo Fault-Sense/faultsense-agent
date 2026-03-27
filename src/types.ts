@@ -62,7 +62,8 @@ export type AssertionType =
   | "updated"
   | "visible"
   | "hidden"
-  | "loaded";
+  | "loaded"
+  | "route";
 
 export type AssertionModiferValue = string;
 export type AssertionModifiers =

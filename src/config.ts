@@ -23,11 +23,27 @@ export const domAssertions = [
   "loaded",
 ];
 
+export const routeAssertions = ["route"];
+
+// All assertion types for condition key parsing (parseDynamicTypes iterates this)
+export const allAssertionTypes = [...domAssertions, ...routeAssertions];
+
 // Condition key suffix pattern for UI-conditional types: added-success, added-error
 export const conditionKeySuffixPattern = /^[a-z][a-z0-9-]*$/;
 
 // Reserved condition keys that cannot be used (conflict with assertion type names)
-export const reservedConditionKeys = [...domAssertions, "oob"];
+export const reservedConditionKeys = [...allAssertionTypes, "oob"];
+
+// Supported modifiers per assertion type (for generic validation)
+export const supportedModifiersByType: Record<string, string[]> = {
+  added: ["text-matches", "classlist"],
+  removed: ["text-matches", "classlist"],
+  updated: ["text-matches", "classlist"],
+  visible: ["text-matches", "classlist"],
+  hidden: ["text-matches", "classlist"],
+  loaded: [],
+  route: ["search", "hash"],
+};
 
 // OOB (out-of-band) assertion attribute prefix: fs-assert-oob-{type}
 export const oobPrefix = `${assertionPrefix.types}oob-`;
@@ -40,7 +56,7 @@ export const supportedAssertions = {
     "assert",
     "trigger",
   ],
-  types: [...domAssertions],
+  types: [...allAssertionTypes],
   modifiers: [
     "mpa",
     "timeout",

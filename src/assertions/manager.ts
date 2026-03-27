@@ -36,6 +36,7 @@ import { eventResolver } from "../resolvers/event";
 import { propertyResolver } from "../resolvers/property";
 import { createLogger } from "../utils/logger";
 import { findAndCreateOobAssertions } from "../processors/oob";
+import { routeResolver } from "../resolvers/route";
 
 // Assertion Manager with pluggable Processors
 export function createAssertionManager(config: Configuration) {
@@ -59,6 +60,14 @@ export function createAssertionManager(config: Configuration) {
           const documentResults = immediateResolver([assertion], config);
           if (documentResults.length > 0) {
             deferredResult = documentResults[0];
+          }
+        }
+
+        // Check if a route assertion already matches the current URL
+        if (assertion.type === "route") {
+          const routeResults = routeResolver([assertion], config);
+          if (routeResults.length > 0) {
+            deferredResult = routeResults[0];
           }
         }
 
@@ -192,17 +201,25 @@ export function createAssertionManager(config: Configuration) {
     );
   };
 
+  const handleNavigation = (): void => {
+    const pending = getPendingAssertions(activeAssertions);
+    settle(routeResolver(pending, config));
+  };
+
   const checkAssertions = (): void => {
     const pendingAssertions = getPendingDomAssertions(activeAssertions);
-    if (!pendingAssertions.length) {
-      return;
+
+    if (pendingAssertions.length) {
+      // TODO - should we only run the documentResolver on assertions pulled from storage?
+      settle(
+        documentResolver(getAssertionsForMpaMode(pendingAssertions), config)
+      );
+      settle(propertyResolver(pendingAssertions, config));
     }
 
-    // TODO - should we only run the documentResolver on assertions pulled from storage?
-    settle(
-      documentResolver(getAssertionsForMpaMode(pendingAssertions), config)
-    );
-    settle(propertyResolver(pendingAssertions, config));
+    // Route assertions (including MPA-loaded from storage)
+    const allPending = getPendingAssertions(activeAssertions);
+    settle(routeResolver(allPending, config));
   };
 
   const settle = (completeAssertions: CompletedAssertion[]): void => {
@@ -366,6 +383,7 @@ export function createAssertionManager(config: Configuration) {
     handleEvent,
     handleMutations,
     handleGlobalError,
+    handleNavigation,
     checkAssertions,
     processElements,
     saveActiveAssertions,

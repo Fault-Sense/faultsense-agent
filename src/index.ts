@@ -1,6 +1,7 @@
 import { assertionTriggerAttr, supportedEvents } from "./config";
 import { createAssertionManager } from "./assertions/manager";
 import { interceptErrors } from "./interceptors/error";
+import { interceptNavigation } from "./interceptors/navigation";
 import { Configuration, CollectorFunction } from "./types";
 import {
   isValidConfiguration,
@@ -30,6 +31,7 @@ export function init(initialConfig: Partial<Configuration>): () => void {
   const assertionManager = createAssertionManager(config);
 
   interceptErrors(assertionManager.handleGlobalError);
+  interceptNavigation(assertionManager.handleNavigation);
 
   // Add event listeners
   const capturePhase = true;

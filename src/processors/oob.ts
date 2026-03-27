@@ -21,6 +21,12 @@ export function findAndCreateOobAssertions(
   const oobElements = document.querySelectorAll(oobSelector);
   const assertions: Assertion[] = [];
 
+  // Warn about unsupported route OOB assertions
+  const routeOobElements = document.querySelectorAll(`[${oobPrefix}route]`);
+  if (routeOobElements.length > 0) {
+    console.warn("[Faultsense]: fs-assert-oob-route is not supported. Route assertions cannot be triggered via OOB.");
+  }
+
   for (const el of Array.from(oobElements) as HTMLElement[]) {
     // Check each OOB type attribute on this element
     for (const type of domAssertions) {
