@@ -27,10 +27,11 @@ export const domAssertions = [
 export const conditionKeySuffixPattern = /^[a-z][a-z0-9-]*$/;
 
 // Reserved condition keys that cannot be used (conflict with assertion type names)
-export const reservedConditionKeys = [...domAssertions, "oob"];
+export const reservedConditionKeys = [...domAssertions, "oob", "oob-fail"];
 
-// OOB (out-of-band) assertion attribute prefix: fs-assert-oob-{type}
-export const oobPrefix = `${assertionPrefix.types}oob-`;
+// OOB (out-of-band) assertion attributes
+export const oobAttr = `${assertionPrefix.types}oob`;         // fs-assert-oob (fires on parent pass)
+export const oobFailAttr = `${assertionPrefix.types}oob-fail`; // fs-assert-oob-fail (fires on parent fail)
 
 // JSON body suffix pattern for response-conditional types: added-json-key
 export const jsonSuffixPattern = /^json-(.+)$/;

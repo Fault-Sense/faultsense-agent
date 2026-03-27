@@ -233,13 +233,14 @@ export function createAssertionManager(config: Configuration) {
       }
     }
 
-    // Trigger OOB assertions for any non-OOB assertions that passed.
+    // Trigger OOB assertions for any non-OOB assertions that passed or failed.
     // OOB assertions are created after the DOM change has already happened,
     // so we immediately try to resolve them via immediateResolver rather than
     // waiting for a future mutation.
     const passed = toSettle.filter(a => a.status === "passed" && !a.oob);
-    if (passed.length > 0) {
-      const oobAssertions = findAndCreateOobAssertions(passed);
+    const failed = toSettle.filter(a => a.status === "failed" && !a.oob);
+    if (passed.length > 0 || failed.length > 0) {
+      const oobAssertions = findAndCreateOobAssertions(passed, failed);
       if (oobAssertions.length > 0) {
         enqueueAssertions(oobAssertions);
         // Try to resolve immediately since the DOM state is already current.

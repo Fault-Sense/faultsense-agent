@@ -133,7 +133,7 @@ Attributes go on the element that receives the user event. Only the exact `event
 
 Invariants stay pending and produce no collector traffic while the condition holds. Only failures (violations) and recoveries are reported. On page unload, pending invariants are auto-passed as the "all clear" signal.
 
-### OOB assertion (side-effect verification)
+### OOB assertion (side-effect verification on parent pass)
 
 ```html
 <!-- Primary assertion on the trigger element -->
@@ -144,12 +144,27 @@ Invariants stay pending and produce no collector traffic while the condition hol
 <!-- OOB: verify count updated when add succeeds -->
 <div id="todo-count"
   fs-assert="todos/count-updated"
-  fs-assert-oob-visible="todos/add-item"
+  fs-assert-oob="todos/add-item"
   fs-assert-visible="[text-matches=\d+/\d+ remaining]">
 </div>
 ```
 
-OOB assertions fire when a referenced parent assertion passes. Use for side-effect elements (counts, toasts, totals) without prop drilling. Use state types (`visible`, `hidden`, `added`, `removed`) — not event types (`updated`, `loaded`).
+`fs-assert-oob="key1,key2"` replaces `fs-trigger` — fires when any listed parent assertion passes. Assertion types are declared normally via `fs-assert-{type}`.
+
+### OOB-fail assertion (side-effect verification on parent fail)
+
+```html
+<!-- OOB-fail: verify error indicator shown when parent fails -->
+<div id="error-check"
+  fs-assert="todos/add-error-check"
+  fs-assert-oob-fail="todos/add-item"
+  fs-assert-visible=".error-indicator">
+</div>
+```
+
+`fs-assert-oob-fail="key1,key2"` fires when any listed parent assertion fails (timeout, GC, SLA). Dismissed assertions (losing conditional siblings) do NOT trigger oob-fail. Both `fs-assert-oob` and `fs-assert-oob-fail` can coexist on the same element as independent triggers.
+
+OOB rules: no chaining (OOB passing does not trigger further OOB), use state types (`visible`, `hidden`, `added`, `removed`) — not event types (`updated`, `loaded`).
 
 ### Multi-check conditional outcome (OOB pattern)
 
@@ -163,7 +178,7 @@ OOB assertions fire when a referenced parent assertion passes. Use for side-effe
 <!-- OOB: verify toast shown on successful delete -->
 <div class="toast-container"
   fs-assert="todos/delete-toast"
-  fs-assert-oob-visible="todos/remove-item"
+  fs-assert-oob="todos/remove-item"
   fs-assert-visible=".success-toast">
 </div>
 ```

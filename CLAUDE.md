@@ -39,7 +39,8 @@ When asked to add Faultsense assertions to a component, reason about it the same
 | `fs-assert-loaded` | Media finished loading | `"#hero-image"` |
 | `fs-assert-{type}-{condition}` | Conditional assertion (UI) | `fs-assert-added-success=".dashboard"` |
 | `fs-assert-grouped` | Group conditionals across types | (no value) |
-| `fs-assert-oob-{type}` | OOB: trigger on parent pass | `fs-assert-oob-updated="todos/toggle"` |
+| `fs-assert-oob` | OOB: trigger on parent pass | `fs-assert-oob="todos/toggle"` |
+| `fs-assert-oob-fail` | OOB: trigger on parent fail | `fs-assert-oob-fail="todos/toggle"` |
 | `fs-assert-timeout` | Custom timeout (ms) | `"2000"` |
 | `fs-assert-mpa` | Persist across page nav | `"true"` |
 
@@ -125,19 +126,20 @@ Continuous monitoring for conditions that should always hold — catches failure
 
 ### Out-of-Band (OOB) Assertions
 
-Side-effect elements (count labels, totals, toasts) can declare assertions triggered by another assertion's success, eliminating prop drilling:
+Side-effect elements (count labels, totals, toasts, error indicators) can declare assertions triggered by another assertion's pass or fail, eliminating prop drilling. `fs-assert-oob` / `fs-assert-oob-fail` replace `fs-trigger` on OOB elements. Assertion types are declared normally via `fs-assert-{type}`.
 
 ```html
 <div id="todo-count"
   fs-assert="todos/count-updated"
-  fs-assert-oob-visible="todos/toggle-complete,todos/add-item,todos/remove-item"
+  fs-assert-oob="todos/toggle-complete,todos/add-item,todos/remove-item"
   fs-assert-visible="[text-matches=\d+/\d+ remaining]">
   2/3 remaining
 </div>
 ```
 
-- `fs-assert-oob-{type}="key1,key2"` — fires when any listed parent assertion passes
-- OOB only fires on parent **pass**, not fail
+- `fs-assert-oob="key1,key2"` — fires when any listed parent assertion **passes**
+- `fs-assert-oob-fail="key1,key2"` — fires when any listed parent assertion **fails** (timeout, GC, SLA). Dismissed assertions (losing conditional siblings) do NOT trigger oob-fail.
+- Both can coexist on the same element as independent triggers
 - No chaining: OOB passing does not trigger further OOB
 - Selector is optional — omit for self-referencing
 - **Use state assertions (`visible`, `hidden`, `added`, `removed`) with OOB, not event assertions (`updated`, `loaded`).** OOB assertions are created after the parent's DOM change already happened.
@@ -154,7 +156,7 @@ Side-effect elements (count labels, totals, toasts) can declare assertions trigg
 <!-- Secondary: OOB checks the toast appeared after successful delete -->
 <div class="toast-container"
   fs-assert="todos/delete-toast"
-  fs-assert-oob-visible="todos/remove-item"
+  fs-assert-oob="todos/remove-item"
   fs-assert-visible=".success-toast">
 </div>
 ```
@@ -177,7 +179,7 @@ Side-effect elements (count labels, totals, toasts) can declare assertions trigg
 - **Broad selectors in lists** — `.todo-text` matches ALL items in a list. `added` may resolve against the wrong sibling. Use `updated` when the specific element's content changes, or narrow with IDs/data attributes (`.todo-text[data-id=123]`). `updated` tracks the specific mutation; `added` just checks if any matching element appeared.
 - **Don't use `updated` or `loaded` with OOB** — OOB assertions are created after the DOM change. `updated` and `loaded` need to witness the event and will miss it. Use `visible`, `hidden`, `added`, or `removed` instead.
 - **Invariants use `visible`/`hidden`** — `fs-trigger="invariant"` creates perpetual assertions that only report failures. Use state-based types (`visible`, `hidden`). Event types (`updated`, `loaded`) are allowed but warned against.
-- **Every element needs** `fs-assert` + `fs-trigger` + at least one assertion type
+- **Every element needs** `fs-assert` + `fs-trigger` (or `fs-assert-oob`/`fs-assert-oob-fail`) + at least one assertion type
 
 ## Project Context
 

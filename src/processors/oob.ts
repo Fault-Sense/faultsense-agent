@@ -1,43 +1,34 @@
-import { domAssertions, oobPrefix, assertionPrefix } from "../config";
+import { domAssertions, oobAttr, oobFailAttr, assertionPrefix } from "../config";
 import { Assertion, AssertionType, CompletedAssertion } from "../types";
 import { parseTypeValue, resolveInlineModifiers } from "./elements";
 
 /**
- * Build a compound CSS selector to find all OOB elements in the DOM.
- * e.g., "[fs-assert-oob-added],[fs-assert-oob-removed],[fs-assert-oob-updated],..."
+ * Scan the DOM for OOB elements whose parent keys match the given assertions.
+ * Creates assertions that enter the normal resolution pipeline.
  */
-const oobSelector = domAssertions
-  .map((type) => `[${oobPrefix}${type}]`)
-  .join(",");
-
-/**
- * Scan the DOM for OOB elements triggered by the given passed assertions.
- * For each match, create an assertion that enters the normal resolution pipeline.
- */
-export function findAndCreateOobAssertions(
-  passedAssertions: CompletedAssertion[]
+function findOobByAttr(
+  attr: string,
+  triggerName: string,
+  parentAssertions: CompletedAssertion[]
 ): Assertion[] {
-  const passedKeys = new Set(passedAssertions.map((a) => a.assertionKey));
-  const oobElements = document.querySelectorAll(oobSelector);
+  if (parentAssertions.length === 0) return [];
+
+  const parentKeys = new Set(parentAssertions.map((a) => a.assertionKey));
+  const oobElements = document.querySelectorAll(`[${attr}]`);
   const assertions: Assertion[] = [];
 
   for (const el of Array.from(oobElements) as HTMLElement[]) {
-    // Check each OOB type attribute on this element
+    const assertionKey = el.getAttribute(`${assertionPrefix.details}assert`);
+    if (!assertionKey) continue;
+
+    const attrValue = el.getAttribute(attr);
+    if (!attrValue) continue;
+
+    const keys = attrValue.split(",").map((k) => k.trim());
+    if (!keys.some((k) => parentKeys.has(k))) continue;
+
+    // Collect assertion types from standard fs-assert-{type} attributes
     for (const type of domAssertions) {
-      const attrName = `${oobPrefix}${type}`;
-      const attrValue = el.getAttribute(attrName);
-      if (!attrValue) continue;
-
-      // Check if any of the comma-separated keys match a passed assertion
-      const parentKeys = attrValue.split(",").map((k) => k.trim());
-      const triggered = parentKeys.some((k) => passedKeys.has(k));
-      if (!triggered) continue;
-
-      // Get the assertion key for this OOB element
-      const assertionKey = el.getAttribute(`${assertionPrefix.details}assert`);
-      if (!assertionKey) continue;
-
-      // Get the assertion type value (selector + modifiers)
       const typeAttrName = `${assertionPrefix.types}${type}`;
       const typeAttrValue = el.getAttribute(typeAttrName);
       if (!typeAttrValue) continue;
@@ -46,13 +37,11 @@ export function findAndCreateOobAssertions(
       const resolvedMods = resolveInlineModifiers(modifiers);
 
       // Self-targeting: if selector is empty, the element itself is the target.
-      // Generate a unique selector for self using the element's id or a data attribute.
       let targetSelector = selector;
       if (!targetSelector) {
         if (el.id) {
           targetSelector = `#${el.id}`;
         } else {
-          // Fallback: tag the element with a temporary data attribute for targeting
           const tempId = `fs-oob-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
           el.setAttribute("data-fs-oob-target", tempId);
           targetSelector = `[data-fs-oob-target="${tempId}"]`;
@@ -60,10 +49,10 @@ export function findAndCreateOobAssertions(
       }
 
       assertions.push({
-        assertionKey: assertionKey,
+        assertionKey,
         elementSnapshot: el.outerHTML,
         mpa_mode: false,
-        trigger: "oob",
+        trigger: triggerName,
         timeout: Number(el.getAttribute(`${assertionPrefix.modifiers}timeout`)) || 0,
         startTime: Date.now(),
         type: type as AssertionType,
@@ -75,4 +64,20 @@ export function findAndCreateOobAssertions(
   }
 
   return assertions;
+}
+
+/**
+ * Find OOB assertions triggered by passed and/or failed parent assertions.
+ *
+ * - fs-assert-oob="key1,key2" triggers when any listed parent passes
+ * - fs-assert-oob-fail="key1,key2" triggers when any listed parent fails
+ */
+export function findAndCreateOobAssertions(
+  passedAssertions: CompletedAssertion[],
+  failedAssertions: CompletedAssertion[] = []
+): Assertion[] {
+  return [
+    ...findOobByAttr(oobAttr, "oob", passedAssertions),
+    ...findOobByAttr(oobFailAttr, "oob-fail", failedAssertions),
+  ];
 }
