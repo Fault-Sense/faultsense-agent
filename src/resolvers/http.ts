@@ -153,6 +153,11 @@ export function httpResponseResolver(
 
   if (statusAssertions.length > 0) {
     const matched = findMatchingStatusAssertion(statusAssertions, responseInfo.status);
+  const statusAssertions = responseAssertions.filter(a => getResponseStatus(a));
+  const jsonAssertions = responseAssertions.filter(a => getResponseJsonKey(a));
+
+  if (statusAssertions.length > 0) {
+    const matched = findMatchingStatusAssertion(statusAssertions, responseInfo.status);
 
     if (matched) {
       (matched as any).httpPending = false;

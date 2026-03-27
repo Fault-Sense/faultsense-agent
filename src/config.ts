@@ -3,6 +3,8 @@ import { Configuration } from "./types";
 export const defaultConfiguration: Partial<Configuration> = {
   gcInterval: 30000,
   unloadGracePeriod: 2000,
+  gcInterval: 30000,
+  unloadGracePeriod: 2000,
   collectorURL: "//faultsense.com/collector/",
   debug: false,
 };
@@ -61,6 +63,7 @@ export const supportedAssertions = {
     "mpa",
     "timeout",
     "grouped",
+    "grouped",
   ],
 };
 
@@ -88,5 +91,6 @@ export const eventTriggerAliases: Record<string, string[]> = {
   error: ["load"],
 };
 
+export const supportedTriggers = ["mount", "unmount", "invariant", ...supportedEvents];
 export const supportedTriggers = ["mount", "unmount", "invariant", ...supportedEvents];
 export const storageKey = "faultsense-active-assertions";

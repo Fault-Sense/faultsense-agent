@@ -56,6 +56,7 @@ export function init(initialConfig: Partial<Configuration>): () => void {
   );
 
 
+
   // Set up a MutationObserver to handle DOM changes
   observer = new MutationObserver((mutations) => {
     assertionManager.handleMutations(mutations);
