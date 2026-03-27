@@ -8,7 +8,7 @@
 
 ## Core Concept
 
-Developers add `fs-*` attributes to HTML elements to declare: (1) what user event triggers the assertion, (2) what DOM or network outcome is expected, and (3) optional inline modifiers to refine the check. The agent monitors real user sessions and reports pass/fail to a collector.
+Developers add `fs-*` attributes to HTML elements to declare: (1) what user event triggers the assertion, (2) what DOM outcome is expected, and (3) optional inline modifiers to refine the check. The agent monitors real user sessions and reports pass/fail to a collector.
 
 An element with multiple `fs-assert-*` attributes creates one assertion per type. Each is resolved independently.
 
@@ -134,6 +134,80 @@ Conditional assertions use a `{condition-key}` suffix to define multiple possibl
 ```
 
 Multiple conditionals on the same element and type form a **sibling group**. The first conditional whose selector matches resolves the group — others are dismissed. Condition keys are freeform lowercase alphanumeric strings with hyphens (e.g., `success`, `error`, `empty`, `rate-limited`). No server-side integration required.
+
+**Cross-type grouping (`fs-assert-grouped=""`):** By default, siblings are scoped to `assertionKey + type`. Add `fs-assert-grouped=""` when mutually exclusive outcomes need different assertion types:
+
+```html
+<button fs-assert="todos/remove-item" fs-trigger="click"
+  fs-assert-grouped=""
+  fs-assert-removed-success=".todo-item"
+  fs-assert-added-error=".error-msg"
+  fs-assert-timeout="5000">Delete</button>
+```
+
+### Out-of-Band (OOB) Assertions
+
+OOB assertions fire when a referenced parent assertion passes. Use for side-effect elements (count labels, totals, toasts) that should be verified after a primary action succeeds, without prop drilling.
+
+```html
+<!-- Primary action -->
+<button fs-assert="todos/add-item" fs-trigger="click"
+  fs-assert-added-success=".todo-item"
+  fs-assert-added-error=".add-error">Add</button>
+
+<!-- OOB: count should reflect the new total after add succeeds -->
+<div id="todo-count"
+  fs-assert="todos/count-updated"
+  fs-assert-oob-visible="todos/add-item"
+  fs-assert-visible="[text-matches=\d+/\d+ remaining]">
+  2/3 remaining
+</div>
+```
+
+- `fs-assert-oob-{type}="key1,key2"` — fires when any listed parent assertion passes
+- Multiple parent keys are comma-separated (OR — fires if any parent passes)
+- OOB only fires on parent **pass**, not fail
+- No chaining: OOB passing does not trigger further OOB
+- Selector is optional — omit for self-referencing (checks the OOB element itself)
+- **Use state assertions** (`visible`, `hidden`, `added`, `removed`) with OOB. Event types (`updated`, `loaded`) require witnessing a mutation and will miss changes that already occurred before the OOB assertion is created.
+
+**Multi-check conditional outcomes:** To verify multiple things on one conditional success (e.g., delete removes the row AND shows a toast), use OOB on the secondary element:
+
+```html
+<!-- Primary: conditional on the trigger -->
+<button fs-assert="todos/remove-item" fs-trigger="click"
+  fs-assert-grouped=""
+  fs-assert-removed-success=".todo-item"
+  fs-assert-added-error=".error-msg">Delete</button>
+
+<!-- Secondary: OOB checks toast appeared after successful delete -->
+<div class="toast-container"
+  fs-assert="todos/delete-toast"
+  fs-assert-oob-visible="todos/remove-item"
+  fs-assert-visible=".success-toast">
+</div>
+```
+
+The conditional handles the primary outcome check; OOB handles secondary checks triggered by the conditional's success. This avoids needing AND semantics within condition keys.
+
+### Invariant Assertions
+
+Invariants monitor conditions that should always hold — catching failures without user action (CSS regressions, race conditions, deploy breakage).
+
+```html
+<nav id="main-nav"
+  fs-assert="layout/nav-visible"
+  fs-trigger="invariant"
+  fs-assert-visible="#main-nav">
+</nav>
+```
+
+- Invariants stay **pending** — no collector traffic while the condition holds
+- Only **failures** (violations) and **recoveries** (pass after failure) are reported
+- On page unload, pending (never-violated) invariants are auto-passed as the "all clear" signal
+- No timeout — invariants are perpetual for the page lifetime
+- Best with state types (`visible`, `hidden`). Event types (`updated`, `loaded`) are allowed but warned against in debug mode.
+- Invariants do not support conditional keys or MPA mode
 
 ---
 
@@ -342,11 +416,13 @@ Svelte passes unknown attributes through on native elements.
 
 5. **Missing required attributes.** Every instrumented element needs: `fs-assert`, `fs-trigger`, and at least one assertion type.
 
-6. **Using `updated` or `loaded` with OOB assertions.** OOB assertions are created after the parent's DOM change already happened. Event-based types (`updated`, `loaded`) need to witness the mutation/event and will miss it. Use state-based types (`visible`, `hidden`, `added`, `removed`) for OOB assertions.
+6. **Using `updated` or `loaded` with OOB or invariant assertions.** OOB and invariant assertions check current DOM state. Event-based types (`updated`, `loaded`) require witnessing a mutation/event and will miss changes that already occurred. Use state-based types (`visible`, `hidden`, `added`, `removed`).
 
 7. **Using bare boolean attributes in React JSX.** React drops custom attributes with boolean `true` values. Write `fs-assert-grouped=""` not `fs-assert-grouped` in JSX. This applies to any `fs-*` attribute used as a boolean flag.
 
-6. **Using `text-matches` with exact dynamic values.** If the expected text is dynamic (user names, prices, timestamps), use a regex pattern instead of an exact string. `[text-matches=\\d+]` is better than `[text-matches=42]`.
+8. **Using `text-matches` with exact dynamic values.** If the expected text is dynamic (user names, prices, timestamps), use a regex pattern instead of an exact string. `[text-matches=\\d+]` is better than `[text-matches=42]`.
+
+9. **Putting multiple assertion types under the same condition key for AND logic.** `fs-assert-removed-success` and `fs-assert-visible-success` on the same element are siblings (first to resolve dismisses the other), NOT AND. For multiple checks on one outcome, use OOB: the primary check goes on the trigger element, secondary checks go on OOB elements that fire when the primary passes.
 
 ---
 
@@ -361,6 +437,7 @@ Each resolved assertion sends this payload to the collector:
   assertion_type: string;       // "added" | "removed" | "updated" | "visible" | "hidden" | "loaded"
   assertion_type_value: string; // the CSS selector
   assertion_type_modifiers: {}; // modifier key-value pairs
+  condition_key: string;        // condition key (e.g., "success", "error") or "" if unconditional
   element_snapshot: string;     // outerHTML of the trigger element at assertion creation time
   release_label: string;        // from configuration
   status: "passed" | "failed";

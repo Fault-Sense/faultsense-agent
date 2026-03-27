@@ -9,7 +9,7 @@
 
 ## How It Works
 
-Add `fs-*` HTML attributes to the element a user interacts with. The attributes declare: what event triggers the assertion, what DOM or network outcome is expected, and how to verify it. The agent monitors real user sessions and reports pass/fail results to a collector.
+Add `fs-*` HTML attributes to the element a user interacts with. The attributes declare: what event triggers the assertion, what DOM outcome is expected, and how to verify it. The agent monitors real user sessions and reports pass/fail results to a collector.
 
 ## Attribute Reference
 
@@ -132,3 +132,40 @@ Attributes go on the element that receives the user event. Only the exact `event
 ```
 
 Invariants stay pending and produce no collector traffic while the condition holds. Only failures (violations) and recoveries are reported. On page unload, pending invariants are auto-passed as the "all clear" signal.
+
+### OOB assertion (side-effect verification)
+
+```html
+<!-- Primary assertion on the trigger element -->
+<button fs-assert="todos/add-item" fs-trigger="click"
+  fs-assert-added-success=".todo-item"
+  fs-assert-added-error=".add-error">Add</button>
+
+<!-- OOB: verify count updated when add succeeds -->
+<div id="todo-count"
+  fs-assert="todos/count-updated"
+  fs-assert-oob-visible="todos/add-item"
+  fs-assert-visible="[text-matches=\d+/\d+ remaining]">
+</div>
+```
+
+OOB assertions fire when a referenced parent assertion passes. Use for side-effect elements (counts, toasts, totals) without prop drilling. Use state types (`visible`, `hidden`, `added`, `removed`) — not event types (`updated`, `loaded`).
+
+### Multi-check conditional outcome (OOB pattern)
+
+```html
+<!-- Delete: conditional success/error -->
+<button fs-assert="todos/remove-item" fs-trigger="click"
+  fs-assert-grouped=""
+  fs-assert-removed-success=".todo-item"
+  fs-assert-added-error=".error-msg">Delete</button>
+
+<!-- OOB: verify toast shown on successful delete -->
+<div class="toast-container"
+  fs-assert="todos/delete-toast"
+  fs-assert-oob-visible="todos/remove-item"
+  fs-assert-visible=".success-toast">
+</div>
+```
+
+To verify multiple things on one conditional outcome, use OOB on secondary elements. The conditional handles the primary check; OOB handles secondary checks triggered by the conditional's success.

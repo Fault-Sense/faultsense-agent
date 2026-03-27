@@ -78,9 +78,54 @@ Omit the selector to check the element itself — provide only modifiers:
 fs-assert-updated="[text-matches=\d+/\d+ remaining]"
 ```
 
+### Conditional Assertions
+
+Use condition keys to handle mutually exclusive outcomes from a single user action:
+
+```html
+<!-- Login: success vs error -->
+<button fs-assert="auth/login" fs-trigger="click"
+  fs-assert-added-success=".dashboard"
+  fs-assert-added-error=".error-msg">Login</button>
+```
+
+- Condition keys are freeform lowercase alphanumeric strings with hyphens (e.g., `success`, `error`, `empty`, `rate-limited`)
+- Multiple condition keys on the same element and type form a **sibling group** — first to resolve wins, others dismissed
+- 3+ conditionals work as a switch: `fs-assert-added-success`, `fs-assert-added-error`, `fs-assert-added-empty`
+- No server-side integration needed — the UI is the signal
+
+**Cross-type grouping (`fs-assert-grouped`):** By default, siblings are scoped to `assertionKey + type`. Add `fs-assert-grouped=""` when mutually exclusive outcomes need different assertion types:
+
+```html
+<!-- Delete: remove on success, show error on failure -->
+<button fs-assert="todos/remove-item" fs-trigger="click"
+  fs-assert-grouped=""
+  fs-assert-removed-success=".todo-item"
+  fs-assert-added-error=".error-msg"
+  fs-assert-timeout="5000">Delete</button>
+```
+
+### Invariant Assertions
+
+Continuous monitoring for conditions that should always hold — catches failures without user action:
+
+```html
+<!-- Nav should always be visible -->
+<nav id="main-nav"
+  fs-assert="layout/nav-visible"
+  fs-trigger="invariant"
+  fs-assert-visible="#main-nav">
+```
+
+- Invariants stay **pending** and produce no collector traffic while the condition holds
+- Only **failures** (violations) and **recoveries** (pass after failure) are reported
+- On page unload, pending invariants are auto-passed as the "all clear" signal
+- No timeout — invariants are perpetual for the page lifetime
+- Best with state types (`visible`, `hidden`). Event types (`updated`, `loaded`) are allowed but warned against.
+
 ### Out-of-Band (OOB) Assertions
 
-Side-effect elements (count labels, totals) can declare assertions triggered by another assertion's success, eliminating prop drilling:
+Side-effect elements (count labels, totals, toasts) can declare assertions triggered by another assertion's success, eliminating prop drilling:
 
 ```html
 <div id="todo-count"
@@ -95,7 +140,24 @@ Side-effect elements (count labels, totals) can declare assertions triggered by 
 - OOB only fires on parent **pass**, not fail
 - No chaining: OOB passing does not trigger further OOB
 - Selector is optional — omit for self-referencing
-- **Use state assertions (`visible`, `hidden`, `added`, `removed`) with OOB, not event assertions (`updated`, `loaded`).** OOB assertions are created after the parent's DOM change already happened. State assertions check current DOM and resolve immediately. Event assertions (`updated`, `loaded`) require witnessing a mutation/event and will miss changes that already occurred.
+- **Use state assertions (`visible`, `hidden`, `added`, `removed`) with OOB, not event assertions (`updated`, `loaded`).** OOB assertions are created after the parent's DOM change already happened.
+
+**Multi-check outcomes with OOB:** To verify multiple things on a conditional success (e.g., delete removes the row AND shows a toast), use OOB on the secondary element:
+
+```html
+<!-- Primary: conditional on the trigger element -->
+<button fs-assert="todos/remove-item" fs-trigger="click"
+  fs-assert-grouped=""
+  fs-assert-removed-success=".todo-item"
+  fs-assert-added-error=".error-msg">Delete</button>
+
+<!-- Secondary: OOB checks the toast appeared after successful delete -->
+<div class="toast-container"
+  fs-assert="todos/delete-toast"
+  fs-assert-oob-visible="todos/remove-item"
+  fs-assert-visible=".success-toast">
+</div>
+```
 
 ### Placement
 
