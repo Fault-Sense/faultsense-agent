@@ -91,11 +91,20 @@ function isResponseConditional(assertion: Assertion): boolean {
   return !!(getResponseStatus(assertion) || getResponseJsonKey(assertion));
 }
 
+function getResponseJsonKey(assertion: Assertion): string | undefined {
+  return assertion.modifiers["response-json-key"];
+}
+
+function isResponseConditional(assertion: Assertion): boolean {
+  return !!(getResponseStatus(assertion) || getResponseJsonKey(assertion));
+}
+
 export function isHttpResponseForAssertion(
   assertion: Assertion,
   requestInfo: RequestInfo,
   responseInfo: ResponseInfo
 ): boolean {
+  if (!isResponseConditional(assertion)) return false;
   if (!isResponseConditional(assertion)) return false;
 
   const expected = assertion.assertionKey;
@@ -123,6 +132,16 @@ function findMatchingStatusAssertion(assertions: Assertion[], status: number): A
   if (exact) return exact;
 
   return assertions.find(a => statusMatches(getResponseStatus(a)!, status)) || null;
+}
+
+function findMatchingJsonAssertion(
+  assertions: Assertion[],
+  parsedBody: Record<string, unknown>
+): Assertion | null {
+  return assertions.find(a => {
+    const key = getResponseJsonKey(a)!;
+    return key in parsedBody && parsedBody[key];
+  }) || null;
 }
 
 function findMatchingJsonAssertion(

@@ -32,6 +32,9 @@ export const reservedConditionKeys = [...domAssertions, "oob"];
 // OOB (out-of-band) assertion attribute prefix: fs-assert-oob-{type}
 export const oobPrefix = `${assertionPrefix.types}oob-`;
 
+// JSON body suffix pattern for response-conditional types: added-json-key
+export const jsonSuffixPattern = /^json-(.+)$/;
+
 // Reserved inline modifier keys (everything else is treated as an attribute check)
 export const inlineModifiers = ["text-matches", "classlist"];
 
