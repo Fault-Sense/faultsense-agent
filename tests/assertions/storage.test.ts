@@ -16,7 +16,7 @@ describe("Faultsense Agent - Assertion Storage", () => {
         trigger: "click",
         type: "visible",
         typeValue: "#test-element",
-        timeout: 1000,
+        gcInterval: 30000, unloadGracePeriod: 2000,
         status: undefined,
         modifiers: {} as Record<AssertionModifiers, string>,
         statusReason: "",

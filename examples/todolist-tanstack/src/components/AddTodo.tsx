@@ -32,19 +32,18 @@ export function AddTodo() {
           placeholder="What needs to be done?"
           style={styles.input}
         />
-        {/* fs-assert: Clicking add should create a new .todo-item.
-            Submitting empty text is a silent failure Faultsense catches —
-            no error thrown, no UI feedback, the feature just doesn't work.
-            Note: json-key response conditions (fs-assert-added-json-todo)
-            don't work with framework RPCs like TanStack server functions
-            because the transport wraps the response body. Use json-key
-            with direct fetch calls where you control the response format. */}
+        {/* fs-assert: Clicking add should create a new .todo-item on success,
+            or show a validation error when submitting blank text.
+            SLA timeout at 500ms — adding "SLOW" will exceed it (2s server delay).
+            Normal adds resolve well within the SLA. */}
         <button
           type="submit"
           style={styles.button}
           fs-assert="todos/add-item"
           fs-trigger="click"
-          fs-assert-added=".todo-item"
+          fs-assert-added-success=".todo-item"
+          fs-assert-added-error=".add-error"
+          fs-assert-timeout="500"
         >
           Add
         </button>

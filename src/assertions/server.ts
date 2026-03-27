@@ -7,6 +7,7 @@ function toPayload(
   config: Configuration
 ): ApiPayload {
   return {
+    api_key: config.apiKey || "",
     status: assertion.status,
     status_reason: assertion.statusReason || "",
     timestamp: new Date(assertion.startTime).toISOString(),
@@ -14,7 +15,11 @@ function toPayload(
     assertion_type_value: assertion.typeValue,
     assertion_key: assertion.assertionKey,
     assertion_trigger: assertion.trigger,
-    assertion_type_modifiers: assertion.modifiers,
+    assertion_type_modifiers: Object.fromEntries(
+      Object.entries(assertion.modifiers).filter(([k]) => k !== "grouped")
+    ) as typeof assertion.modifiers,
+    attempts: assertion.attempts || [],
+    condition_key: assertion.conditionKey || "",
     release_label: config.releaseLabel,
     element_snapshot: assertion.elementSnapshot
   };
@@ -54,14 +59,20 @@ export function sendToServer(
   }
 
   for (const assertion of assertions) {
-    fetch(config.collectorURL as string, {
-      method: "POST",
-      headers: {
-        "X-Faultsense-Api-Key": config.apiKey,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(toPayload(assertion, config)),
-    }).catch((error) => logger.forceError(error));
+    const payload = JSON.stringify(toPayload(assertion, config));
+    if (typeof navigator !== "undefined" && navigator.sendBeacon) {
+      navigator.sendBeacon(
+        config.collectorURL as string,
+        new Blob([payload], { type: "application/json" })
+      );
+    } else {
+      // Fallback for environments without sendBeacon (e.g., older browsers, SSR)
+      fetch(config.collectorURL as string, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: payload,
+      }).catch((error) => logger.forceError(error));
+    }
   }
 }
 

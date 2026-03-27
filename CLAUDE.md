@@ -30,14 +30,16 @@ When asked to add Faultsense assertions to a component, reason about it the same
 | Attribute | Purpose | Example |
 |---|---|---|
 | `fs-assert` | Assertion key (required) | `"checkout/submit-order"` |
-| `fs-trigger` | Event trigger (required) | `"click"`, `"submit"`, `"mount"` |
+| `fs-trigger` | Event trigger (required) | `"click"`, `"submit"`, `"mount"`, `"invariant"` |
 | `fs-assert-added` | Element appears in DOM | `".success-msg"` |
 | `fs-assert-removed` | Element removed from DOM | `".modal-content"` |
 | `fs-assert-updated` | Element/subtree mutated | `"#cart-count"` |
 | `fs-assert-visible` | Element exists and visible | `".dashboard"` |
 | `fs-assert-hidden` | Element exists but hidden | `".loading-spinner"` |
 | `fs-assert-loaded` | Media finished loading | `"#hero-image"` |
-| `fs-assert-{type}-{status}` | Response-conditional | `fs-assert-added-200=".success"` |
+| `fs-assert-{type}-{condition}` | Conditional assertion (UI) | `fs-assert-added-success=".dashboard"` |
+| `fs-assert-grouped` | Group conditionals across types | (no value) |
+| `fs-assert-oob-{type}` | OOB: trigger on parent pass | `fs-assert-oob-updated="todos/toggle"` |
 | `fs-assert-timeout` | Custom timeout (ms) | `"2000"` |
 | `fs-assert-mpa` | Persist across page nav | `"true"` |
 
@@ -68,20 +70,113 @@ fs-assert="auth/login"
 
 The key must be stable across releases. Human-readable labels can be configured on the collector side.
 
+### Self-Referencing Selectors
+
+Omit the selector to check the element itself — provide only modifiers:
+
+```html
+fs-assert-updated="[text-matches=\d+/\d+ remaining]"
+```
+
+### Conditional Assertions
+
+Use condition keys to handle mutually exclusive outcomes from a single user action:
+
+```html
+<!-- Login: success vs error -->
+<button fs-assert="auth/login" fs-trigger="click"
+  fs-assert-added-success=".dashboard"
+  fs-assert-added-error=".error-msg">Login</button>
+```
+
+- Condition keys are freeform lowercase alphanumeric strings with hyphens (e.g., `success`, `error`, `empty`, `rate-limited`)
+- Multiple condition keys on the same element and type form a **sibling group** — first to resolve wins, others dismissed
+- 3+ conditionals work as a switch: `fs-assert-added-success`, `fs-assert-added-error`, `fs-assert-added-empty`
+- No server-side integration needed — the UI is the signal
+
+**Cross-type grouping (`fs-assert-grouped`):** By default, siblings are scoped to `assertionKey + type`. Add `fs-assert-grouped=""` when mutually exclusive outcomes need different assertion types:
+
+```html
+<!-- Delete: remove on success, show error on failure -->
+<button fs-assert="todos/remove-item" fs-trigger="click"
+  fs-assert-grouped=""
+  fs-assert-removed-success=".todo-item"
+  fs-assert-added-error=".error-msg"
+  fs-assert-timeout="5000">Delete</button>
+```
+
+### Invariant Assertions
+
+Continuous monitoring for conditions that should always hold — catches failures without user action:
+
+```html
+<!-- Nav should always be visible -->
+<nav id="main-nav"
+  fs-assert="layout/nav-visible"
+  fs-trigger="invariant"
+  fs-assert-visible="#main-nav">
+```
+
+- Invariants stay **pending** and produce no collector traffic while the condition holds
+- Only **failures** (violations) and **recoveries** (pass after failure) are reported
+- On page unload, pending invariants are auto-passed as the "all clear" signal
+- No timeout — invariants are perpetual for the page lifetime
+- Best with state types (`visible`, `hidden`). Event types (`updated`, `loaded`) are allowed but warned against.
+
+### Out-of-Band (OOB) Assertions
+
+Side-effect elements (count labels, totals, toasts) can declare assertions triggered by another assertion's success, eliminating prop drilling:
+
+```html
+<div id="todo-count"
+  fs-assert="todos/count-updated"
+  fs-assert-oob-visible="todos/toggle-complete,todos/add-item,todos/remove-item"
+  fs-assert-visible="[text-matches=\d+/\d+ remaining]">
+  2/3 remaining
+</div>
+```
+
+- `fs-assert-oob-{type}="key1,key2"` — fires when any listed parent assertion passes
+- OOB only fires on parent **pass**, not fail
+- No chaining: OOB passing does not trigger further OOB
+- Selector is optional — omit for self-referencing
+- **Use state assertions (`visible`, `hidden`, `added`, `removed`) with OOB, not event assertions (`updated`, `loaded`).** OOB assertions are created after the parent's DOM change already happened.
+
+**Multi-check outcomes with OOB:** To verify multiple things on a conditional success (e.g., delete removes the row AND shows a toast), use OOB on the secondary element:
+
+```html
+<!-- Primary: conditional on the trigger element -->
+<button fs-assert="todos/remove-item" fs-trigger="click"
+  fs-assert-grouped=""
+  fs-assert-removed-success=".todo-item"
+  fs-assert-added-error=".error-msg">Delete</button>
+
+<!-- Secondary: OOB checks the toast appeared after successful delete -->
+<div class="toast-container"
+  fs-assert="todos/delete-toast"
+  fs-assert-oob-visible="todos/remove-item"
+  fs-assert-visible=".success-toast">
+</div>
+```
+
 ### Placement
 
 - Attributes go on the element the user interacts with (the `event.target`)
 - For forms: `fs-trigger="submit"` on the `<form>` or `fs-trigger="click"` on the button
 - `fs-*` attributes must reach the DOM — in React/Vue/Svelte, use native elements or forward props
+- **React boolean attributes:** React drops custom attributes with boolean `true`. Use `fs-assert-grouped=""` not `fs-assert-grouped` in JSX.
+- OOB assertions go on the **side-effect element**, not the trigger element
 
 ### Key Mistakes to Avoid
 
 - **Don't put `fs-trigger` on a parent wrapper** — only the exact event target is processed
-- **Network assertions need `fs-resp-for`** — without the header/param linking request to assertion key, the assertion times out
-- **Network assertions are DOM assertions gated by HTTP status** — `fs-assert-added-200=".success"` means "when response is 200, assert .success is added." The assertion type is always a DOM type.
-- **Multiple response conditions on one element** — `fs-assert-added-200` and `fs-assert-added-4xx` create independent assertions. When one matches, siblings are dismissed silently.
+- **Conditional assertions are UI-based** — `fs-assert-added-success=".dashboard"` and `fs-assert-added-error=".error-msg"` create sibling assertions. First to resolve (selector matches) wins, others are dismissed. No server-side integration needed.
+- **Condition keys are freeform** — any lowercase alphanumeric string with hyphens (e.g., `success`, `error`, `empty`, `rate-limited`). Avoid using assertion type names (`added`, `removed`, etc.) as condition keys.
 - **`added` vs `updated`** — `added` = element doesn't exist yet; `updated` = element exists, content changes
 - **`visible` vs `added`** — `visible` checks layout dimensions of existing element; `added` checks for new element in DOM
+- **Broad selectors in lists** — `.todo-text` matches ALL items in a list. `added` may resolve against the wrong sibling. Use `updated` when the specific element's content changes, or narrow with IDs/data attributes (`.todo-text[data-id=123]`). `updated` tracks the specific mutation; `added` just checks if any matching element appeared.
+- **Don't use `updated` or `loaded` with OOB** — OOB assertions are created after the DOM change. `updated` and `loaded` need to witness the event and will miss it. Use `visible`, `hidden`, `added`, or `removed` instead.
+- **Invariants use `visible`/`hidden`** — `fs-trigger="invariant"` creates perpetual assertions that only report failures. Use state-based types (`visible`, `hidden`). Event types (`updated`, `loaded`) are allowed but warned against.
 - **Every element needs** `fs-assert` + `fs-trigger` + at least one assertion type
 
 ## Project Context
@@ -89,11 +184,21 @@ The key must be stable across releases. Human-readable labels can be configured 
 - The agent is open source and collector-agnostic. A hosted backend is a separate project.
 - Market positioning (QA/testing tool) does not impact the agent's implementation or architecture.
 - MPA (multi-page app) support is first-class — SPAs and MPAs should be equally supported.
-- Network responses are pivot points for DOM assertions, not assertions themselves. `fs-resp-for` HTTP header (on request or response) links a response to an assertion key — no server-side SDK needed. Keep this simple.
+- Conditional assertions use UI outcomes as the signal, not network responses. No server-side integration required.
 
 ## Notes
 
 - **Queue/Storage refactor:** MPA-marked assertions currently bypass the in-memory queue and go directly to localStorage (`manager.ts:74`). Storage may be better modeled as an implementation detail of the queue. Flagged for future revisit.
+- **Cross-type conditional grouping:** Conditional sibling groups default to `assertionKey + type`. Add `fs-assert-grouped` (no value) to link all conditionals on an element as siblings regardless of type — e.g., `fs-assert-removed-success` + `fs-assert-added-error` become mutually exclusive outcomes.
+
+## Timeout Model
+
+Assertions resolve naturally when the DOM changes. No default per-assertion timer.
+
+- **GC sweep** (`config.gcInterval`, default 30s) — a background timer cleans up stale assertions that never resolved. GC failure reason: "Assertion did not resolve within Xms."
+- **SLA timeout** (`fs-assert-timeout="2000"`) — opt-in per-assertion timer for performance contracts. SLA failure reason: "Expected X within Yms."
+- **Page unload** — assertions older than `config.unloadGracePeriod` (default 2s) are failed on page close. Fresh assertions are silently dropped (user navigated, not a failure). Uses `sendBeacon` for reliable delivery.
+- **Re-trigger tracking** — when a trigger fires on a pending assertion, the timestamp is recorded in an `attempts[]` array on the assertion. Included in the collector payload for rage-click analysis.
 
 ## Development
 

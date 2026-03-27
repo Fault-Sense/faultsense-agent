@@ -1,5 +1,17 @@
-import { HttpErrorHandler, HttpResponseHandler } from "../types";
-import { assertionPrefix, httpResponseHeaderKey } from "../config";
+/**
+ * Network Interceptor — NOT CURRENTLY USED
+ *
+ * This module was part of the network-conditional assertion system that intercepted
+ * fetch/XHR to link HTTP responses to assertions via fs-resp-for headers. It was
+ * replaced by UI-conditional assertions which resolve purely based on DOM outcomes.
+ *
+ * Kept in the repo for potential future use with client-side context signals.
+ */
+
+import type { HttpErrorHandler, HttpResponseHandler } from "../resolvers/http";
+import { assertionPrefix } from "../config";
+
+const httpResponseHeaderKey = "fs-resp-for";
 
 // Network processing configuration
 const NETWORK_CONFIG = {

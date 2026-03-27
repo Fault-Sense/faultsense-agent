@@ -12,7 +12,7 @@ describe("Faultsense Agent - Timeout Override", () => {
     let config = {
         apiKey: "TEST_API_KEY",
         releaseLabel: "0.0.0",
-        timeout: 1000, // Default timeout: 1 second
+        gcInterval: 30000, unloadGracePeriod: 2000, // Default timeout: 1 second
         collectorURL: "http://localhost:9000",
     };
 
@@ -159,48 +159,29 @@ describe("Faultsense Agent - Timeout Override", () => {
         );
     });
 
-    it("Should use default timeout when no override is specified", async () => {
+    it("Should not set a per-assertion timer when no fs-assert-timeout is specified", async () => {
         document.body.innerHTML = `
       <div id="delayed-content" style="display: none;">Content loaded!</div>
-      <button 
-        fs-trigger="click" 
-        fs-assert-visible="#delayed-content" 
-        fs-assert="default-timeout" 
+      <button
+        fs-trigger="click"
+        fs-assert-visible="#delayed-content"
+        fs-assert="default-timeout"
 >
-        Show Content (Default Timeout)
+        Show Content (No Timeout)
       </button>
     `;
 
         const button = document.querySelector("button") as HTMLButtonElement;
-        const content = document.querySelector("#delayed-content") as HTMLDivElement;
-
-        // Set up click handler that shows element after 1200ms
-        // This is longer than default timeout (1000ms)
-        button.addEventListener("click", () => {
-            setTimeout(() => {
-                content.style.display = "block";
-            }, 1200);
-        });
 
         // Click the button to start the assertion
         button.click();
 
-        // Fast-forward time past the default timeout (1000ms)
-        fixedDateNow += 1100;
-        vi.advanceTimersByTime(1100);
+        // Advance well past what used to be the default timeout (1000ms)
+        // Without fs-assert-timeout, no per-assertion timer should fire
+        fixedDateNow += 2000;
+        vi.advanceTimersByTime(2000);
 
-        // Wait for assertion to fail due to default timeout
-        await vi.waitFor(() =>
-            expect(sendToServerMock).toHaveBeenNthCalledWith(
-                1,
-                [
-                    expect.objectContaining({
-                        status: "failed",
-                        statusReason: "Expected #delayed-content to be visible within 1000ms.",
-                    }),
-                ],
-                config
-            )
-        );
+        // The assertion should NOT have been sent — no timeout means it waits for GC
+        expect(sendToServerMock).not.toHaveBeenCalled();
     });
 });

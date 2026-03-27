@@ -2,8 +2,8 @@ import {
   supportedAssertions,
   assertionPrefix,
   assertionTriggerAttr,
-  statusSuffixPattern,
-  jsonSuffixPattern,
+  conditionKeySuffixPattern,
+  reservedConditionKeys,
   inlineModifiers,
   domAssertions,
 } from "../config";
@@ -18,6 +18,7 @@ interface AssertionTypeEntry {
   type: string;
   value: string;
   modifiers?: Record<string, string>;
+  conditionKey?: string;
 }
 
 interface ElementAssertionMetadata {
@@ -41,7 +42,7 @@ export class AssertionError extends Error {
  * Format: "selector[key=value][key=value]..."
  * Handles nested brackets in values (e.g., regex character classes like [a-z])
  */
-function parseTypeValue(raw: string): { selector: string; modifiers: Record<string, string> } {
+export function parseTypeValue(raw: string): { selector: string; modifiers: Record<string, string> } {
   const firstBracket = raw.indexOf('[');
   if (firstBracket === -1) {
     return { selector: raw, modifiers: {} };
@@ -85,14 +86,14 @@ function parseTypeValue(raw: string): { selector: string; modifiers: Record<stri
  * Reserved keys (text-matches, classlist) pass through.
  * Unreserved keys become attrs-match entries.
  */
-function resolveInlineModifiers(
+export function resolveInlineModifiers(
   inlineMods: Record<string, string>
 ): Record<string, string> {
   const resolved: Record<string, string> = {};
   const attrChecks: Record<string, string> = {};
 
   for (const [key, value] of Object.entries(inlineMods)) {
-    if (inlineModifiers.includes(key) || key === "response-status" || key === "response-json-key") {
+    if (inlineModifiers.includes(key)) {
       resolved[key] = value;
     } else {
       attrChecks[key] = value;
@@ -119,7 +120,8 @@ function resolveInlineModifiers(
 
 /**
  * Parse dynamic assertion types from element attributes.
- * Matches: fs-assert-{knownType}-{status} (e.g., fs-assert-added-200, fs-assert-removed-4xx)
+ * Matches: fs-assert-{knownType}-{conditionKey} (e.g., fs-assert-added-success)
+ * Condition keys are freeform lowercase alphanumeric strings with hyphens.
  */
 function parseDynamicTypes(element: HTMLElement): AssertionTypeEntry[] {
   const prefix = assertionPrefix.types;
@@ -131,24 +133,22 @@ function parseDynamicTypes(element: HTMLElement): AssertionTypeEntry[] {
 
     for (const domType of domAssertions) {
       if (suffix.startsWith(`${domType}-`)) {
-        const statusPart = suffix.slice(domType.length + 1);
-        if (statusSuffixPattern.test(statusPart)) {
+        const remaining = suffix.slice(domType.length + 1);
+
+        if (conditionKeySuffixPattern.test(remaining)) {
+          if (reservedConditionKeys.includes(remaining)) {
+            console.warn(
+              `[Faultsense]: Condition key "${remaining}" conflicts with a reserved name. Avoid using assertion type names as condition keys.`,
+              { element }
+            );
+          }
           const { selector, modifiers } = parseTypeValue(attr.value);
           types.push({
             type: domType,
             value: selector,
-            modifiers: { ...modifiers, "response-status": statusPart },
+            modifiers,
+            conditionKey: remaining,
           });
-        } else {
-          const jsonMatch = statusPart.match(jsonSuffixPattern);
-          if (jsonMatch) {
-            const { selector, modifiers } = parseTypeValue(attr.value);
-            types.push({
-              type: domType,
-              value: selector,
-              modifiers: { ...modifiers, "response-json-key": jsonMatch[1] },
-            });
-          }
         }
         break;
       }
@@ -318,7 +318,8 @@ function createAssertions(
       type: typeEntry.type as AssertionType,
       typeValue: typeEntry.value as string,
       modifiers: mergedModifiers,
-      httpPending: (resolvedMods["response-status"] || resolvedMods["response-json-key"]) ? true : undefined,
+      conditionKey: typeEntry.conditionKey,
+      grouped: typeEntry.conditionKey ? metadata.modifiers["grouped"] !== undefined : undefined,
     };
   });
 }

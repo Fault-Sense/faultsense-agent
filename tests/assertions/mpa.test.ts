@@ -25,7 +25,7 @@ describe("Faultsense Agent - Assertion MPA Mode", () => {
   let config = {
     apiKey: "TEST_API_KEY",
     releaseLabel: "0.0.0",
-    timeout: 1000,
+    gcInterval: 30000, unloadGracePeriod: 2000,
     collectorURL: "http://localhost:9000",
   };
 
@@ -127,6 +127,7 @@ describe("Faultsense Agent - Assertion MPA Mode", () => {
     document.body.innerHTML = `
       <button
         fs-assert-mpa="true"
+        fs-assert-timeout="1000"
         fs-trigger="click"
         fs-assert-added="#panel"
         fs-assert="mpa-mode-test-click"

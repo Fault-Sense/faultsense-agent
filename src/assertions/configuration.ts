@@ -16,7 +16,8 @@ const isValidCollectorURL = (v: string | Function) =>
 const configValidator: Record<string, Validator[]> = {
   apiKey: [configValueRequired, isValidConfigString],
   releaseLabel: [configValueRequired, isValidConfigString],
-  timeout: [isValidCopnfigNumber],
+  gcInterval: [isValidCopnfigNumber],
+  unloadGracePeriod: [isValidCopnfigNumber],
   collectorURL: [configValueRequired, isValidCollectorURL],
   debug: [isValidConfigBoolean],
 };

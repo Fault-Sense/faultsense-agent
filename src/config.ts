@@ -1,7 +1,8 @@
 import { Configuration } from "./types";
 
 export const defaultConfiguration: Partial<Configuration> = {
-  timeout: 1000,
+  gcInterval: 30000,
+  unloadGracePeriod: 2000,
   collectorURL: "//faultsense.com/collector/",
   debug: false,
 };
@@ -22,15 +23,20 @@ export const domAssertions = [
   "loaded",
 ];
 
-// Status suffix pattern for response-conditional types: added-200, removed-4xx
-export const statusSuffixPattern = /^(\d{3}|\d{1}xx)$/;
+// Condition key suffix pattern for UI-conditional types: added-success, added-error
+export const conditionKeySuffixPattern = /^[a-z][a-z0-9-]*$/;
+
+// Reserved condition keys that cannot be used (conflict with assertion type names)
+export const reservedConditionKeys = [...domAssertions, "oob"];
+
+// OOB (out-of-band) assertion attribute prefix: fs-assert-oob-{type}
+export const oobPrefix = `${assertionPrefix.types}oob-`;
 
 // JSON body suffix pattern for response-conditional types: added-json-key
 export const jsonSuffixPattern = /^json-(.+)$/;
 
 // Reserved inline modifier keys (everything else is treated as an attribute check)
 export const inlineModifiers = ["text-matches", "classlist"];
-export const httpResponseHeaderKey = "fs-resp-for";
 
 export const supportedAssertions = {
   details: [
@@ -41,6 +47,7 @@ export const supportedAssertions = {
   modifiers: [
     "mpa",
     "timeout",
+    "grouped",
   ],
 };
 
@@ -68,5 +75,5 @@ export const eventTriggerAliases: Record<string, string[]> = {
   error: ["load"],
 };
 
-export const supportedTriggers = ["mount", "unmount", ...supportedEvents];
+export const supportedTriggers = ["mount", "unmount", "invariant", ...supportedEvents];
 export const storageKey = "faultsense-active-assertions";

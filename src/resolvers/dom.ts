@@ -12,7 +12,7 @@ import { isVisible } from "../utils/elements";
 
 type FailureReasonCode = AssertionType | AssertionModifiers | "";
 
-function getFailureReasonForAssertion(
+export function getFailureReasonForAssertion(
   failureReasonCode: FailureReasonCode,
   expected: Assertion
 ): string {
@@ -107,7 +107,7 @@ const baseAssertionFns: Record<
 /**
  * Return all the modifier functions for an assertion
  */
-function getAssertionModifierFns(
+export function getAssertionModifierFns(
   assertion: Assertion
 ): Array<(el: HTMLElement) => [boolean, FailureReasonCode]> {
   const mods: Array<(el: HTMLElement) => [boolean, FailureReasonCode]> = [];

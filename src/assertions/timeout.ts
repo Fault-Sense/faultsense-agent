@@ -1,6 +1,5 @@
 import { Assertion, CompletedAssertion, Configuration } from "../types";
-import { completeAssertion } from "./assertion";
-import { httpResponseHeaderKey } from "../config";
+import { completeAssertion, getSiblingGroup } from "./assertion";
 
 // Timeout timer reference is now part of the base Assertion interface
 
@@ -9,10 +8,17 @@ import { httpResponseHeaderKey } from "../config";
  */
 function getFailureReasonForAssertion(
     assertion: Assertion,
-    timeout: number
+    timeout: number,
+    allAssertions?: Assertion[]
 ): string {
-    if (assertion.httpPending) {
-        return `HTTP response not received within ${timeout}ms. Make sure the server responds with the header "${httpResponseHeaderKey}: ${assertion.assertionKey}" or the outgoing request has a "${httpResponseHeaderKey}=${assertion.assertionKey}" parameter.`;
+    if (assertion.conditionKey) {
+        const allKeys = [assertion.conditionKey];
+        if (allAssertions) {
+            const siblings = getSiblingGroup(assertion, allAssertions);
+            allKeys.push(...siblings.map(s => s.conditionKey!));
+        }
+        const typeLabel = assertion.grouped ? "" : ` for "${assertion.type}"`;
+        return `No conditional assertion${typeLabel} was met within ${timeout}ms. Conditions: ${allKeys.join(", ")}`;
     }
 
     switch (assertion.type) {
@@ -40,12 +46,13 @@ function getFailureReasonForAssertion(
 export function createAssertionTimeout(
     assertion: Assertion,
     config: Configuration,
-    onTimeout: (completedAssertion: CompletedAssertion) => void
+    onTimeout: (completedAssertion: CompletedAssertion) => void,
+    allAssertions?: Assertion[]
 ): void {
     // Clear any existing timeout for this assertion
     clearAssertionTimeout(assertion);
 
-    const timeoutDuration = assertion.timeout || config.timeout;
+    const timeoutDuration = assertion.timeout;
 
     const timerId = setTimeout(() => {
         // Clear timer reference from assertion when it fires
@@ -55,7 +62,7 @@ export function createAssertionTimeout(
         const completed = completeAssertion(
             assertion,
             false,
-            getFailureReasonForAssertion(assertion, timeoutDuration)
+            getFailureReasonForAssertion(assertion, timeoutDuration, allAssertions)
         );
 
         if (completed) {
@@ -86,4 +93,50 @@ export function clearAllTimeouts(assertions: Assertion[]): void {
     assertions.forEach(assertion => {
         clearAssertionTimeout(assertion);
     });
+}
+
+// --- GC Sweep ---
+
+let gcTimerId: ReturnType<typeof setTimeout> | null = null;
+
+/**
+ * Schedule a GC sweep if one isn't already scheduled.
+ * When it fires, calls the provided callback with stale assertions.
+ */
+export function scheduleGc(
+    config: Configuration,
+    getStaleAssertions: () => Assertion[],
+    onStale: (stale: CompletedAssertion[]) => void
+): void {
+    if (gcTimerId) return;
+    gcTimerId = setTimeout(() => {
+        gcTimerId = null;
+        const stale = getStaleAssertions();
+        if (stale.length > 0) {
+            const completed: CompletedAssertion[] = [];
+            for (const assertion of stale) {
+                const result = completeAssertion(
+                    assertion,
+                    false,
+                    `Assertion did not resolve within ${config.gcInterval}ms.`
+                );
+                if (result) completed.push(result);
+            }
+            if (completed.length > 0) {
+                onStale(completed);
+            }
+        }
+        // Reschedule — getStaleAssertions is called again when the timer fires,
+        // which will catch assertions that weren't stale yet during this sweep.
+    }, config.gcInterval);
+}
+
+/**
+ * Clear the GC timer. Called on page unload and cleanup.
+ */
+export function clearGcTimeout(): void {
+    if (gcTimerId) {
+        clearTimeout(gcTimerId);
+        gcTimerId = null;
+    }
 }

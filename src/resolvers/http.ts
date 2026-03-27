@@ -1,14 +1,63 @@
-import { completeAssertion, dismissAssertion } from "../assertions/assertion";
-import {
-  Assertion,
-  CompletedAssertion,
-  HttpErrorResolver,
-  RequestInfo,
-  ResponseInfo,
-} from "../types";
-import { httpResponseHeaderKey } from "../config";
+/**
+ * HTTP Response Resolver — NOT CURRENTLY USED
+ *
+ * This module was part of the network-conditional assertion system (fs-assert-{type}-{status},
+ * fs-assert-{type}-json-{key}, fs-resp-for). It was replaced by UI-conditional assertions
+ * (fs-assert-{type}-{condition-key}) which resolve purely based on DOM outcomes.
+ *
+ * Kept in the repo for potential future use with client-side context signals.
+ */
 
-// Helper function to extract responseHeaderKey from request params (BodyInit or other types)
+import { completeAssertion, dismissAssertion } from "../assertions/assertion";
+import { Assertion, CompletedAssertion } from "../types";
+
+// --- HTTP types (moved here from types.ts since they are only used by this module) ---
+
+export interface RequestInfo {
+  url: string;
+  params?: any;
+  headers: Record<string, string>;
+}
+
+export interface ResponseInfo {
+  status: number;
+  responseText: string;
+  responseHeaders?: Record<string, string>;
+}
+
+export interface HttpErrorInfo {
+  message: string;
+  status: number;
+  responseText: string;
+  requestHeaders: Record<string, string>;
+  responseHeaders?: Record<string, string>;
+  url: string;
+}
+
+export type HttpResponseHandler = (
+  requestInfo: RequestInfo,
+  responseInfo: ResponseInfo
+) => void;
+
+export type HttpErrorHandler = (errorInfo: HttpErrorInfo) => void;
+
+export type HttpResponseResolver = (
+  requestInfo: RequestInfo,
+  responseInfo: ResponseInfo,
+  activeAssertions: Assertion[]
+) => CompletedAssertion[];
+
+export type HttpErrorResolver = (
+  errorInfo: HttpErrorInfo,
+  activeAssertions: Assertion[]
+) => CompletedAssertion[];
+
+// --- Constants ---
+
+const httpResponseHeaderKey = "fs-resp-for";
+
+// --- Helpers ---
+
 function extractParamXRespFor(
   params?: unknown,
   fsHeaderKey: string = httpResponseHeaderKey
@@ -42,14 +91,22 @@ function isResponseConditional(assertion: Assertion): boolean {
   return !!(getResponseStatus(assertion) || getResponseJsonKey(assertion));
 }
 
+function getResponseJsonKey(assertion: Assertion): string | undefined {
+  return assertion.modifiers["response-json-key"];
+}
+
+function isResponseConditional(assertion: Assertion): boolean {
+  return !!(getResponseStatus(assertion) || getResponseJsonKey(assertion));
+}
+
 export function isHttpResponseForAssertion(
   assertion: Assertion,
   requestInfo: RequestInfo,
   responseInfo: ResponseInfo
 ): boolean {
   if (!isResponseConditional(assertion)) return false;
+  if (!isResponseConditional(assertion)) return false;
 
-  // assertion key should match the faultsense response header value
   const expected = assertion.assertionKey;
   const actual =
     responseInfo.responseHeaders?.[httpResponseHeaderKey] ||
@@ -61,7 +118,6 @@ export function isHttpResponseForAssertion(
 
 function statusMatches(condition: string, actual: number): boolean {
   if (condition.includes('x')) {
-    // Range match: "2xx" matches 200-299, "4xx" matches 400-499
     const prefix = condition[0];
     return String(actual)[0] === prefix;
   }
@@ -69,15 +125,23 @@ function statusMatches(condition: string, actual: number): boolean {
 }
 
 function findMatchingStatusAssertion(assertions: Assertion[], status: number): Assertion | null {
-  // Exact match takes priority over range
   const exact = assertions.find(a => {
     const condition = getResponseStatus(a)!;
     return !condition.includes('x') && statusMatches(condition, status);
   });
   if (exact) return exact;
 
-  // Then range match
   return assertions.find(a => statusMatches(getResponseStatus(a)!, status)) || null;
+}
+
+function findMatchingJsonAssertion(
+  assertions: Assertion[],
+  parsedBody: Record<string, unknown>
+): Assertion | null {
+  return assertions.find(a => {
+    const key = getResponseJsonKey(a)!;
+    return key in parsedBody && parsedBody[key];
+  }) || null;
 }
 
 function findMatchingJsonAssertion(
@@ -97,23 +161,20 @@ export function httpResponseResolver(
 ): CompletedAssertion[] {
   const completed: CompletedAssertion[] = [];
 
-  // Find all response-conditional assertions for this request
   const responseAssertions = assertions.filter(a =>
     isHttpResponseForAssertion(a, requestInfo, responseInfo)
   );
 
   if (responseAssertions.length === 0) return completed;
 
-  // Separate by condition type
   const statusAssertions = responseAssertions.filter(a => getResponseStatus(a));
   const jsonAssertions = responseAssertions.filter(a => getResponseJsonKey(a));
 
-  // Handle status conditions (existing logic)
   if (statusAssertions.length > 0) {
     const matched = findMatchingStatusAssertion(statusAssertions, responseInfo.status);
 
     if (matched) {
-      matched.httpPending = false;
+      (matched as any).httpPending = false;
       for (const sibling of statusAssertions) {
         if (sibling === matched) continue;
         const dismissed = dismissAssertion(sibling);
@@ -132,13 +193,11 @@ export function httpResponseResolver(
     }
   }
 
-  // Handle json body conditions
   if (jsonAssertions.length > 0) {
     let parsedBody: Record<string, unknown> | null = null;
     try {
       parsedBody = JSON.parse(responseInfo.responseText);
     } catch {
-      // Invalid JSON — fail all json assertions
       for (const a of jsonAssertions) {
         const failed = completeAssertion(a, false, "Response body is not valid JSON");
         if (failed) completed.push(failed);
@@ -150,7 +209,7 @@ export function httpResponseResolver(
       const matched = findMatchingJsonAssertion(jsonAssertions, parsedBody);
 
       if (matched) {
-        matched.httpPending = false;
+        (matched as any).httpPending = false;
         for (const sibling of jsonAssertions) {
           if (sibling === matched) continue;
           const dismissed = dismissAssertion(sibling);
@@ -180,7 +239,6 @@ export function httpResponseResolver(
 
 export const httpErrorResolver: HttpErrorResolver = (errorInfo, assertions) => {
   return assertions.reduce((acc: CompletedAssertion[], assertion) => {
-    // TODO store more info about the error
     const completed = completeAssertion(assertion, false, errorInfo.message);
     if (completed) {
       acc.push(completed);

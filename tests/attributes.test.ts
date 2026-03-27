@@ -24,7 +24,8 @@ describe("Faultsense Agent - Attribute Validation", () => {
     cleanupFn = init({
       apiKey: "TEST_API_KEY",
       releaseLabel: "0.0.0",
-      timeout: 1000,
+      gcInterval: 30000,
+      unloadGracePeriod: 2000,
       collectorURL: "http://localhost:9000",
     });
   });
@@ -79,12 +80,12 @@ describe("Faultsense Agent - Attribute Validation", () => {
     expect(consoleErrorMock).not.toHaveBeenCalled();
   });
 
-  it("Should allow response-conditional assertion types", async () => {
+  it("Should allow conditional assertion types", async () => {
     document.body.innerHTML = `
         <button
           fs-trigger="click"
           fs-assert="assert1"
-          fs-assert-added-200=".success"
+          fs-assert-added-success=".success"
         >Click</button>`;
 
     const button = document.querySelector("button") as HTMLElement;
@@ -93,13 +94,13 @@ describe("Faultsense Agent - Attribute Validation", () => {
     expect(consoleErrorMock).not.toHaveBeenCalled();
   });
 
-  it("Should allow multiple response-conditional assertions on one element", async () => {
+  it("Should allow multiple conditional assertions on one element", async () => {
     document.body.innerHTML = `
         <button
           fs-trigger="click"
           fs-assert="assert1"
-          fs-assert-added-200=".success"
-          fs-assert-added-4xx=".error"
+          fs-assert-added-success=".success"
+          fs-assert-added-error=".error"
         >Click</button>`;
 
     const button = document.querySelector("button") as HTMLElement;

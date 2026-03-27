@@ -1,7 +1,6 @@
 import { assertionTriggerAttr, supportedEvents } from "./config";
 import { createAssertionManager } from "./assertions/manager";
 import { interceptErrors } from "./interceptors/error";
-import { interceptNetwork } from "./interceptors/network";
 import { Configuration, CollectorFunction } from "./types";
 import {
   isValidConfiguration,
@@ -31,10 +30,6 @@ export function init(initialConfig: Partial<Configuration>): () => void {
   const assertionManager = createAssertionManager(config);
 
   interceptErrors(assertionManager.handleGlobalError);
-  interceptNetwork(
-    assertionManager.handleHttpResponse,
-    assertionManager.handleHttpError
-  );
 
   // Add event listeners
   const capturePhase = true;
@@ -58,6 +53,7 @@ export function init(initialConfig: Partial<Configuration>): () => void {
     capturePhase
   );
 
+
   // Set up a MutationObserver to handle DOM changes
   observer = new MutationObserver((mutations) => {
     assertionManager.handleMutations(mutations);
@@ -70,13 +66,14 @@ export function init(initialConfig: Partial<Configuration>): () => void {
     characterData: true,
   });
 
-  // process all mount or load triggered nodes already in the DOM
+  // process all mount, load, or invariant triggered nodes already in the DOM
   const elements = document.querySelectorAll(
-    `[${assertionTriggerAttr}="mount"], [${assertionTriggerAttr}="load"]`
+    `[${assertionTriggerAttr}="mount"], [${assertionTriggerAttr}="load"], [${assertionTriggerAttr}="invariant"]`
   );
   assertionManager.processElements(Array.from(elements) as HTMLElement[], [
     "mount",
     "load",
+    "invariant",
   ]);
 
   // Run initial check
@@ -137,7 +134,8 @@ export function init(initialConfig: Partial<Configuration>): () => void {
       apiKey: script.getAttribute("data-api-key") || (typeof resolvedCollectorUrl === "function" ? "dev-collector" : undefined),
       releaseLabel: script.getAttribute("data-release-label") || undefined,
       collectorURL: resolvedCollectorUrl,
-      timeout: Number(script.getAttribute("data-timeout")) || undefined,
+      gcInterval: Number(script.getAttribute("data-gc-interval")) || undefined,
+      unloadGracePeriod: Number(script.getAttribute("data-unload-grace-period")) || undefined,
       debug: script.getAttribute("data-debug") === "true" || undefined,
     };
   }

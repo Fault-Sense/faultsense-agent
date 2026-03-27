@@ -13,7 +13,7 @@ describe("Faultsense Agent - Assertion Type: updated", () => {
   let config = {
     apiKey: "TEST_API_KEY",
     releaseLabel: "0.0.0",
-    timeout: 1000,
+    gcInterval: 30000, unloadGracePeriod: 2000,
     collectorURL: "http://localhost:9000",
   };
 
@@ -324,7 +324,7 @@ describe("Faultsense Agent - Assertion Type: updated", () => {
       <div id="panel">
         <div id="panel-body"></div>
       </div>
-      <button fs-trigger="click" fs-assert-updated="#panel" fs-assert="panel-update">Click</button>
+      <button fs-trigger="click" fs-assert-updated="#panel" fs-assert="panel-update" fs-assert-timeout="1000">Click</button>
     `;
 
     const button = document.querySelector("button") as HTMLButtonElement;

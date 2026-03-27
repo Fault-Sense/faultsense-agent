@@ -20,7 +20,7 @@ describe("Faultsense Agent - Configuration Validation", () => {
     const cleanupFn = init({
       apiKey: "TEST_API_KEY",
       releaseLabel: "0.0.0",
-      timeout: 1000,
+      gcInterval: 30000, unloadGracePeriod: 2000,
       collectorURL: "http://localhost:9000",
     });
     expect(consoleErrorMock).not.toHaveBeenCalledWith(
@@ -32,7 +32,7 @@ describe("Faultsense Agent - Configuration Validation", () => {
   it("Should require an API key", async () => {
     const config = {
       releaseLabel: "0.0.0",
-      timeout: 1000,
+      gcInterval: 30000, unloadGracePeriod: 2000,
       collectorURL: "http://localhost:9000",
     } as any;
     const cleanupFn = init(config);
@@ -48,14 +48,14 @@ describe("Faultsense Agent - Configuration Validation", () => {
     const config = {
       apiKey: "TEST_API_KEY",
       releaseLabel: "0.0.0",
-      timeout: 1000,
+      gcInterval: 30000, unloadGracePeriod: 2000,
     } as any;
     const cleanupFn = init(config);
     expect(consoleErrorMock).not.toHaveBeenCalled();
     cleanupFn();
   });
 
-  it("Should not require a timeout (uses defualt)", async () => {
+  it("Should not require gcInterval or unloadGracePeriod (uses defaults)", async () => {
     const config = {
       apiKey: "TEST_API_KEY",
       releaseLabel: "0.0.0",
@@ -69,7 +69,7 @@ describe("Faultsense Agent - Configuration Validation", () => {
   it("Should require a release label", async () => {
     const config = {
       apiKey: "TEST_API_KEY",
-      timeout: 1000,
+      gcInterval: 30000, unloadGracePeriod: 2000,
       collectorURL: "http://localhost:9000",
     } as any;
     const cleanupFn = init(config);

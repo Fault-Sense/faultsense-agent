@@ -23,6 +23,7 @@ export const Route = createRootRoute({
         id: 'fs-agent',
         'data-release-label': '1.0.0',
         'data-collector-url': 'panel',
+        'data-gc-interval': '10000',
         'data-debug': 'true',
       },
     ],
