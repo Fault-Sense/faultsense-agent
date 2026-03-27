@@ -16,7 +16,7 @@ Add `fs-*` HTML attributes to the element a user interacts with. The attributes 
 ### Required
 
 - `fs-assert="<key>"` — Assertion key. Use `/` to group: `"checkout/add-to-cart"`, `"profile/media/upload-photo"`
-- `fs-trigger="<value>"` — One of: `click`, `dblclick`, `change`, `blur`, `submit`, `mount`, `unmount`, `load`, `error`
+- `fs-trigger="<value>"` — One of: `click`, `dblclick`, `change`, `blur`, `submit`, `mount`, `unmount`, `load`, `error`, `invariant`
 
 ### Assertion Types (at least 1 required)
 
@@ -120,3 +120,15 @@ Attributes go on the element that receives the user event. Only the exact `event
   <!-- app content -->
 </div>
 ```
+
+### Invariant assertion (continuous monitoring)
+
+```html
+<nav id="main-nav"
+  fs-assert="layout/nav-visible"
+  fs-trigger="invariant"
+  fs-assert-visible="#main-nav">
+</nav>
+```
+
+Invariants stay pending and produce no collector traffic while the condition holds. Only failures (violations) and recoveries are reported. On page unload, pending invariants are auto-passed as the "all clear" signal.

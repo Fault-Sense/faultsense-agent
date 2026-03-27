@@ -51,6 +51,7 @@ Keys must be stable across releases. Human-readable labels are configured on the
 | `unmount` | Element is removed from the DOM | Any |
 | `load` | Resource finishes loading | img, video, iframe |
 | `error` | Resource fails to load | img, video, iframe |
+| `invariant` | Continuously monitors — only reports failures and recoveries | Any (best with `visible`/`hidden`) |
 
 ### Assertion Types
 

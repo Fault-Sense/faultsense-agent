@@ -118,6 +118,12 @@ export function completeAssertion(
   success: boolean,
   failureReason?: string
 ): CompletedAssertion | null {
+  // Invariants only complete on failure or recovery (pass after fail).
+  // A pass on a non-failed invariant means "condition holds" — stay pending.
+  if (assertion.trigger === "invariant" && success && assertion.previousStatus !== "failed") {
+    return null;
+  }
+
   const newStatus: AssertionStatus = success ? "passed" : "failed";
   if (assertion.status !== newStatus) {
     // Clear the timeout timer when assertion completes

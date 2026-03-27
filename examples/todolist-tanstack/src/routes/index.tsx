@@ -12,14 +12,34 @@ function HomePage() {
   const todos = Route.useLoaderData()
   const uncompleted = todos.filter((t) => !t.completed).length
 
+  const handleTitleClick = (e: React.MouseEvent<HTMLHeadingElement>) => {
+    // Simulated bug: clicking the title hides it (CSS regression)
+    e.currentTarget.style.display = 'none'
+  }
+
   return (
     <div style={styles.container}>
       <header style={styles.header}>
-        <h1 style={styles.title}>Faultsense Todo Demo</h1>
+        {/* fs-assert invariant: title should always be visible.
+            Clicking it triggers a simulated CSS regression (hides the element). */}
+        <h1
+          id="app-title"
+          style={{ ...styles.title, cursor: 'pointer' }}
+          onClick={handleTitleClick}
+          fs-assert="layout/title-visible"
+          fs-trigger="invariant"
+          fs-assert-visible="#app-title"
+        >
+          Faultsense Todo Demo
+        </h1>
         <p style={styles.subtitle}>
           Every interaction is monitored by Faultsense assertions.
           <br />
           Watch the panel in the bottom-right corner.
+          <br />
+          <em style={{ fontSize: '0.75rem', color: '#999' }}>
+            Try clicking the title above to trigger an invariant violation.
+          </em>
         </p>
       </header>
       <main style={styles.main}>

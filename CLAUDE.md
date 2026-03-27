@@ -30,7 +30,7 @@ When asked to add Faultsense assertions to a component, reason about it the same
 | Attribute | Purpose | Example |
 |---|---|---|
 | `fs-assert` | Assertion key (required) | `"checkout/submit-order"` |
-| `fs-trigger` | Event trigger (required) | `"click"`, `"submit"`, `"mount"` |
+| `fs-trigger` | Event trigger (required) | `"click"`, `"submit"`, `"mount"`, `"invariant"` |
 | `fs-assert-added` | Element appears in DOM | `".success-msg"` |
 | `fs-assert-removed` | Element removed from DOM | `".modal-content"` |
 | `fs-assert-updated` | Element/subtree mutated | `"#cart-count"` |
@@ -113,6 +113,7 @@ Side-effect elements (count labels, totals) can declare assertions triggered by 
 - **`added` vs `updated`** — `added` = element doesn't exist yet; `updated` = element exists, content changes
 - **`visible` vs `added`** — `visible` checks layout dimensions of existing element; `added` checks for new element in DOM
 - **Don't use `updated` or `loaded` with OOB** — OOB assertions are created after the DOM change. `updated` and `loaded` need to witness the event and will miss it. Use `visible`, `hidden`, `added`, or `removed` instead.
+- **Invariants use `visible`/`hidden`** — `fs-trigger="invariant"` creates perpetual assertions that only report failures. Use state-based types (`visible`, `hidden`). Event types (`updated`, `loaded`) are allowed but warned against.
 - **Every element needs** `fs-assert` + `fs-trigger` + at least one assertion type
 
 ## Project Context

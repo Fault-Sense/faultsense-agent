@@ -71,5 +71,5 @@ export const eventTriggerAliases: Record<string, string[]> = {
   error: ["load"],
 };
 
-export const supportedTriggers = ["mount", "unmount", ...supportedEvents];
+export const supportedTriggers = ["mount", "unmount", "invariant", ...supportedEvents];
 export const storageKey = "faultsense-active-assertions";

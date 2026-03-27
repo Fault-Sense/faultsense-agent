@@ -90,25 +90,27 @@ export function createAssertionManager(config: Configuration) {
       } else if (!existingAssertion || !isAssertionPending(existingAssertion)) {
         activeAssertions.push(newAssertion);
 
-        // For conditional assertions, only the first sibling in a group gets a timeout.
-        // When it fires, settle() will dismiss the rest.
-        const shouldCreateTimeout = !newAssertion.conditionKey || !activeAssertions.some(
-          (a) =>
-            a !== newAssertion &&
-            a.assertionKey === newAssertion.assertionKey &&
-            (newAssertion.grouped || a.type === newAssertion.type) &&
-            a.conditionKey !== undefined &&
-            a.timeoutId !== undefined
-        );
+        // Invariants have no timeout and no immediate check — they stay pending
+        // until the resolver detects a violation. Everything else gets both.
+        if (newAssertion.trigger !== "invariant") {
+          // For conditional assertions, only the first sibling in a group gets a timeout.
+          const shouldCreateTimeout = !newAssertion.conditionKey || !activeAssertions.some(
+            (a) =>
+              a !== newAssertion &&
+              a.assertionKey === newAssertion.assertionKey &&
+              (newAssertion.grouped || a.type === newAssertion.type) &&
+              a.conditionKey !== undefined &&
+              a.timeoutId !== undefined
+          );
 
-        if (shouldCreateTimeout) {
-          createAssertionTimeout(newAssertion, config, (completedAssertion) => {
-            settle([completedAssertion]);
-          }, newAssertion.conditionKey ? activeAssertions : undefined);
+          if (shouldCreateTimeout) {
+            createAssertionTimeout(newAssertion, config, (completedAssertion) => {
+              settle([completedAssertion]);
+            }, newAssertion.conditionKey ? activeAssertions : undefined);
+          }
+
+          checkImmediateResolved(newAssertion);
         }
-
-        // Check if the assertion condition is already met after current event processing
-        checkImmediateResolved(newAssertion);
       }
     });
 
@@ -137,7 +139,7 @@ export function createAssertionManager(config: Configuration) {
 
   // Processor for DOM mutations (calls all registered mutation Processors)
   const handleMutations = (mutationsList: MutationRecord[]): void => {
-    const elementProcessor = createElementProcessor(["mount"]);
+    const elementProcessor = createElementProcessor(["mount", "invariant"]);
     const created = mutationHandler<Assertion>(
       mutationsList,
       elementProcessor,
@@ -157,6 +159,7 @@ export function createAssertionManager(config: Configuration) {
       getPendingDomAssertions(activeAssertions)
     );
     settle(completed);
+
   };
 
   const handleGlobalError: GlobalErrorHandler = (errorInfo): void => {
@@ -197,6 +200,13 @@ export function createAssertionManager(config: Configuration) {
 
     if (toSettle.length) {
       sendToCollector(toSettle, config);
+    }
+
+    // Auto-retry settled invariants so they re-enter the pending pool
+    for (const a of toSettle) {
+      if (a.trigger === "invariant") {
+        retryCompletedAssertion(a, a as Assertion);
+      }
     }
 
     // Trigger OOB assertions for any non-OOB assertions that passed.
@@ -268,6 +278,25 @@ export function createAssertionManager(config: Configuration) {
   };
 
   const handlePageUnload = (): void => {
+    // Auto-pass pending invariants that were never violated — the "all clear" signal.
+    // Only when actually unloading (visibilityState=hidden), not during SSR hydration
+    // which can fire pagehide/beforeunload without a real navigation.
+    if (typeof document !== "undefined" && document.visibilityState === "hidden") {
+      const pendingInvariants = activeAssertions.filter(
+        (a) => a.trigger === "invariant" && !a.endTime && a.previousStatus !== "failed"
+      );
+      if (pendingInvariants.length > 0) {
+        const completed = pendingInvariants.map((inv) =>
+          Object.assign(inv, {
+            status: "passed" as const,
+            endTime: Date.now(),
+            statusReason: "",
+          })
+        ) as CompletedAssertion[];
+        sendToCollector(completed, config);
+      }
+    }
+
     // Clear all timeout timers during page navigation or refresh to prevent orphaned timers
     clearAllTimeouts(activeAssertions);
 

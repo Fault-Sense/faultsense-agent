@@ -53,6 +53,7 @@ export function init(initialConfig: Partial<Configuration>): () => void {
     capturePhase
   );
 
+
   // Set up a MutationObserver to handle DOM changes
   observer = new MutationObserver((mutations) => {
     assertionManager.handleMutations(mutations);
@@ -65,13 +66,14 @@ export function init(initialConfig: Partial<Configuration>): () => void {
     characterData: true,
   });
 
-  // process all mount or load triggered nodes already in the DOM
+  // process all mount, load, or invariant triggered nodes already in the DOM
   const elements = document.querySelectorAll(
-    `[${assertionTriggerAttr}="mount"], [${assertionTriggerAttr}="load"]`
+    `[${assertionTriggerAttr}="mount"], [${assertionTriggerAttr}="load"], [${assertionTriggerAttr}="invariant"]`
   );
   assertionManager.processElements(Array.from(elements) as HTMLElement[], [
     "mount",
     "load",
+    "invariant",
   ]);
 
   // Run initial check
