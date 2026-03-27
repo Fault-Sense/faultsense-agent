@@ -56,21 +56,20 @@ export type GlobalErrorResolver = (
 ) => CompletedAssertion[];
 
 export type AssertionStatus = "passed" | "failed" | "dismissed";
-export type AssertionType =
-  | "added"
-  | "removed"
-  | "updated"
-  | "visible"
-  | "hidden"
-  | "loaded";
+
+export const domAssertionTypes = ["added", "removed", "updated", "visible", "hidden", "loaded"] as const;
+export const routeAssertionTypes = ["route"] as const;
+export const allAssertionTypes = [...domAssertionTypes, ...routeAssertionTypes] as const;
+export type AssertionType = (typeof allAssertionTypes)[number];
 
 export type AssertionModiferValue = string;
+
+export const domModifiers = ["text-matches", "classlist", "attrs-match"] as const;
+export type DomModifier = (typeof domModifiers)[number];
 export type AssertionModifiers =
   | "mpa"
   | "timeout"
-  | "text-matches"
-  | "attrs-match"
-  | "classlist";
+  | DomModifier;
 
 export interface Assertion {
   assertionKey: string;

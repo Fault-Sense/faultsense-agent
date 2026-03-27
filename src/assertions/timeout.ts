@@ -34,6 +34,8 @@ function getFailureReasonForAssertion(
             return `Expected ${assertion.typeValue} to be hidden within ${timeout}ms.`;
         case "loaded":
             return `Expected ${assertion.typeValue} to be loaded within ${timeout}ms.`;
+        case "route":
+            return `Expected URL to match ${assertion.typeValue} within ${timeout}ms.`;
         default:
             return `Unknown assertion type: ${assertion.type}`;
     }

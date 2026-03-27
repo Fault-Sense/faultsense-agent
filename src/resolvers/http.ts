@@ -91,20 +91,11 @@ function isResponseConditional(assertion: Assertion): boolean {
   return !!(getResponseStatus(assertion) || getResponseJsonKey(assertion));
 }
 
-function getResponseJsonKey(assertion: Assertion): string | undefined {
-  return assertion.modifiers["response-json-key"];
-}
-
-function isResponseConditional(assertion: Assertion): boolean {
-  return !!(getResponseStatus(assertion) || getResponseJsonKey(assertion));
-}
-
 export function isHttpResponseForAssertion(
   assertion: Assertion,
   requestInfo: RequestInfo,
   responseInfo: ResponseInfo
 ): boolean {
-  if (!isResponseConditional(assertion)) return false;
   if (!isResponseConditional(assertion)) return false;
 
   const expected = assertion.assertionKey;
@@ -144,16 +135,6 @@ function findMatchingJsonAssertion(
   }) || null;
 }
 
-function findMatchingJsonAssertion(
-  assertions: Assertion[],
-  parsedBody: Record<string, unknown>
-): Assertion | null {
-  return assertions.find(a => {
-    const key = getResponseJsonKey(a)!;
-    return key in parsedBody && parsedBody[key];
-  }) || null;
-}
-
 export function httpResponseResolver(
   requestInfo: RequestInfo,
   responseInfo: ResponseInfo,
@@ -167,6 +148,11 @@ export function httpResponseResolver(
 
   if (responseAssertions.length === 0) return completed;
 
+  const statusAssertions = responseAssertions.filter(a => getResponseStatus(a));
+  const jsonAssertions = responseAssertions.filter(a => getResponseJsonKey(a));
+
+  if (statusAssertions.length > 0) {
+    const matched = findMatchingStatusAssertion(statusAssertions, responseInfo.status);
   const statusAssertions = responseAssertions.filter(a => getResponseStatus(a));
   const jsonAssertions = responseAssertions.filter(a => getResponseJsonKey(a));
 
