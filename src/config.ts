@@ -36,11 +36,11 @@ export const reservedConditionKeys = [...allAssertionTypes, "oob"];
 
 // Supported modifiers per assertion type (for generic validation)
 export const supportedModifiersByType: Record<string, string[]> = {
-  added: ["text-matches", "classlist"],
-  removed: ["text-matches", "classlist"],
-  updated: ["text-matches", "classlist"],
-  visible: ["text-matches", "classlist"],
-  hidden: ["text-matches", "classlist"],
+  added: ["text-matches", "classlist", "attrs-match"],
+  removed: ["text-matches", "classlist", "attrs-match"],
+  updated: ["text-matches", "classlist", "attrs-match"],
+  visible: ["text-matches", "classlist", "attrs-match"],
+  hidden: ["text-matches", "classlist", "attrs-match"],
   loaded: [],
   route: [],
 };
