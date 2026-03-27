@@ -174,6 +174,7 @@ Side-effect elements (count labels, totals, toasts) can declare assertions trigg
 - **Condition keys are freeform** — any lowercase alphanumeric string with hyphens (e.g., `success`, `error`, `empty`, `rate-limited`). Avoid using assertion type names (`added`, `removed`, etc.) as condition keys.
 - **`added` vs `updated`** — `added` = element doesn't exist yet; `updated` = element exists, content changes
 - **`visible` vs `added`** — `visible` checks layout dimensions of existing element; `added` checks for new element in DOM
+- **Broad selectors in lists** — `.todo-text` matches ALL items in a list. `added` may resolve against the wrong sibling. Use `updated` when the specific element's content changes, or narrow with IDs/data attributes (`.todo-text[data-id=123]`). `updated` tracks the specific mutation; `added` just checks if any matching element appeared.
 - **Don't use `updated` or `loaded` with OOB** — OOB assertions are created after the DOM change. `updated` and `loaded` need to witness the event and will miss it. Use `visible`, `hidden`, `added`, or `removed` instead.
 - **Invariants use `visible`/`hidden`** — `fs-trigger="invariant"` creates perpetual assertions that only report failures. Use state-based types (`visible`, `hidden`). Event types (`updated`, `loaded`) are allowed but warned against.
 - **Every element needs** `fs-assert` + `fs-trigger` + at least one assertion type
