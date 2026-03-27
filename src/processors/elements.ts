@@ -8,6 +8,7 @@ import {
   allAssertionTypes,
   supportedModifiersByType,
 } from "../config";
+import { parseRoutePattern, validateRoutePattern } from "../resolvers/route";
 import type {
   Assertion,
   AssertionModiferValue,
@@ -301,28 +302,28 @@ function createAssertions(
   }
 
   return metadata.types.filter((typeEntry) => {
-    // Validate route regex patterns at parse time to prevent runtime errors
-    if (typeEntry.type === "route" && typeEntry.value) {
-      try {
-        new RegExp(`^${typeEntry.value}$`);
-      } catch (e) {
+    if (typeEntry.type === "route") {
+      // Route assertions require a pattern
+      if (!typeEntry.value) {
         console.warn(
-          `[Faultsense]: Invalid route pattern "${typeEntry.value}" on "${metadata.details["assert"]}". Skipping.`
+          `[Faultsense]: Route assertion on "${metadata.details["assert"]}" has no pattern. Skipping.`
+        );
+        return false;
+      }
+      // Validate all regex parts of the route pattern at parse time
+      const parsed = parseRoutePattern(typeEntry.value);
+      const invalid = validateRoutePattern(parsed);
+      if (invalid) {
+        console.warn(
+          `[Faultsense]: Invalid route pattern on "${metadata.details["assert"]}": ${invalid}. Skipping.`
         );
         return false;
       }
     }
-    // Route assertions require a pattern
-    if (typeEntry.type === "route" && !typeEntry.value) {
-      console.warn(
-        `[Faultsense]: Route assertion on "${metadata.details["assert"]}" has no pattern. Skipping.`
-      );
-      return false;
-    }
     return true;
   }).map((typeEntry) => {
-    // Route assertions pass modifiers through directly (search, hash) —
-    // they don't have DOM-specific semantics like text-matches → attrs-match.
+    // Route assertions have no inline modifiers — everything is in the URL pattern.
+    // DOM assertions use resolveInlineModifiers to handle text-matches, classlist, attrs-match.
     const resolvedMods = typeEntry.modifiers
       ? (typeEntry.type === "route" ? typeEntry.modifiers : resolveInlineModifiers(typeEntry.modifiers))
       : {};

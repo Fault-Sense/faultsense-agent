@@ -215,10 +215,10 @@ describe("Faultsense Agent - Assertion Type: route", () => {
     });
   });
 
-  describe("Modifiers", () => {
-    it("[search=pattern] matches location.search", async () => {
+  describe("URL pattern matching", () => {
+    it("query param matches with regex value", async () => {
       document.body.innerHTML = `
-        <button fs-trigger="click" fs-assert-route="/callback[search=code=]" fs-assert="auth/oauth">Go</button>
+        <button fs-trigger="click" fs-assert-route="/callback?code=.*" fs-assert="auth/oauth">Go</button>
       `;
 
       const button = document.querySelector("button") as HTMLButtonElement;
@@ -239,9 +239,77 @@ describe("Faultsense Agent - Assertion Type: route", () => {
       );
     });
 
-    it("[hash=pattern] matches location.hash", async () => {
+    it("query param with exact value match", async () => {
       document.body.innerHTML = `
-        <button fs-trigger="click" fs-assert-route="/docs[hash=section]" fs-assert="nav/docs-section">Go</button>
+        <button fs-trigger="click" fs-assert-route="/users?role=admin" fs-assert="nav/admin">Go</button>
+      `;
+
+      const button = document.querySelector("button") as HTMLButtonElement;
+      button.click();
+
+      // Wrong value — should not match
+      history.pushState({}, "", "/users?role=viewer");
+      await vi.advanceTimersByTimeAsync(100);
+      expect(sendToServerMock).not.toHaveBeenCalled();
+
+      // Correct value
+      history.pushState({}, "", "/users?role=admin");
+
+      await vi.waitFor(() =>
+        expect(sendToServerMock).toHaveBeenCalledWith(
+          [
+            expect.objectContaining({
+              status: "passed",
+              type: "route",
+            }),
+          ],
+          config
+        )
+      );
+    });
+
+    it("query param order does not matter", async () => {
+      document.body.innerHTML = `
+        <button fs-trigger="click" fs-assert-route="/search?q=test&amp;page=\\d+" fs-assert="nav/search">Go</button>
+      `;
+
+      const button = document.querySelector("button") as HTMLButtonElement;
+      button.click();
+
+      // Params in reverse order — should still match
+      history.pushState({}, "", "/search?page=3&q=test");
+
+      await vi.waitFor(() =>
+        expect(sendToServerMock).toHaveBeenCalledWith(
+          [
+            expect.objectContaining({
+              status: "passed",
+              type: "route",
+            }),
+          ],
+          config
+        )
+      );
+    });
+
+    it("missing required query param does not match", async () => {
+      document.body.innerHTML = `
+        <button fs-trigger="click" fs-assert-route="/callback?code=.*" fs-assert="auth/missing-param">Go</button>
+      `;
+
+      const button = document.querySelector("button") as HTMLButtonElement;
+      button.click();
+
+      // No query params at all
+      history.pushState({}, "", "/callback");
+
+      await vi.advanceTimersByTimeAsync(100);
+      expect(sendToServerMock).not.toHaveBeenCalled();
+    });
+
+    it("hash pattern matches (anchored)", async () => {
+      document.body.innerHTML = `
+        <button fs-trigger="click" fs-assert-route="/docs#section-\\d+" fs-assert="nav/docs-section">Go</button>
       `;
 
       const button = document.querySelector("button") as HTMLButtonElement;
@@ -262,22 +330,22 @@ describe("Faultsense Agent - Assertion Type: route", () => {
       );
     });
 
-    it("search + hash combined: both must match", async () => {
+    it("path + query + hash combined: all must match", async () => {
       document.body.innerHTML = `
-        <button fs-trigger="click" fs-assert-route="/page[search=tab=settings][hash=panel]" fs-assert="nav/page">Go</button>
+        <button fs-trigger="click" fs-assert-route="/page?tab=settings#panel" fs-assert="nav/page">Go</button>
       `;
 
       const button = document.querySelector("button") as HTMLButtonElement;
       button.click();
 
-      // Only search matches, hash doesn't — should NOT pass
+      // Only path + search, no hash — should NOT pass
       history.pushState({}, "", "/page?tab=settings");
 
       await vi.advanceTimersByTimeAsync(100);
       expect(sendToServerMock).not.toHaveBeenCalled();
 
-      // Now navigate with both
-      history.pushState({}, "", "/page?tab=settings#panel-1");
+      // Now navigate with all three
+      history.pushState({}, "", "/page?tab=settings#panel");
 
       await vi.waitFor(() =>
         expect(sendToServerMock).toHaveBeenCalledWith(

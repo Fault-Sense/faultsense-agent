@@ -42,7 +42,7 @@ export const supportedModifiersByType: Record<string, string[]> = {
   visible: ["text-matches", "classlist"],
   hidden: ["text-matches", "classlist"],
   loaded: [],
-  route: ["search", "hash"],
+  route: [],
 };
 
 // OOB (out-of-band) assertion attribute prefix: fs-assert-oob-{type}
