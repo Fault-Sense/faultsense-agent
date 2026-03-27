@@ -17,12 +17,6 @@ function findOobByAttr(
   const oobElements = document.querySelectorAll(`[${attr}]`);
   const assertions: Assertion[] = [];
 
-  // Warn about unsupported route OOB assertions
-  const routeOobElements = document.querySelectorAll(`[${oobPrefix}route]`);
-  if (routeOobElements.length > 0) {
-    console.warn("[Faultsense]: fs-assert-oob-route is not supported. Route assertions cannot be triggered via OOB.");
-  }
-
   for (const el of Array.from(oobElements) as HTMLElement[]) {
     const assertionKey = el.getAttribute(`${assertionPrefix.details}assert`);
     if (!assertionKey) continue;

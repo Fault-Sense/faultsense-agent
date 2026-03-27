@@ -77,7 +77,7 @@ function TodosPage() {
             id="todo-count"
             style={styles.count}
             fs-assert="todos/count-updated"
-            fs-assert-oob-visible="todos/toggle-complete,todos/add-item,todos/remove-item"
+            fs-assert-oob="todos/toggle-complete,todos/add-item,todos/remove-item"
             fs-assert-visible='[text-matches=\d+/\d+ remaining]'
           >
             {uncompleted}/{todos.length} remaining
