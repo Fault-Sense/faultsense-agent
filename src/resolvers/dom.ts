@@ -33,6 +33,12 @@ export function getFailureReasonForAssertion(
       return `Expected checked=${expected.modifiers["checked"]}`;
     case "disabled":
       return `Expected disabled=${expected.modifiers["disabled"]}`;
+    case "count":
+      return `Element count does not match expected ${expected.modifiers["count"]} for "${expected.typeValue}"`;
+    case "count-min":
+      return `Element count below minimum ${expected.modifiers["count-min"]} for "${expected.typeValue}"`;
+    case "count-max":
+      return `Element count exceeds maximum ${expected.modifiers["count-max"]} for "${expected.typeValue}"`;
     default:
       return `Unknown Failure: ${failureReasonCode}`;
   }
@@ -160,9 +166,9 @@ export function getAssertionModifierFns(
 
 /**
  * Pre-check count modifiers against querySelectorAll result count.
- * Returns a CompletedAssertion on failure, null if count passes or no count modifiers.
+ * Returns [false, reason] on failure, null if count passes or no count modifiers.
  */
-function checkCountModifiers(assertion: Assertion): CompletedAssertion | null {
+function checkCountModifiers(assertion: Assertion): [false, FailureReasonCode] | null {
   const mods = assertion.modifiers;
   if (!mods) return null;
   const count = mods["count"];
@@ -172,16 +178,10 @@ function checkCountModifiers(assertion: Assertion): CompletedAssertion | null {
   if (!assertion.typeValue) return null; // self-referencing, warned at parse time
 
   const actual = document.querySelectorAll(assertion.typeValue).length;
-  if (count && actual !== Number(count)) {
-    return completeAssertion(assertion, false, `Expected ${count} elements matching "${assertion.typeValue}", found ${actual}.`);
-  }
-  if (countMin && actual < Number(countMin)) {
-    return completeAssertion(assertion, false, `Expected at least ${countMin} elements matching "${assertion.typeValue}", found ${actual}.`);
-  }
-  if (countMax && actual > Number(countMax)) {
-    return completeAssertion(assertion, false, `Expected at most ${countMax} elements matching "${assertion.typeValue}", found ${actual}.`);
-  }
-  return null; // all count checks passed
+  if (count && actual !== Number(count)) return [false, "count"];
+  if (countMin && actual < Number(countMin)) return [false, "count-min"];
+  if (countMax && actual > Number(countMax)) return [false, "count-max"];
+  return null;
 }
 
 /**
@@ -201,7 +201,10 @@ function handleAssertion(
 
   // Pre-check selector-level count modifiers before per-element iteration
   const countResult = checkCountModifiers(assertion);
-  if (countResult !== null) return countResult;
+  if (countResult !== null) {
+    const [, reasonCode] = countResult;
+    return completeAssertion(assertion, false, getFailureReasonForAssertion(reasonCode, assertion));
+  }
 
   const modifierFns = getAssertionModifierFns(assertion);
 
