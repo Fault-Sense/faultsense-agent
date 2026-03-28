@@ -24,7 +24,7 @@ describe("Faultsense Agent - Modifier: value-matches", () => {
     sendToServerMock = vi.spyOn(resolveModule, "sendToCollector").mockImplementation(() => {});
     vi.spyOn(console, "error").mockImplementation(() => {});
     vi.spyOn(console, "warn").mockImplementation(() => {});
-    vi.mock("../../src/utils/elements", () => ({
+    vi.mock("../../src/utils/elements", async () => ({ ...await vi.importActual("../../src/utils/elements") as any,
       isVisible: vi.fn().mockImplementation((element: HTMLElement) => {
         return element.style.display !== "none" && element.style.visibility !== "hidden";
       }),

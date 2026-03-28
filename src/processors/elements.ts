@@ -10,6 +10,7 @@ import {
   domAssertions,
 } from "../config";
 import { parseRoutePattern, validateRoutePattern } from "../resolvers/route";
+import { ensureSelector } from "../utils/elements";
 import {
   allAssertionTypes,
   type Assertion,
@@ -352,16 +353,9 @@ function createAssertions(
     }
 
     // Self-targeting: if selector is empty, the element itself is the target.
-    // Use the element's id if available, otherwise generate a temp selector.
     let typeValue = typeEntry.value as string;
     if (!typeValue && domAssertions.includes(typeEntry.type)) {
-      if (element.id) {
-        typeValue = `#${element.id}`;
-      } else {
-        const tempId = `fs-self-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-        element.setAttribute("data-fs-target", tempId);
-        typeValue = `[data-fs-target="${tempId}"]`;
-      }
+      typeValue = ensureSelector(element);
     }
 
     return {

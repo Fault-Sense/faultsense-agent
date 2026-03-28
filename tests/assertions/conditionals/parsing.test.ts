@@ -28,7 +28,7 @@ describe("Faultsense Agent - UI Conditional Assertion Parsing", () => {
     consoleErrorMock = vi.spyOn(console, "error").mockImplementation(() => {});
     consoleWarnMock = vi.spyOn(console, "warn").mockImplementation(() => {});
 
-    vi.mock("../../../src/utils/elements", () => ({
+    vi.mock("../../../src/utils/elements", async () => ({ ...await vi.importActual("../../../src/utils/elements") as any,
       isVisible: vi.fn().mockImplementation((element: HTMLElement) => {
         return (
           element.style.display !== "none" &&

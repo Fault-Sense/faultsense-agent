@@ -1,6 +1,7 @@
 import { domAssertions, oobAttr, oobFailAttr, assertionPrefix } from "../config";
 import { Assertion, AssertionType, CompletedAssertion } from "../types";
 import { parseTypeValue, resolveInlineModifiers } from "./elements";
+import { ensureSelector } from "../utils/elements";
 
 /**
  * Scan the DOM for OOB elements whose parent keys match the given assertions.
@@ -37,16 +38,7 @@ function findOobByAttr(
       const resolvedMods = resolveInlineModifiers(modifiers);
 
       // Self-targeting: if selector is empty, the element itself is the target.
-      let targetSelector = selector;
-      if (!targetSelector) {
-        if (el.id) {
-          targetSelector = `#${el.id}`;
-        } else {
-          const tempId = `fs-oob-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-          el.setAttribute("data-fs-oob-target", tempId);
-          targetSelector = `[data-fs-oob-target="${tempId}"]`;
-        }
-      }
+      const targetSelector = selector || ensureSelector(el);
 
       assertions.push({
         assertionKey,

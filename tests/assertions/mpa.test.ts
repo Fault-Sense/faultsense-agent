@@ -47,7 +47,7 @@ describe("Faultsense Agent - Assertion MPA Mode", () => {
 
     consoleErrorMock = vi.spyOn(console, "error").mockImplementation(() => { });
 
-    vi.mock("../../src/utils/elements", () => ({
+    vi.mock("../../src/utils/elements", async () => ({ ...await vi.importActual("../../src/utils/elements") as any,
       isVisible: vi.fn().mockImplementation((element: HTMLElement) => {
         return (
           element.style.display !== "none" &&
