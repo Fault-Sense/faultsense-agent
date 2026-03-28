@@ -118,4 +118,123 @@ describe("Faultsense Agent - Assertion Type modifer: attrs-match", () => {
       )
     );
   });
+
+  it("Should pass when attribute value matches a regex pattern", async () => {
+    document.body.innerHTML = `
+      <div id="card" data-state="loaded-v2"></div>
+      <button fs-trigger="click"
+        fs-assert-updated='#card[data-state=loaded.*]'
+        fs-assert="card/state-update"
+      >Click</button>
+    `;
+
+    const button = document.querySelector("button") as HTMLButtonElement;
+    button.addEventListener("click", () => {
+      document.getElementById("card")?.setAttribute("data-state", "loaded-v3");
+    });
+
+    button.click();
+
+    await vi.waitFor(() =>
+      expect(sendToServerMock).toHaveBeenNthCalledWith(
+        1,
+        [
+          expect.objectContaining({
+            status: "passed",
+            statusReason: "",
+          }),
+        ],
+        config
+      )
+    );
+  });
+
+  it("Should pass when attribute value matches one of several regex alternatives", async () => {
+    document.body.innerHTML = `
+      <div id="status" data-status="error"></div>
+      <button fs-trigger="click"
+        fs-assert-updated='#status[data-status=success|error|pending]'
+        fs-assert="status/update"
+      >Click</button>
+    `;
+
+    const button = document.querySelector("button") as HTMLButtonElement;
+    button.addEventListener("click", () => {
+      document.getElementById("status")?.setAttribute("data-status", "success");
+    });
+
+    button.click();
+
+    await vi.waitFor(() =>
+      expect(sendToServerMock).toHaveBeenNthCalledWith(
+        1,
+        [
+          expect.objectContaining({
+            status: "passed",
+            statusReason: "",
+          }),
+        ],
+        config
+      )
+    );
+  });
+
+  it("Should fail when attribute value does not match the regex pattern", async () => {
+    document.body.innerHTML = `
+      <div id="card" data-state="unknown"></div>
+      <button fs-trigger="click"
+        fs-assert-updated='#card[data-state=^loaded]'
+        fs-assert="card/state-update"
+      >Click</button>
+    `;
+
+    const button = document.querySelector("button") as HTMLButtonElement;
+    button.addEventListener("click", () => {
+      document.getElementById("card")?.setAttribute("data-state", "error");
+    });
+
+    button.click();
+
+    await vi.waitFor(() =>
+      expect(sendToServerMock).toHaveBeenNthCalledWith(
+        1,
+        [
+          expect.objectContaining({
+            status: "failed",
+          }),
+        ],
+        config
+      )
+    );
+  });
+
+  it("Should fall back to exact match on invalid regex", async () => {
+    document.body.innerHTML = `
+      <div id="item" data-val="*invalid"></div>
+      <button fs-trigger="click"
+        fs-assert-updated='#item[data-val=*invalid]'
+        fs-assert="item/update"
+      >Click</button>
+    `;
+
+    const button = document.querySelector("button") as HTMLButtonElement;
+    button.addEventListener("click", () => {
+      document.getElementById("item")?.setAttribute("data-val", "*invalid");
+    });
+
+    button.click();
+
+    await vi.waitFor(() =>
+      expect(sendToServerMock).toHaveBeenNthCalledWith(
+        1,
+        [
+          expect.objectContaining({
+            status: "passed",
+            statusReason: "",
+          }),
+        ],
+        config
+      )
+    );
+  });
 });

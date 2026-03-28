@@ -55,13 +55,13 @@ fs-assert-updated='#logo[src=/img/new.png][alt=New Logo]'
 fs-assert-updated='.panel[classlist=active:true,hidden:false]'
 ```
 
-- `[text-matches=pattern]` — text content regex/string match
-- `[value-matches=pattern]` — form control `.value` property regex match
+- `[text-matches=pattern]` — text content regex, **partial match** (unanchored)
+- `[value-matches=pattern]` — form control `.value` property regex, **partial match** (unanchored)
 - `[checked=true|false]` — checkbox/radio `.checked` property
 - `[disabled=true|false]` — disabled state (native `.disabled` or `aria-disabled`)
 - `[count=N]` / `[count-min=N]` / `[count-max=N]` — element count from `querySelectorAll`
 - `[classlist=class:true,class:false]` — class presence check
-- `[attr=value]` — any other bracket is an attribute check (replaces attrs-match)
+- `[attr=value]` — attribute check with regex, **full match** (auto-anchored `^(?:value)$`). Supports `|` alternation: `[data-state=active|ready]`
 
 ### Assertion Key Convention
 

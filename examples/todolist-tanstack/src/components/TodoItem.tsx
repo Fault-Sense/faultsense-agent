@@ -45,13 +45,15 @@ export function TodoItem({ todo }: { todo: Todo }) {
   return (
     <div
       className={`todo-item${todo.completed ? ' completed' : ''}`}
+      data-status={todo.completed ? 'completed' : isEditing ? 'editing' : 'active'}
       style={{
         ...styles.item,
         ...(todo.completed ? styles.completed : {}),
       }}
     >
-      {/* fs-assert: Dynamic assertion — checks for the EXPECTED next state.
-          If currently incomplete, expect completed:true after toggle (and vice versa). */}
+      {/* fs-assert: Dynamic assertion — checks the EXPECTED next state.
+          classlist verifies the CSS class toggled. data-status verifies
+          the status attribute is a valid state (regex alternation). */}
       <input
         type="checkbox"
         checked={todo.completed}
@@ -59,7 +61,7 @@ export function TodoItem({ todo }: { todo: Todo }) {
         style={styles.checkbox}
         fs-assert="todos/toggle-complete"
         fs-trigger="change"
-        fs-assert-updated={`.todo-item[classlist=completed:${!todo.completed}]`}
+        fs-assert-updated={`.todo-item[classlist=completed:${!todo.completed}][data-status=active|completed]`}
         fs-assert-visible={`#edit-btn-${todo.id}[disabled=${!todo.completed}]`}
       />
 

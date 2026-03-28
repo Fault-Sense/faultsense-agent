@@ -91,7 +91,11 @@ const modifiersMap: Record<
     }
     return [
       Object.entries(attrs).every(([key, value]) => {
-        return el.getAttribute(key) === value;
+        try {
+          return new RegExp("^(?:" + (value as string) + ")$").test(el.getAttribute(key) || "");
+        } catch {
+          return el.getAttribute(key) === value;
+        }
       }),
       "attrs-match",
     ];

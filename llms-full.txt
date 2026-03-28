@@ -101,8 +101,8 @@ fs-assert-added-success='.success[text-matches=Order #\d+]'
 
 | Key | Description |
 |---|---|
-| `[text-matches=<pattern>]` | Text content must match (regex or string). Evaluated as `new RegExp(value).test(el.textContent)`. |
-| `[value-matches=<pattern>]` | Form control `.value` property must match (regex). Works on `input`, `textarea`, `select`. Reads the live DOM property, not the HTML attribute. |
+| `[text-matches=<pattern>]` | Text content must match (regex, **partial match** — unanchored). Evaluated as `new RegExp(value).test(el.textContent)`. Use `^exact$` to anchor. |
+| `[value-matches=<pattern>]` | Form control `.value` property must match (regex, **partial match** — unanchored). Works on `input`, `textarea`, `select`. Reads the live DOM property, not the HTML attribute. Use `^exact$` to anchor. |
 | `[checked=true\|false]` | Checkbox/radio `.checked` DOM property. Reads the live boolean state, not the HTML `checked` attribute. |
 | `[disabled=true\|false]` | Disabled state. Checks native `.disabled` property (form elements) and `aria-disabled="true"` attribute. |
 | `[count=N]` | Exactly N elements must match the selector (`querySelectorAll(selector).length === N`). |
@@ -110,15 +110,21 @@ fs-assert-added-success='.success[text-matches=Order #\d+]'
 | `[count-max=N]` | At most N elements must match the selector. |
 | `[classlist=<class:bool,...>]` | Classes on the element. Format: `active:true,hidden:false` where `true` = must have, `false` = must not have. |
 
-**Unreserved keys** are treated as attribute checks:
+**Unreserved keys** are treated as attribute checks (regex, **full match** — auto-anchored with `^(?:...)$`):
 
 | Example | Checks |
 |---|---|
-| `[src=/img/logo.png]` | Element has `src="/img/logo.png"` |
-| `[data-state=active]` | Element has `data-state="active"` |
+| `[src=/img/logo.png]` | Element has `src` exactly matching `/img/logo.png` |
+| `[data-state=active]` | Element has `data-state` exactly matching `"active"` |
+| `[data-state=active\|ready]` | Element has `data-state` matching `"active"` or `"ready"` |
+| `[data-status=success-\d+]` | Element has `data-status` matching `"success-"` followed by digits |
 | `[aria-expanded=true]` | Element has `aria-expanded="true"` |
 
 Multiple attribute checks can be chained: `#logo[src=/img/new.png][width=100][alt=Logo]`
+
+**Regex anchoring summary:**
+- `text-matches` and `value-matches`: **partial match** (unanchored) — pattern can match anywhere in the string
+- Attribute checks (unreserved keys) and `route`: **full match** (auto-anchored) — pattern must match the entire value
 
 ### Element-Level Attributes
 
