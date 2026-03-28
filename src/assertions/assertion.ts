@@ -88,11 +88,12 @@ export function getSiblingGroup(
 }
 
 function isMutexSibling(resolved: Assertion, candidate: Assertion): boolean {
-  if (!resolved.mutex) {
-    // No mutex — default: same-type siblings only
+  const mode = resolved.mutex || "type";
+  if (mode === "type") {
+    // Default: same-type conditionals race
     return candidate.type === resolved.type;
   }
-  if (resolved.mutex === "each") {
+  if (mode === "each") {
     // All conditionals race
     return true;
   }

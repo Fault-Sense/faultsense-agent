@@ -127,20 +127,22 @@ export function resolveInlineModifiers(
 
 /**
  * Parse the fs-assert-mutex attribute value into mutex mode and optional key list.
- * - "each" → all conditionals race (replaces old grouped behavior)
+ * - "type" → same-type conditionals race (default, same as omitting the attribute)
+ * - "each" → all conditionals race regardless of type
  * - "conditions" → condition keys compete, same-key co-members resolve independently
  * - "success,error" → selective: only listed keys compete
- * - empty/undefined → no mutex
+ * - empty/undefined → no mutex (defaults to "type" behavior)
  */
 function parseMutex(
   value: string | undefined,
   conditionKey: string | undefined
-): { mutex?: "each" | "conditions"; mutexKeys?: string[] } {
+): { mutex?: "type" | "each" | "conditions"; mutexKeys?: string[] } {
   if (!conditionKey || value === undefined) return {};
   if (value === "") {
-    console.warn('[Faultsense]: fs-assert-mutex requires a value ("each", "conditions", or comma-separated condition keys).');
+    console.warn('[Faultsense]: fs-assert-mutex requires a value ("type", "each", "conditions", or comma-separated condition keys).');
     return {};
   }
+  if (value === "type") return { mutex: "type" };
   if (value === "each") return { mutex: "each" };
   if (value === "conditions") return { mutex: "conditions" };
   // Comma-separated list of condition keys

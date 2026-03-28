@@ -83,7 +83,7 @@ export interface Assertion {
   type: AssertionType;
   typeValue: string;
   conditionKey?: string;
-  mutex?: "each" | "conditions";
+  mutex?: "type" | "each" | "conditions";
   mutexKeys?: string[];
   oob?: boolean;
   endTime?: number;
