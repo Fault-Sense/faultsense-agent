@@ -350,16 +350,21 @@ export function createAssertionManager(config: Configuration) {
         (a) => !a.endTime && a.trigger !== "invariant" && (now - a.startTime) > config.unloadGracePeriod
       );
       if (staleOnUnload.length > 0) {
-        const failed: CompletedAssertion[] = [];
+        const completed: CompletedAssertion[] = [];
         for (const a of staleOnUnload) {
+          // Inverted resolution types (e.g., stable) pass on unload — no mutation occurred
+          const status = a.invertResolution ? "passed" as const : "failed" as const;
+          const statusReason = a.invertResolution
+            ? ""
+            : `Assertion did not resolve before page unload (age: ${now - a.startTime}ms).`;
           const result = Object.assign(a, {
-            status: "failed" as const,
+            status,
             endTime: now,
-            statusReason: `Assertion did not resolve before page unload (age: ${now - a.startTime}ms).`,
+            statusReason,
           }) as unknown as CompletedAssertion;
-          failed.push(result);
+          completed.push(result);
         }
-        sendToCollector(failed, config);
+        sendToCollector(completed, config);
       }
     }
 
