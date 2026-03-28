@@ -11,7 +11,8 @@ import {
 } from "../config";
 import { parseRoutePattern, validateRoutePattern } from "../resolvers/route";
 import { ensureSelector } from "../utils/elements";
-import { parseTrigger, parseKeyFilter, matchesKeyFilter } from "../utils/triggers";
+import { parseTrigger } from "../utils/triggers";
+import { parseKeyFilter, matchesKeyFilter } from "../utils/triggers/keyboard";
 import {
   allAssertionTypes,
   type Assertion,
