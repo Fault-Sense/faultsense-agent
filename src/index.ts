@@ -90,6 +90,14 @@ export function init(initialConfig: Partial<Configuration>): () => void {
     handleOffline();
   }
 
+  // Register elements with custom event triggers (event:eventName)
+  const customEventElements = document.querySelectorAll(
+    `[${assertionTriggerAttr}^="event:"]`
+  );
+  for (const el of Array.from(customEventElements) as HTMLElement[]) {
+    assertionManager.registerCustomEventElement(el);
+  }
+
   // Run initial check
   assertionManager.checkAssertions();
 
@@ -115,6 +123,7 @@ export function init(initialConfig: Partial<Configuration>): () => void {
     );
     window.removeEventListener("online", handleOnline);
     window.removeEventListener("offline", handleOffline);
+    assertionManager.customEventRegistry.deregisterAll();
     if (observer) {
       observer.disconnect();
       observer = null;
