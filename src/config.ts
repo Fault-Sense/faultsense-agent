@@ -69,21 +69,28 @@ export const supportedEvents = [
   "submit",
   "load",
   "error",
-  // "mouseover",
-  // "mouseout",
-  // "focus",
-  // "input",
-  // "keydown",
-  // "keyup",
-  // "keypress",
-  // "mouseenter",
-  // "mouseleave",
+  "mouseenter",
+  "focusin",
+  "input",
+  "keydown",
 ];
 
-/** Alias the event type to the list of other event types */
-export const eventTriggerAliases: Record<string, string[]> = {
-  error: ["load"],
+/** Maps developer-facing trigger names to actual DOM event names */
+export const triggerEventMap: Record<string, string> = {
+  hover: "mouseenter",
+  focus: "focusin",
 };
 
-export const supportedTriggers = ["mount", "unmount", "invariant", "online", "offline", ...supportedEvents];
+// Derived: invert triggerEventMap for runtime lookup in handleEvent.
+// When a DOM event fires, these are the trigger names to match against fs-trigger values.
+export const eventTriggerAliases: Record<string, string[]> = {
+  // error DOM event on media elements should also process load-triggered assertions
+  error: ["error", "load"],
+};
+for (const [trigger, event] of Object.entries(triggerEventMap)) {
+  if (!eventTriggerAliases[event]) eventTriggerAliases[event] = [event];
+  eventTriggerAliases[event].push(trigger);
+}
+
+export const supportedTriggers = ["mount", "unmount", "invariant", "online", "offline", "hover", "focus", ...supportedEvents];
 export const storageKey = "faultsense-active-assertions";

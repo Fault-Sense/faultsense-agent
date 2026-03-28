@@ -68,11 +68,8 @@ export function TodoItem({ todo, disabled }: { todo: Todo; disabled?: boolean })
 
       {isEditing ? (
         <div style={styles.editRow}>
-          {/* fs-assert: Saving hides the input and updates the displayed text.
-              Dynamic assertion — verifies the rendered text matches what was typed.
-              Trigger is blur (not click on Save) because onBlur fires handleSave,
-              and the blur event fires before click when clicking the Save button.
-              Escapes regex special chars in the edit text to avoid false failures. */}
+          {/* fs-assert: Pressing Escape cancels the edit and removes the input.
+              keydown:Escape filter ensures only Escape key creates the assertion. */}
           <input
             className="todo-edit-input"
             type="text"
@@ -82,10 +79,9 @@ export function TodoItem({ todo, disabled }: { todo: Todo; disabled?: boolean })
             onBlur={handleSave}
             autoFocus
             style={styles.editInput}
-            fs-assert="todos/save-edit"
-            fs-trigger="blur"
+            fs-assert="todos/cancel-edit"
+            fs-trigger="keydown:Escape"
             fs-assert-removed=".todo-edit-input"
-            fs-assert-updated={`.todo-text[text-matches=${editText.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}]`}
           />
           <button
             onClick={handleSave}

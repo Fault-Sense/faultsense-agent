@@ -11,6 +11,8 @@ import {
 } from "../config";
 import { parseRoutePattern, validateRoutePattern } from "../resolvers/route";
 import { ensureSelector } from "../utils/elements";
+import { parseTrigger } from "../utils/triggers";
+import { parseKeyFilter, matchesKeyFilter } from "../utils/triggers/keyboard";
 import {
   allAssertionTypes,
   type Assertion,
@@ -163,16 +165,17 @@ function parseDynamicTypes(element: HTMLElement): AssertionTypeEntry[] {
   return types;
 }
 
-export function createElementProcessor(triggers: string[], eventMode: boolean = false): ElementProcessor {
+export function createElementProcessor(triggers: string[], eventMode: boolean = false, event?: Event): ElementProcessor {
   return function (targets: HTMLElement[]): Assertion[] {
-    return processElements(targets, triggers, eventMode);
+    return processElements(targets, triggers, eventMode, event);
   };
 }
 
 export function processElements(
   targets: HTMLElement[],
   triggers: string[],
-  eventMode: boolean = false
+  eventMode: boolean = false,
+  event?: Event
 ): Assertion[] {
   const allAssertions: Assertion[] = [];
 
@@ -181,7 +184,7 @@ export function processElements(
     const elementsToProcess: HTMLElement[] = [];
 
     // Check if the target element itself is processable
-    if (isProcessableElement(target, triggers)) {
+    if (isProcessableElement(target, triggers, event)) {
       elementsToProcess.push(target);
     } else if (!eventMode) {
       // Only search descendants if NOT in event mode
@@ -190,7 +193,7 @@ export function processElements(
 
       // Add all descendant elements with trigger attributes (filter them too)
       for (const element of Array.from(elementsWithTriggers) as HTMLElement[]) {
-        if (isProcessableElement(element, triggers)) {
+        if (isProcessableElement(element, triggers, event)) {
           elementsToProcess.push(element);
         }
       }
@@ -208,18 +211,26 @@ export function processElements(
 }
 
 /**
- * Quick way to determine if this is a faultsense processable element
+ * Quick way to determine if this is a faultsense processable element.
+ * Parses the trigger value to extract the base trigger name and optional key filter.
+ * For keydown triggers with filters (e.g., "keydown:Escape"), the event must match.
  */
 function isProcessableElement(
   element: HTMLElement,
-  triggers: string[]
+  triggers: string[],
+  event?: Event
 ): boolean {
-  if (element.hasAttribute(assertionTriggerAttr)) {
-    return triggers.includes(
-      element.getAttribute(assertionTriggerAttr) as string
-    );
+  const raw = element.getAttribute(assertionTriggerAttr);
+  if (!raw) return false;
+  const { base, filter } = parseTrigger(raw);
+  if (!triggers.includes(base)) return false;
+
+  // Key filter check: reject if the event doesn't match the specified key
+  if (filter && event instanceof KeyboardEvent) {
+    return matchesKeyFilter(event, parseKeyFilter(filter));
   }
-  return false;
+
+  return true;
 }
 
 /**
