@@ -22,22 +22,25 @@ export function AddTodo({ disabled }: { disabled?: boolean }) {
   return (
     <div>
       <form onSubmit={handleSubmit} style={styles.form}>
-        {/* fs-assert: On page load, the add input should have focus */}
+        {/* fs-assert: On each keystroke, verify the character counter updates.
+            input trigger fires on every input event; re-trigger re-evaluates
+            the visible assertion to confirm the counter reflects the new length. */}
         <input
           id="add-todo-input"
           type="text"
           value={text}
           onChange={(e) => {
-            setText(e.target.value)
+            setText(e.target.value.slice(0, 100))
             if (error) setError(null)
           }}
           placeholder="What needs to be done?"
           style={styles.input}
           autoFocus
           disabled={disabled}
-          fs-assert="todos/add-input-focused"
-          fs-trigger="mount"
-          fs-assert-visible="[focused=true]"
+          maxLength={100}
+          fs-assert="todos/char-count-updated"
+          fs-trigger="input"
+          fs-assert-visible="#char-count[text-matches=\d+/100]"
         />
         {/* fs-assert: Clicking add should create a new .todo-item on success,
             or show a validation error when submitting blank text.
@@ -59,6 +62,15 @@ export function AddTodo({ disabled }: { disabled?: boolean }) {
           Add
         </button>
       </form>
+      <span
+        id="char-count"
+        style={{
+          ...styles.charCount,
+          ...(text.length >= 90 ? styles.charCountWarn : {}),
+        }}
+      >
+        {text.length}/100
+      </span>
       {error && (
         <div className="add-error" style={styles.error}>
           {error}
@@ -99,5 +111,15 @@ const styles: Record<string, React.CSSProperties> = {
   disabledBtn: {
     opacity: 0.4,
     cursor: 'not-allowed',
+  },
+  charCount: {
+    fontSize: '0.75rem',
+    color: '#a1a1aa',
+    marginTop: '0.25rem',
+    display: 'block',
+    textAlign: 'right' as const,
+  },
+  charCountWarn: {
+    color: '#dc2626',
   },
 }
