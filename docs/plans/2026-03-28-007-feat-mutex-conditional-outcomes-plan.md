@@ -16,7 +16,7 @@ Replace `fs-assert-grouped` with `fs-assert-mutex` — a new attribute with thre
 
 | Value | Behavior |
 |---|---|
-| `"all"` | All conditional assertions race. First to resolve wins, all others dismissed. Replaces `fs-assert-grouped=""`. |
+| `"each"` | All conditional assertions race. First to resolve wins, all others dismissed. Replaces `fs-assert-grouped=""`. |
 | `"conditions"` | Condition keys compete as outcome groups. First key to resolve wins, all assertions with different keys dismissed. Same-key assertions resolve independently. |
 | `"success,error"` | Selective: only listed keys compete. Unlisted keys are invisible to the mutex. |
 
@@ -24,12 +24,12 @@ No empty default. `fs-assert-mutex` requires an explicit value.
 
 ## Acceptance Criteria
 
-- [ ] `fs-assert-mutex="all"` behaves identically to current `fs-assert-grouped=""`
+- [ ] `fs-assert-mutex="each"` behaves identically to current `fs-assert-grouped=""`
 - [ ] `fs-assert-mutex="conditions"` dismisses different-key assertions, keeps same-key assertions pending
 - [ ] `fs-assert-mutex="success,error"` only creates mutex between listed keys; unlisted keys resolve independently
 - [ ] All references to `grouped` removed from source, tests, examples, and docs
 - [ ] No empty default — `fs-assert-mutex=""` logs a warning
-- [ ] Todo app updated: delete button uses `mutex="all"`, add button uses `mutex="conditions"` with `emitted-success` + `added-success` vs `added-error`
+- [ ] Todo app updated: delete button uses `mutex="each"`, add button uses `mutex="conditions"` with `emitted-success` + `added-success` vs `added-error`
 - [ ] Activity log re-added to todo app with `fs-trigger="event:todo:added"`
 - [ ] CLAUDE.md and llms-full.txt updated with new `mutex` API, examples, and migration notes
 - [ ] All existing conditional/grouped tests pass with `mutex` equivalents
@@ -42,7 +42,7 @@ In `supportedAssertions.modifiers` (config.ts), replace `"grouped"` with `"mutex
 
 In `Assertion` interface (types.ts), replace `grouped?: boolean` with:
 ```ts
-mutex?: "all" | "conditions";
+mutex?: "each" | "conditions";
 mutexKeys?: string[];
 ```
 
@@ -51,7 +51,7 @@ mutexKeys?: string[];
 **File:** `src/processors/elements.ts`
 
 In `createAssertions`, replace the `grouped` parsing with `mutex` parsing:
-- Value `"all"` → `mutex: "all"`
+- Value `"each"` → `mutex: "each"`
 - Value `"conditions"` → `mutex: "conditions"`
 - Comma-separated value (e.g., `"success,error"`) → `mutex: "conditions"`, `mutexKeys: ["success", "error"]`
 - Empty value → `console.warn` and ignore
@@ -78,7 +78,7 @@ isMutexSibling(assertion, a)
 
 Where `isMutexSibling`:
 - No mutex → same-type siblings only (`a.type === assertion.type`)
-- `"all"` → all conditionals are siblings (current `grouped` behavior)
+- `"each"` → all conditionals are siblings (current `grouped` behavior)
 - `"conditions"` without `mutexKeys` → different condition key = sibling
 - `"conditions"` with `mutexKeys` → both resolved and candidate must have keys in the mutex list, AND different keys
 
@@ -105,7 +105,7 @@ Replace any `grouped` references in the API payload or panel display with `mutex
 ## Step 6: Update all tests
 
 **Files:**
-- `tests/assertions/conditionals/resolution.test.ts` — rename `grouped` → `mutex="all"` in all test HTML
+- `tests/assertions/conditionals/resolution.test.ts` — rename `grouped` → `mutex="each"` in all test HTML
 - `tests/assertions/stable.test.ts` — same
 - `tests/assertions/oob.test.ts` — same
 - `tests/assertions/route.test.ts` — same
@@ -120,8 +120,8 @@ Add new tests for `mutex="conditions"` mode:
 ## Step 7: Update todo app
 
 **Files:**
-- `examples/todolist-tanstack/src/components/TodoItem.tsx` — replace `fs-assert-grouped=""` with `fs-assert-mutex="all"` on delete button
-- `examples/todolist-tanstack/src/routes/login.tsx` — replace `fs-assert-grouped=""` with `fs-assert-mutex="all"`
+- `examples/todolist-tanstack/src/components/TodoItem.tsx` — replace `fs-assert-grouped=""` with `fs-assert-mutex="each"` on delete button
+- `examples/todolist-tanstack/src/routes/login.tsx` — replace `fs-assert-grouped=""` with `fs-assert-mutex="each"`
 - `examples/todolist-tanstack/src/components/AddTodo.tsx` — add `fs-assert-mutex="conditions"` with `fs-assert-emitted-success="todo:added"` and `fs-assert-added-error=".add-error"`. Re-add custom event dispatch on success.
 - `examples/todolist-tanstack/src/components/ActivityLog.tsx` — re-add activity log component with `fs-trigger="event:todo:added"`
 - `examples/todolist-tanstack/src/routes/todos.tsx` — re-add ActivityLog import and usage
