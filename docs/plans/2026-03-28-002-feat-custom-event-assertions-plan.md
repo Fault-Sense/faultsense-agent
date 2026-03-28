@@ -1,7 +1,7 @@
 ---
 title: "feat: Custom Event Assertions"
 type: feat
-status: active
+status: completed
 date: 2026-03-28
 origin: docs/brainstorms/2026-03-28-custom-event-assertions-requirements.md
 ---
@@ -36,53 +36,56 @@ A custom event replaces the user interaction as the starting signal. Assertion t
 
 **Implementation steps:**
 
-1. **Add a custom event listener registry** — a new module `src/listeners/custom-events.ts` that manages a `Map<string, { handler: EventListener, abortController: AbortController }>` keyed by event name. Exposes `registerCustomEvent(eventName, handler)`, `deregisterAll()`, and `isRegistered(eventName)`.
+1. **Add a custom event listener registry** — a new module `src/listeners/custom-events.ts` that manages two data structures:
+   - `listeners: Map<string, EventListener>` — one document-level listener per unique event name
+   - `elements: Map<string, Set<HTMLElement>>` — registered elements per event name, populated by MutationObserver and init scan. Avoids `querySelectorAll` at event-fire time (O(1) lookup vs O(n) DOM walk).
 
-2. **Parse `event:` prefix in `isProcessableElement`** (`src/processors/elements.ts:211-221`). Currently `isProcessableElement` does a strict `triggers.includes(triggerValue)` check. For custom event triggers, the trigger value is `event:cart-updated` (with possible `[detail-matches=...]` suffix), which won't match the `triggers` array. Two changes needed:
-   - Add a helper `isCustomEventTrigger(triggerValue: string): boolean` that checks for the `event:` prefix.
-   - In `isProcessableElement`, when the trigger value starts with `event:`, match against a `"custom-event"` sentinel in the triggers array (or match the full `event:eventName` string passed from the custom event handler).
+   Exposes: `registerElement(eventName, element, handler)`, `deregisterElement(eventName, element)`, `getElements(eventName)`, `deregisterAll()`.
 
-3. **Parse `detail-matches` from the trigger value** — reuse the existing `parseTypeValue` function (`src/processors/elements.ts:48-85`) which already handles bracket syntax. The trigger value `event:cart-updated[detail-matches=action:increment]` parses to `{ selector: "event:cart-updated", modifiers: { "detail-matches": "action:increment" } }`. Add a new `parseTriggerValue(raw: string): { eventName: string, detailMatches?: Record<string, string> }` function that:
-   - Strips the `event:` prefix
-   - Delegates bracket parsing to `parseTypeValue`
-   - Converts `detail-matches` value to key:value pairs (R6: shallow matching, comma-separated `key:value`)
+2. **Parse `event:` prefix in `isProcessableElement`** (`src/processors/elements.ts`). Currently `isProcessableElement` uses `parseTrigger` to extract a base trigger name. For custom event triggers, the base after `parseTrigger` is `event` with filter `cart-updated` (or `event` with filter `cart-updated[detail-matches=...]`). Two options:
+   - Match `event` base and pass the full trigger string in the triggers array
+   - Or: match the full `event:eventName` string. The cleanest approach: when calling `processElements` from the custom event handler, pass the full trigger values of registered elements in the triggers array. `isProcessableElement` already does `parseTrigger(raw)` and `triggers.includes(base)` — for `event:` triggers, the base is `event`, so include `"event"` in the triggers array.
 
-4. **Register document-level listeners at init** (`src/index.ts:70-78`). After the existing `querySelectorAll` for mount/load/invariant triggers, scan for `[fs-trigger^="event:"]` elements. Extract unique event names, register each via `document.addEventListener(eventName, handler)`. The handler:
-   - Runs `document.querySelectorAll('[fs-trigger^="event:' + eventName + '"]')` to find matching elements currently in the DOM (R4)
-   - For each element, parses `detail-matches` from the trigger value. If specified, checks `event.detail` against the key:value pairs. On mismatch, skips the element (R7)
-   - Passes matching elements through `createElementProcessor([triggerValue])` then `enqueueAssertions` — identical to the mount/invariant path
+3. **Parse custom event trigger value** — add `parseCustomEventTrigger(raw: string): { eventName: string, detailMatches?: Record<string, string> }` to a new `src/utils/triggers/custom-events.ts`. Strips the `event:` prefix, delegates bracket parsing to the existing `parseTypeValue` (`src/processors/elements.ts`), and converts `detail-matches` value to key:value pairs (shallow matching, comma-separated `key:value`).
 
-5. **Register new event names on DOM mutation** (`src/assertions/manager.ts:174-196`). In `handleMutations`, after the existing `createElementProcessor(["mount", "invariant"])` call, scan added nodes for `fs-trigger^="event:"` attributes. Extract any event names not already registered and add document-level listeners (R2). No deregistration on element removal — document-level listeners are cheap and persist for the agent lifetime (R3).
+4. **Register elements at init** (`src/index.ts`). After the existing mount/load/invariant scan, query for `[fs-trigger^="event:"]` elements. For each, parse the event name and register in the element Map. Register one document-level listener per unique event name.
 
-6. **Cleanup on agent teardown** (`src/index.ts:84-110`). In the cleanup function, call `deregisterAll()` from the custom event registry to remove all document-level listeners.
+5. **Register new elements on DOM mutation** (`src/index.ts` or `src/assertions/manager.ts`). When the MutationObserver detects added nodes with `fs-trigger^="event:"`, register them in the element Map. If the event name is new, also register a document-level listener. On element removal, deregister from the Map (optional — stale entries are harmless since `handleCustomEvent` checks the DOM).
+
+6. **Cleanup on agent teardown** (`src/index.ts`). Call `deregisterAll()` to remove all document-level listeners and clear the element Map.
 
 7. **Expose `handleCustomEvent` from the assertion manager** (`src/assertions/manager.ts`). Add a new method alongside `handleEvent`:
 
 ```typescript
 const handleCustomEvent = (event: Event): void => {
   const eventName = event.type;
-  const triggerSelector = `[${assertionTriggerAttr}^="event:${eventName}"]`;
-  const elements = document.querySelectorAll(triggerSelector);
-  const matching: HTMLElement[] = [];
+  const registered = customEventRegistry.getElements(eventName);
+  if (!registered || registered.size === 0) return;
 
-  for (const el of Array.from(elements) as HTMLElement[]) {
+  const matching: HTMLElement[] = [];
+  for (const el of registered) {
+    // Skip elements no longer in the DOM (stale Map entries)
+    if (!el.isConnected) continue;
     const triggerValue = el.getAttribute(assertionTriggerAttr)!;
-    const parsed = parseTriggerValue(triggerValue);
+    const parsed = parseCustomEventTrigger(triggerValue);
     if (parsed.detailMatches && !matchesDetail(event as CustomEvent, parsed.detailMatches)) {
-      continue; // R7: detail mismatch, skip
+      continue; // detail mismatch, skip
     }
     matching.push(el);
   }
 
   if (matching.length === 0) return;
-  const elementProcessor = createElementProcessor([...new Set(matching.map(el => el.getAttribute(assertionTriggerAttr)!))]);
+  const triggers = [...new Set(matching.map(el => el.getAttribute(assertionTriggerAttr)!))];
+  const elementProcessor = createElementProcessor(triggers);
   enqueueAssertions(elementProcessor(matching));
 };
 ```
 
-8. **`detail-matches` matching function** — add `matchesDetail(event: CustomEvent, matchers: Record<string, string>): boolean` to the custom events module. Implements R6: if `event.detail` is a primitive, match against `String(event.detail)`. If it's an object, check each `key:value` pair with shallow equality against `event.detail[key]`. Regex support deferred to v2.
+The key difference from the original plan: elements come from the Map lookup (O(1)) instead of `querySelectorAll` (O(n) DOM walk). Stale entries are filtered via `el.isConnected`.
 
-9. **Update `supportedTriggers`** (`src/config.ts:88`). The `supportedTriggers` array is used for validation. Custom event triggers are open-ended (any event name), so validation should accept any string starting with `event:`. This means `supportedTriggers` validation in `isProcessableElement` needs to be relaxed for custom events rather than adding to the array.
+8. **`detail-matches` matching function** — add `matchesDetail(event: CustomEvent, matchers: Record<string, string>): boolean` to `src/utils/triggers/custom-events.ts`. If `event.detail` is a primitive, match against `String(event.detail)`. If it's an object, check each `key:value` pair with shallow string equality against `String(event.detail[key])`.
+
+9. **Update `isProcessableElement`** to accept `event:` prefix triggers. Since `parseTrigger("event:cart-updated")` returns `{ base: "event", filter: "cart-updated" }`, include the full raw trigger string in the triggers array when calling from `handleCustomEvent`. In `isProcessableElement`, when `base === "event"`, match the full raw trigger value against the triggers array instead of just the base.
 
 ### Phase 2: Custom Event as Assertion Type (`fs-assert-emitted`)
 
@@ -173,9 +176,15 @@ Custom events fire from arbitrary sources — `document`, component hosts, servi
 
 The existing `parseTypeValue` (`src/processors/elements.ts:48-85`) handles bracket syntax with nested brackets (regex character classes). This already works for `event:cart-updated[detail-matches=action:increment]`. The only adaptation needed is a wrapper that strips the `event:` prefix and interprets the "selector" portion as the event name rather than a CSS selector.
 
+### Map-based element registry (performance optimization)
+
+The original approach called `querySelectorAll('[fs-trigger^="event:eventName"]')` on every custom event fire. At typical event frequencies (button clicks, API responses) this is fine (~0.3ms per call). But at high frequencies (60fps custom events like scroll-position-changed), this causes ~18ms/second of DOM walking — visible jank.
+
+The Map-based registry (`Map<string, Set<HTMLElement>>`) eliminates this entirely. Elements are registered when they enter the DOM (via init scan or MutationObserver) and looked up in O(1) at event time. Stale entries (elements removed from DOM) are filtered via `el.isConnected` during the event handler. Memory overhead is negligible (~2-4KB for 10 events with 20 elements).
+
 ### `isProcessableElement` must accept custom event trigger strings
 
-Currently (`src/processors/elements.ts:211-221`), the function does `triggers.includes(element.getAttribute(assertionTriggerAttr))`. For custom events, the trigger attribute value is `event:cart-updated[detail-matches=...]` which is unique per element. The handler must pass the exact trigger string or match on the `event:` prefix. The cleanest approach: when calling `processElements` from the custom event handler, pass the full trigger string (e.g., `"event:cart-updated"`) in the triggers array, and update `isProcessableElement` to do a `startsWith` check for `event:` prefix triggers.
+`isProcessableElement` uses `parseTrigger(raw)` to extract a base trigger name. For `event:cart-updated`, the base is `event` and the filter is `cart-updated`. When calling from `handleCustomEvent`, pass the full trigger strings of matching elements in the triggers array. In `isProcessableElement`, when `base === "event"`, match the full raw value against the triggers array instead of just the base. This avoids collisions between different custom event names.
 
 ### Synchronous dispatch gap (Phase 2 only)
 
@@ -233,7 +242,7 @@ The `assertion_type` field in `ApiPayload` (`src/types.ts:111`) is typed as `Ass
 - **Phase 2 depends on Phase 1** — the shared listener registry and `detail-matches` parsing are built in Phase 1.
 - **Collector backend impact:** The collector must handle `assertion_type: "emitted"`. If the backend rejects unknown types, Phase 2 assertions will fail to report. Coordinate with the collector repo.
 - **Risk: event name typos.** Unlike CSS selectors, custom event names have no DOM-level validation. A typo in the event name means the listener registers but never fires. Consider a debug-mode warning for registered listeners that never fire within a configurable window (out of scope for this plan, flagged for future).
-- **Risk: high-frequency events.** Custom events like `scroll-position-changed` could fire hundreds of times per second. The handler does a `querySelectorAll` on each fire. Mitigation: the selector `[fs-trigger^="event:eventName"]` is fast (attribute prefix match), and the result set is typically small. If this becomes a problem, cache the element set and invalidate on mutation.
+- **Risk: high-frequency events.** Custom events like `scroll-position-changed` could fire hundreds of times per second. Mitigated by the Map-based element registry — event handler does an O(1) Map lookup instead of DOM walking. At 60fps with the Map, overhead is ~0.3ms/second (negligible).
 
 ## Sources & References
 

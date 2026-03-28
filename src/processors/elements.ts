@@ -214,6 +214,8 @@ export function processElements(
  * Quick way to determine if this is a faultsense processable element.
  * Parses the trigger value to extract the base trigger name and optional key filter.
  * For keydown triggers with filters (e.g., "keydown:Escape"), the event must match.
+ * For custom event triggers (e.g., "event:cart-updated"), matches the full raw value
+ * against the triggers array since each custom event name is unique.
  */
 function isProcessableElement(
   element: HTMLElement,
@@ -223,6 +225,13 @@ function isProcessableElement(
   const raw = element.getAttribute(assertionTriggerAttr);
   if (!raw) return false;
   const { base, filter } = parseTrigger(raw);
+
+  // Custom event triggers: match full raw value (e.g., "event:cart-updated")
+  // since "event" base is shared by all custom events
+  if (base === "event") {
+    return triggers.includes(raw);
+  }
+
   if (!triggers.includes(base)) return false;
 
   // Key filter check: reject if the event doesn't match the specified key
@@ -369,12 +378,22 @@ function createAssertions(
       typeValue = ensureSelector(element);
     }
 
+    // Emitted assertions cannot persist across page navigation
+    let mpaMode = Boolean(metadata.modifiers["mpa"]);
+    if (typeEntry.type === "emitted" && mpaMode) {
+      console.warn(
+        `[Faultsense]: "emitted" assertions cannot persist across page navigation (MPA mode). ` +
+        `Ignoring fs-assert-mpa on "${metadata.details["assert"]}".`
+      );
+      mpaMode = false;
+    }
+
     return {
       assertionKey: metadata.details["assert"],
       endTime: undefined,
       elementSnapshot: element.outerHTML,
       trigger: metadata.details.trigger,
-      mpa_mode: Boolean(metadata.modifiers["mpa"]),
+      mpa_mode: mpaMode,
       startTime: Date.now(),
       status: undefined,
       statusReason: "",

@@ -18,7 +18,7 @@ import { documentResolver, elementResolver, immediateResolver } from "../resolve
 import { globalErrorResolver } from "../resolvers/error";
 
 
-import { eventTriggerAliases, domAssertions } from "../config";
+import { eventTriggerAliases, domAssertions, assertionTriggerAttr } from "../config";
 import {
   findAssertion,
   getAssertionsForMpaMode,
@@ -38,12 +38,16 @@ import { createLogger } from "../utils/logger";
 import { findAndCreateOobAssertions } from "../processors/oob";
 import { routeResolver } from "../resolvers/route";
 import { sequenceResolver } from "../resolvers/sequence";
+import { parseCustomEventTrigger, matchesDetail, isCustomEventTrigger } from "../utils/triggers/custom-events";
+import { createCustomEventRegistry } from "../listeners/custom-events";
+import { emittedResolver } from "../resolvers/emitted";
 
 // Assertion Manager with pluggable Processors
 export function createAssertionManager(config: Configuration) {
   let activeAssertions: Assertion[] = loadAssertions(); // Initially load assertions
   let assertionCountCallback: ((count: number) => void) | null = null;
   const logger = createLogger(config);
+  const customEventRegistry = createCustomEventRegistry();
 
   /**
    * Check if an assertion condition is already met after current event processing
@@ -126,6 +130,11 @@ export function createAssertionManager(config: Configuration) {
       } else if (!existingAssertion) {
         activeAssertions.push(newAssertion);
 
+        // Register a document listener for emitted assertions so the custom event can resolve them
+        if (newAssertion.type === "emitted") {
+          customEventRegistry.ensureListener(newAssertion.typeValue, handleCustomEvent);
+        }
+
         // Invariants have no timeout and no immediate check — they stay pending
         // until the resolver detects a violation. Everything else gets both.
         if (newAssertion.trigger !== "invariant") {
@@ -185,6 +194,51 @@ export function createAssertionManager(config: Configuration) {
     settle(completed);
   };
 
+  const handleCustomEvent = (event: Event): void => {
+    const eventName = event.type;
+
+    // Phase 1: Process trigger elements (creates new assertions)
+    const registered = customEventRegistry.getElements(eventName);
+    if (registered && registered.size > 0) {
+      const matching: HTMLElement[] = [];
+      for (const el of registered) {
+        if (!el.isConnected) continue;
+        const triggerValue = el.getAttribute(assertionTriggerAttr)!;
+        const parsed = parseCustomEventTrigger(triggerValue);
+        if (parsed.detailMatches && !matchesDetail(event as CustomEvent, parsed.detailMatches)) {
+          continue;
+        }
+        matching.push(el);
+      }
+
+      if (matching.length > 0) {
+        const triggers = [...new Set(matching.map(el => el.getAttribute(assertionTriggerAttr)!))];
+        const elementProcessor = createElementProcessor(triggers);
+        enqueueAssertions(elementProcessor(matching));
+      }
+    }
+
+    // Phase 2: Resolve pending emitted assertions
+    const pendingEmitted = activeAssertions.filter(
+      a => a.type === "emitted" && !a.endTime
+    );
+    if (pendingEmitted.length > 0) {
+      const emittedResults = emittedResolver(event as CustomEvent, pendingEmitted);
+      settle(emittedResults);
+    }
+  };
+
+  /**
+   * Register an element with a custom event trigger in the registry.
+   * Creates a document-level listener for the event name if not already registered.
+   */
+  const registerCustomEventElement = (element: HTMLElement): void => {
+    const triggerValue = element.getAttribute(assertionTriggerAttr);
+    if (!triggerValue || !isCustomEventTrigger(triggerValue)) return;
+    const { eventName } = parseCustomEventTrigger(triggerValue);
+    customEventRegistry.registerElement(eventName, element, handleCustomEvent);
+  };
+
   // Processor for DOM mutations (calls all registered mutation Processors)
   const handleMutations = (mutationsList: MutationRecord[]): void => {
     const elementProcessor = createElementProcessor(["mount", "invariant"]);
@@ -208,6 +262,18 @@ export function createAssertionManager(config: Configuration) {
     );
     settle(completed);
 
+    // Register any newly added elements with custom event triggers
+    for (const mutation of mutationsList) {
+      for (const node of Array.from(mutation.addedNodes)) {
+        if (node instanceof HTMLElement) {
+          registerCustomEventElement(node);
+          const descendants = node.querySelectorAll(`[${assertionTriggerAttr}]`);
+          for (const desc of Array.from(descendants) as HTMLElement[]) {
+            registerCustomEventElement(desc);
+          }
+        }
+      }
+    }
   };
 
   const handleGlobalError: GlobalErrorHandler = (errorInfo): void => {
@@ -402,11 +468,14 @@ export function createAssertionManager(config: Configuration) {
   // Expose the API for managing Processors, Resolvers and interacting with the manager
   return {
     handleEvent,
+    handleCustomEvent,
     handleMutations,
     handleGlobalError,
     handleNavigation,
     checkAssertions,
     processElements,
+    registerCustomEventElement,
+    customEventRegistry,
     saveActiveAssertions,
     clearActiveAssertions,
     handlePageUnload,
