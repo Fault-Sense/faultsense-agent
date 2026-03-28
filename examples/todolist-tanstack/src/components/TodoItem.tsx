@@ -132,7 +132,7 @@ export function TodoItem({ todo, disabled }: { todo: Todo; disabled?: boolean })
               }}
               fs-assert="todos/remove-item"
               fs-trigger="click"
-              fs-assert-grouped=""
+              fs-assert-mutex="each"
               fs-assert-removed-success=".todo-item"
               fs-assert-added-error=".error-msg"
               fs-assert-timeout="5000"
