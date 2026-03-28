@@ -5,7 +5,7 @@ import { init } from "../../src/index";
 import * as resolveModule from "../../src/assertions/server";
 import { isVisible } from "../../src/utils/elements";
 
-describe.only("Faultsense Agent - Assertion Type modifer: classlist", () => {
+describe("Faultsense Agent - Assertion Type modifer: classlist", () => {
   let consoleErrorMock: ReturnType<typeof vi.spyOn>;
   let sendToServerMock: ReturnType<typeof vi.spyOn>;
   let cleanupFn: ReturnType<typeof init>;

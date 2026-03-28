@@ -27,6 +27,12 @@ export function getFailureReasonForAssertion(
       return `Attributes do not match all: "${expected.modifiers["attrs-match"]}"`;
     case "classlist":
       return `Expected classlist does not match: "${expected.modifiers["classlist"]}"`;
+    case "value-matches":
+      return `Value does not match "${expected.modifiers["value-matches"]}"`;
+    case "checked":
+      return `Expected checked=${expected.modifiers["checked"]}`;
+    case "disabled":
+      return `Expected disabled=${expected.modifiers["disabled"]}`;
     default:
       return `Unknown Failure: ${failureReasonCode}`;
   }
@@ -39,6 +45,16 @@ const assertionTypeMatchers: Record<
   _default: (assertion: Assertion) => (el: HTMLElement) =>
     el.matches(assertion.typeValue),
   updated: (assertion: Assertion) => {
+    if (!assertion.typeValue) return (el: HTMLElement) => !!el;
+    const targetElement = document.querySelector(assertion.typeValue);
+    return (el: HTMLElement) =>
+      el.matches(assertion.typeValue) ||
+      targetElement?.contains(el as Node) ||
+      false;
+  },
+  // stable uses the same subtree matcher as updated
+  stable: (assertion: Assertion) => {
+    if (!assertion.typeValue) return (el: HTMLElement) => !!el;
     const targetElement = document.querySelector(assertion.typeValue);
     return (el: HTMLElement) =>
       el.matches(assertion.typeValue) ||
@@ -90,6 +106,19 @@ const modifiersMap: Record<
       "classlist",
     ];
   },
+  "value-matches": (el: HTMLElement, modValue: string) => [
+    "value" in el ? new RegExp(modValue).test((el as HTMLInputElement).value) : false,
+    "value-matches",
+  ],
+  checked: (el: HTMLElement, modValue: string) => [
+    "checked" in el ? (el as HTMLInputElement).checked === (modValue === "true") : false,
+    "checked",
+  ],
+  disabled: (el: HTMLElement, modValue: string) => {
+    const isDisabled = ("disabled" in el && (el as HTMLButtonElement).disabled) ||
+      el.getAttribute("aria-disabled") === "true";
+    return [modValue === "true" ? isDisabled : !isDisabled, "disabled"];
+  },
 };
 
 /**
@@ -104,6 +133,9 @@ const baseAssertionFns: Record<
   hidden: (el: HTMLElement) => [!isVisible(el), "hidden"],
 };
 
+// Selector-level modifiers are checked before per-element iteration
+const selectorLevelModifiers = new Set(["count", "count-min", "count-max"]);
+
 /**
  * Return all the modifier functions for an assertion
  */
@@ -116,14 +148,40 @@ export function getAssertionModifierFns(
     mods.push(baseAssertionFns[assertion.type]);
   }
 
-  // Add additional modifiers
+  // Add additional modifiers (skip selector-level modifiers handled in checkCountModifiers)
   for (const [modName, modValue] of Object.entries(assertion.modifiers)) {
-    if (modifiersMap[modName]) {
+    if (modifiersMap[modName] && !selectorLevelModifiers.has(modName)) {
       mods.push((el: HTMLElement) => modifiersMap[modName](el, modValue));
     }
   }
 
   return mods;
+}
+
+/**
+ * Pre-check count modifiers against querySelectorAll result count.
+ * Returns a CompletedAssertion on failure, null if count passes or no count modifiers.
+ */
+function checkCountModifiers(assertion: Assertion): CompletedAssertion | null {
+  const mods = assertion.modifiers;
+  if (!mods) return null;
+  const count = mods["count"];
+  const countMin = mods["count-min"];
+  const countMax = mods["count-max"];
+  if (!count && !countMin && !countMax) return null;
+  if (!assertion.typeValue) return null; // self-referencing, warned at parse time
+
+  const actual = document.querySelectorAll(assertion.typeValue).length;
+  if (count && actual !== Number(count)) {
+    return completeAssertion(assertion, false, `Expected ${count} elements matching "${assertion.typeValue}", found ${actual}.`);
+  }
+  if (countMin && actual < Number(countMin)) {
+    return completeAssertion(assertion, false, `Expected at least ${countMin} elements matching "${assertion.typeValue}", found ${actual}.`);
+  }
+  if (countMax && actual > Number(countMax)) {
+    return completeAssertion(assertion, false, `Expected at most ${countMax} elements matching "${assertion.typeValue}", found ${actual}.`);
+  }
+  return null; // all count checks passed
 }
 
 /**
@@ -140,6 +198,10 @@ function handleAssertion(
 ): CompletedAssertion | null {
   const matchingElements = elements.filter(matchFn);
   if (matchingElements.length === 0) return null;
+
+  // Pre-check selector-level count modifiers before per-element iteration
+  const countResult = checkCountModifiers(assertion);
+  if (countResult !== null) return countResult;
 
   const modifierFns = getAssertionModifierFns(assertion);
 
@@ -197,6 +259,14 @@ export const elementResolver: ElementResolver = (
       case "updated":
         elements = updatedElements;
         break;
+      case "stable": {
+        // Stable detects any mutation in the subtree — childList, attributes, characterData.
+        // Filter out elements whose only mutations were Faultsense's own data-fs-* attributes.
+        const fsOnly: Set<HTMLElement> = (updatedElements as any).__fsOnlyMutationTargets || new Set();
+        const filteredUpdated = updatedElements.filter(el => !fsOnly.has(el));
+        elements = [...filteredUpdated, ...addedElements, ...removedElements];
+        break;
+      }
       case "visible":
       case "hidden":
         elements = [...addedElements, ...updatedElements];
