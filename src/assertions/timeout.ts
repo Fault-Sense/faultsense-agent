@@ -38,6 +38,10 @@ function getFailureReasonForAssertion(
             return `Expected URL to match ${assertion.typeValue} within ${timeout}ms.`;
         case "stable":
             return `Expected ${assertion.typeValue} to remain stable within ${timeout}ms.`;
+        case "after":
+            return `Expected precondition(s) ${assertion.typeValue} to have passed within ${timeout}ms.`;
+        case "emitted":
+            return `Expected CustomEvent "${assertion.typeValue}" to be dispatched within ${timeout}ms.`;
         default:
             return `Unknown assertion type: ${assertion.type}`;
     }
