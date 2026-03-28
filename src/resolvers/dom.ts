@@ -39,6 +39,10 @@ export function getFailureReasonForAssertion(
       return `Element count below minimum ${expected.modifiers["count-min"]} for "${expected.typeValue}"`;
     case "count-max":
       return `Element count exceeds maximum ${expected.modifiers["count-max"]} for "${expected.typeValue}"`;
+    case "focused":
+      return `Expected focused=${expected.modifiers["focused"]}`;
+    case "focused-within":
+      return `Expected focused-within=${expected.modifiers["focused-within"]}`;
     default:
       return `Unknown Failure: ${failureReasonCode}`;
   }
@@ -129,6 +133,14 @@ const modifiersMap: Record<
       el.getAttribute("aria-disabled") === "true";
     return [modValue === "true" ? isDisabled : !isDisabled, "disabled"];
   },
+  focused: (el: HTMLElement, modValue: string) => [
+    (document.activeElement === el) === (modValue === "true"),
+    "focused",
+  ],
+  "focused-within": (el: HTMLElement, modValue: string) => [
+    el.matches(":focus-within") === (modValue === "true"),
+    "focused-within",
+  ],
 };
 
 /**

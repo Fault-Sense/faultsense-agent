@@ -64,7 +64,7 @@ export type AssertionType = (typeof allAssertionTypes)[number];
 
 export type AssertionModiferValue = string;
 
-export const domModifiers = ["text-matches", "classlist", "attrs-match", "value-matches", "checked", "disabled", "count", "count-min", "count-max"] as const;
+export const domModifiers = ["text-matches", "classlist", "attrs-match", "value-matches", "checked", "disabled", "count", "count-min", "count-max", "focused", "focused-within"] as const;
 export type DomModifier = (typeof domModifiers)[number];
 export type AssertionModifiers =
   | "mpa"

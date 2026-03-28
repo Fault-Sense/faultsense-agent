@@ -59,6 +59,8 @@ fs-assert-updated='.panel[classlist=active:true,hidden:false]'
 - `[value-matches=pattern]` — form control `.value` property regex, **partial match** (unanchored)
 - `[checked=true|false]` — checkbox/radio `.checked` property
 - `[disabled=true|false]` — disabled state (native `.disabled` or `aria-disabled`)
+- `[focused=true|false]` — focus state (`document.activeElement === el`). Same MutationObserver caveat as `value-matches`.
+- `[focused-within=true|false]` — focus-within state (`el.matches(':focus-within')`)
 - `[count=N]` / `[count-min=N]` / `[count-max=N]` — element count from `querySelectorAll`
 - `[classlist=class:true,class:false]` — class presence check
 - `[attr=value]` — attribute check with regex, **full match** (auto-anchored `^(?:value)$`). Supports `|` alternation: `[data-state=active|ready]`

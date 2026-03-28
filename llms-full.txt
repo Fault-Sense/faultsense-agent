@@ -105,6 +105,8 @@ fs-assert-added-success='.success[text-matches=Order #\d+]'
 | `[value-matches=<pattern>]` | Form control `.value` property must match (regex, **partial match** — unanchored). Works on `input`, `textarea`, `select`. Reads the live DOM property, not the HTML attribute. Use `^exact$` to anchor. |
 | `[checked=true\|false]` | Checkbox/radio `.checked` DOM property. Reads the live boolean state, not the HTML `checked` attribute. |
 | `[disabled=true\|false]` | Disabled state. Checks native `.disabled` property (form elements) and `aria-disabled="true"` attribute. |
+| `[focused=true\|false]` | Focus state. Checks `document.activeElement === el`. Same MutationObserver caveat as `value-matches` — evaluates during event-triggered resolution. |
+| `[focused-within=true\|false]` | Focus-within state. Checks `el.matches(':focus-within')` — true when the element or any descendant has focus. |
 | `[count=N]` | Exactly N elements must match the selector (`querySelectorAll(selector).length === N`). |
 | `[count-min=N]` | At least N elements must match the selector. |
 | `[count-max=N]` | At most N elements must match the selector. |

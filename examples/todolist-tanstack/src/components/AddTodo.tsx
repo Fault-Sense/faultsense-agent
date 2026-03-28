@@ -22,7 +22,9 @@ export function AddTodo() {
   return (
     <div>
       <form onSubmit={handleSubmit} style={styles.form}>
+        {/* fs-assert: On page load, the add input should have focus */}
         <input
+          id="add-todo-input"
           type="text"
           value={text}
           onChange={(e) => {
@@ -31,6 +33,10 @@ export function AddTodo() {
           }}
           placeholder="What needs to be done?"
           style={styles.input}
+          autoFocus
+          fs-assert="todos/add-input-focused"
+          fs-trigger="mount"
+          fs-assert-visible="[focused=true]"
         />
         {/* fs-assert: Clicking add should create a new .todo-item on success,
             or show a validation error when submitting blank text.

@@ -118,7 +118,7 @@ export function TodoItem({ todo }: { todo: Todo }) {
               }}
               fs-assert="todos/edit-item"
               fs-trigger="click"
-              fs-assert-added=".todo-edit-input"
+              fs-assert-added=".todo-edit-input[focused=true]"
             >
               Edit
             </button>

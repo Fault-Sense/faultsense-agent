@@ -46,7 +46,7 @@ export const oobAttr = `${assertionPrefix.types}oob`;         // fs-assert-oob (
 export const oobFailAttr = `${assertionPrefix.types}oob-fail`; // fs-assert-oob-fail (fires on parent fail)
 
 // Reserved inline modifier keys (everything else is treated as an attribute check)
-export const inlineModifiers = ["text-matches", "classlist", "value-matches", "checked", "disabled", "count", "count-min", "count-max"];
+export const inlineModifiers = ["text-matches", "classlist", "value-matches", "checked", "disabled", "count", "count-min", "count-max", "focused", "focused-within"];
 
 export const supportedAssertions = {
   details: [
