@@ -342,7 +342,15 @@ function createAssertions(
       }
     }
 
-    const assertion: any = {
+    // Warn about count modifiers on self-referencing assertions (no selector)
+    const hasCountMod = resolvedMods["count"] || resolvedMods["count-min"] || resolvedMods["count-max"];
+    if (hasCountMod && !typeEntry.value) {
+      console.warn(
+        `[Faultsense]: Count modifier on self-referencing assertion "${metadata.details["assert"]}" is nonsensical (count is always 1).`
+      );
+    }
+
+    return {
       assertionKey: metadata.details["assert"],
       endTime: undefined,
       elementSnapshot: element.outerHTML,
@@ -357,21 +365,7 @@ function createAssertions(
       modifiers: mergedModifiers,
       conditionKey: typeEntry.conditionKey,
       grouped: typeEntry.conditionKey ? metadata.modifiers["grouped"] !== undefined : undefined,
+      invertResolution: invertedResolutionTypes.includes(typeEntry.type) || undefined,
     };
-
-    // Stamp invertResolution for inverted assertion types (e.g., stable)
-    if (invertedResolutionTypes.includes(typeEntry.type)) {
-      assertion.invertResolution = true;
-    }
-
-    // Warn about count modifiers on self-referencing assertions (no selector)
-    const hasCountMod = resolvedMods["count"] || resolvedMods["count-min"] || resolvedMods["count-max"];
-    if (hasCountMod && !typeEntry.value) {
-      console.warn(
-        `[Faultsense]: Count modifier on self-referencing assertion "${metadata.details["assert"]}" is nonsensical (count is always 1).`
-      );
-    }
-
-    return assertion;
   });
 }
