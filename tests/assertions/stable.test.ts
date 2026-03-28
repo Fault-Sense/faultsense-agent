@@ -168,7 +168,7 @@ describe("Faultsense Agent - Assertion Type: stable", () => {
     );
   });
 
-  it("should ignore data-fs-* attribute mutations", async () => {
+  it("should fail on any attribute mutation including data-fs-*", async () => {
     document.body.innerHTML = `
       <div id="panel">Content</div>
       <button fs-trigger="click"
@@ -179,7 +179,6 @@ describe("Faultsense Agent - Assertion Type: stable", () => {
 
     const button = document.querySelector("button") as HTMLButtonElement;
     button.addEventListener("click", () => {
-      // Simulate a Faultsense internal attribute mutation
       setTimeout(() => {
         document.getElementById("panel")!.setAttribute("data-fs-oob-target", "true");
       }, 50);
@@ -187,18 +186,12 @@ describe("Faultsense Agent - Assertion Type: stable", () => {
 
     button.click();
 
-    // Advance past the fs-attribute mutation
     fixedDateNow += 51;
     vi.advanceTimersByTime(51);
 
-    // The fs-attribute mutation should be filtered, so the assertion should still
-    // be pending. Advance past the SLA timeout for a pass.
-    fixedDateNow += 1000;
-    vi.advanceTimersByTime(1000);
-
     await vi.waitFor(() =>
       expect(sendToServerMock).toHaveBeenCalledWith(
-        [expect.objectContaining({ status: "passed" })],
+        [expect.objectContaining({ status: "failed" })],
         config
       )
     );

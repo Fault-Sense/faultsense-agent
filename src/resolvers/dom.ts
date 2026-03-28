@@ -259,14 +259,10 @@ export const elementResolver: ElementResolver = (
       case "updated":
         elements = updatedElements;
         break;
-      case "stable": {
+      case "stable":
         // Stable detects any mutation in the subtree — childList, attributes, characterData.
-        // Filter out elements whose only mutations were Faultsense's own data-fs-* attributes.
-        const fsOnly: Set<HTMLElement> = (updatedElements as any).__fsOnlyMutationTargets || new Set();
-        const filteredUpdated = updatedElements.filter(el => !fsOnly.has(el));
-        elements = [...filteredUpdated, ...addedElements, ...removedElements];
+        elements = [...updatedElements, ...addedElements, ...removedElements];
         break;
-      }
       case "visible":
       case "hidden":
         elements = [...addedElements, ...updatedElements];
