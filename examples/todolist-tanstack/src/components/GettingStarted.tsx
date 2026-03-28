@@ -58,6 +58,11 @@ export function GettingStarted() {
                 ...(isComplete ? styles.stepComplete : {}),
                 ...(!isActive && !isComplete ? styles.stepLocked : {}),
               }}
+              {...(step.id === 1 ? {
+                'fs-assert': 'guide/step-1',
+                'fs-trigger': 'mount',
+                'fs-assert-visible': '.getting-started-step',
+              } : {})}
             >
               <div style={styles.stepHeader}>
                 <span style={{
@@ -73,20 +78,28 @@ export function GettingStarted() {
                   <p style={styles.stepDesc}>{step.description}</p>
                   <p style={styles.stepHint}>{step.hint}</p>
                   {/* fs-assert: Clicking "Done" marks the step complete.
-                      Step 2+ use fs-assert-after to validate the previous step
-                      was completed first — sequence validation. */}
-                  <button
-                    style={styles.doneBtn}
-                    onClick={() => markComplete(step.id)}
-                    fs-assert={`guide/step-${step.id}`}
-                    fs-trigger="click"
-                    fs-assert-added={`.getting-started-step.complete[count=${step.id}]`}
-                    {...(step.id > 1 ? {
-                      'fs-assert-after': `guide/step-${step.id - 1}`,
-                    } : {})}
-                  >
-                    Done
-                  </button>
+                      Step 1 asserts on mount (visible on page load).
+                      Steps 2+ use fs-assert-after to validate sequence. */}
+                  {step.id > 1 && (
+                    <button
+                      style={styles.doneBtn}
+                      onClick={() => markComplete(step.id)}
+                      fs-assert={`guide/step-${step.id}`}
+                      fs-trigger="click"
+                      fs-assert-after={`guide/step-${step.id - 1}`}
+                      fs-assert-added={`.getting-started-step.complete[count=${step.id}]`}
+                    >
+                      Done
+                    </button>
+                  )}
+                  {step.id === 1 && (
+                    <button
+                      style={styles.doneBtn}
+                      onClick={() => markComplete(step.id)}
+                    >
+                      Done
+                    </button>
+                  )}
                 </div>
               )}
             </div>
