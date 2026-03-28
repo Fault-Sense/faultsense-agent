@@ -378,12 +378,22 @@ function createAssertions(
       typeValue = ensureSelector(element);
     }
 
+    // Emitted assertions cannot persist across page navigation
+    let mpaMode = Boolean(metadata.modifiers["mpa"]);
+    if (typeEntry.type === "emitted" && mpaMode) {
+      console.warn(
+        `[Faultsense]: "emitted" assertions cannot persist across page navigation (MPA mode). ` +
+        `Ignoring fs-assert-mpa on "${metadata.details["assert"]}".`
+      );
+      mpaMode = false;
+    }
+
     return {
       assertionKey: metadata.details["assert"],
       endTime: undefined,
       elementSnapshot: element.outerHTML,
       trigger: metadata.details.trigger,
-      mpa_mode: Boolean(metadata.modifiers["mpa"]),
+      mpa_mode: mpaMode,
       startTime: Date.now(),
       status: undefined,
       statusReason: "",

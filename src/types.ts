@@ -58,9 +58,10 @@ export type GlobalErrorResolver = (
 export type AssertionStatus = "passed" | "failed" | "dismissed";
 
 export const domAssertionTypes = ["added", "removed", "updated", "visible", "hidden", "loaded", "stable"] as const;
+export const eventAssertionTypes = ["emitted"] as const;
 export const routeAssertionTypes = ["route"] as const;
 export const sequenceAssertionTypes = ["after"] as const;
-export const allAssertionTypes = [...domAssertionTypes, ...routeAssertionTypes, ...sequenceAssertionTypes] as const;
+export const allAssertionTypes = [...domAssertionTypes, ...eventAssertionTypes, ...routeAssertionTypes, ...sequenceAssertionTypes] as const;
 export type AssertionType = (typeof allAssertionTypes)[number];
 
 export type AssertionModiferValue = string;

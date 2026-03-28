@@ -5,6 +5,7 @@
  */
 export interface CustomEventRegistry {
   registerElement(eventName: string, element: HTMLElement, handler: (event: Event) => void): void;
+  ensureListener(eventName: string, handler: (event: Event) => void): void;
   deregisterElement(eventName: string, element: HTMLElement): void;
   getElements(eventName: string): Set<HTMLElement> | undefined;
   isRegistered(eventName: string): boolean;
@@ -22,7 +23,11 @@ export function createCustomEventRegistry(): CustomEventRegistry {
     }
     elements.get(eventName)!.add(element);
 
-    // Register one document-level listener per unique event name
+    ensureListener(eventName, handler);
+  }
+
+  /** Register a document-level listener without tracking an element (used for emitted assertions). */
+  function ensureListener(eventName: string, handler: (event: Event) => void): void {
     if (!listeners.has(eventName)) {
       listeners.set(eventName, handler);
       document.addEventListener(eventName, handler);
@@ -54,6 +59,7 @@ export function createCustomEventRegistry(): CustomEventRegistry {
 
   return {
     registerElement,
+    ensureListener,
     deregisterElement,
     getElements,
     isRegistered,

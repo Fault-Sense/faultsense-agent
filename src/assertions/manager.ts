@@ -40,6 +40,7 @@ import { routeResolver } from "../resolvers/route";
 import { sequenceResolver } from "../resolvers/sequence";
 import { parseCustomEventTrigger, matchesDetail, isCustomEventTrigger } from "../utils/triggers/custom-events";
 import { createCustomEventRegistry } from "../listeners/custom-events";
+import { emittedResolver } from "../resolvers/emitted";
 
 // Assertion Manager with pluggable Processors
 export function createAssertionManager(config: Configuration) {
@@ -129,6 +130,11 @@ export function createAssertionManager(config: Configuration) {
       } else if (!existingAssertion) {
         activeAssertions.push(newAssertion);
 
+        // Register a document listener for emitted assertions so the custom event can resolve them
+        if (newAssertion.type === "emitted") {
+          customEventRegistry.ensureListener(newAssertion.typeValue, handleCustomEvent);
+        }
+
         // Invariants have no timeout and no immediate check — they stay pending
         // until the resolver detects a violation. Everything else gets both.
         if (newAssertion.trigger !== "invariant") {
@@ -190,24 +196,36 @@ export function createAssertionManager(config: Configuration) {
 
   const handleCustomEvent = (event: Event): void => {
     const eventName = event.type;
-    const registered = customEventRegistry.getElements(eventName);
-    if (!registered || registered.size === 0) return;
 
-    const matching: HTMLElement[] = [];
-    for (const el of registered) {
-      if (!el.isConnected) continue;
-      const triggerValue = el.getAttribute(assertionTriggerAttr)!;
-      const parsed = parseCustomEventTrigger(triggerValue);
-      if (parsed.detailMatches && !matchesDetail(event as CustomEvent, parsed.detailMatches)) {
-        continue;
+    // Phase 1: Process trigger elements (creates new assertions)
+    const registered = customEventRegistry.getElements(eventName);
+    if (registered && registered.size > 0) {
+      const matching: HTMLElement[] = [];
+      for (const el of registered) {
+        if (!el.isConnected) continue;
+        const triggerValue = el.getAttribute(assertionTriggerAttr)!;
+        const parsed = parseCustomEventTrigger(triggerValue);
+        if (parsed.detailMatches && !matchesDetail(event as CustomEvent, parsed.detailMatches)) {
+          continue;
+        }
+        matching.push(el);
       }
-      matching.push(el);
+
+      if (matching.length > 0) {
+        const triggers = [...new Set(matching.map(el => el.getAttribute(assertionTriggerAttr)!))];
+        const elementProcessor = createElementProcessor(triggers);
+        enqueueAssertions(elementProcessor(matching));
+      }
     }
 
-    if (matching.length === 0) return;
-    const triggers = [...new Set(matching.map(el => el.getAttribute(assertionTriggerAttr)!))];
-    const elementProcessor = createElementProcessor(triggers);
-    enqueueAssertions(elementProcessor(matching));
+    // Phase 2: Resolve pending emitted assertions
+    const pendingEmitted = activeAssertions.filter(
+      a => a.type === "emitted" && !a.endTime
+    );
+    if (pendingEmitted.length > 0) {
+      const emittedResults = emittedResolver(event as CustomEvent, pendingEmitted);
+      settle(emittedResults);
+    }
   };
 
   /**
