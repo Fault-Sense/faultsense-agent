@@ -1,7 +1,7 @@
 ---
 title: "feat: Add property assertion primitives and fs-assert-stable"
 type: feat
-status: active
+status: completed
 date: 2026-03-27
 origin: docs/brainstorms/2026-03-27-property-primitives-and-stable-requirements.md
 ---
