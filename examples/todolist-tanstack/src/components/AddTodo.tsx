@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useRouter } from '@tanstack/react-router'
 import { addTodo } from '../server/todos'
 
-export function AddTodo() {
+export function AddTodo({ disabled }: { disabled?: boolean }) {
   const router = useRouter()
   const [text, setText] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -34,6 +34,7 @@ export function AddTodo() {
           placeholder="What needs to be done?"
           style={styles.input}
           autoFocus
+          disabled={disabled}
           fs-assert="todos/add-input-focused"
           fs-trigger="mount"
           fs-assert-visible="[focused=true]"
@@ -44,7 +45,11 @@ export function AddTodo() {
             Normal adds resolve well within the SLA. */}
         <button
           type="submit"
-          style={styles.button}
+          style={{
+            ...styles.button,
+            ...(disabled ? styles.disabledBtn : {}),
+          }}
+          disabled={disabled}
           fs-assert="todos/add-item"
           fs-trigger="click"
           fs-assert-added-success=".todo-item"
@@ -90,5 +95,9 @@ const styles: Record<string, React.CSSProperties> = {
     marginTop: '0.5rem',
     fontSize: '0.8125rem',
     color: '#dc2626',
+  },
+  disabledBtn: {
+    opacity: 0.4,
+    cursor: 'not-allowed',
   },
 }

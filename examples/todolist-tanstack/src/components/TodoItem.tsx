@@ -3,7 +3,7 @@ import { useRouter } from '@tanstack/react-router'
 import { updateTodo, toggleTodo, deleteTodo } from '../server/todos'
 import type { Todo } from '../types/todo'
 
-export function TodoItem({ todo }: { todo: Todo }) {
+export function TodoItem({ todo, disabled }: { todo: Todo; disabled?: boolean }) {
   const router = useRouter()
   const [isEditing, setIsEditing] = useState(false)
   const [editText, setEditText] = useState(todo.text)
@@ -58,6 +58,7 @@ export function TodoItem({ todo }: { todo: Todo }) {
         type="checkbox"
         checked={todo.completed}
         onChange={handleToggle}
+        disabled={disabled}
         style={styles.checkbox}
         fs-assert="todos/toggle-complete"
         fs-trigger="change"
@@ -111,10 +112,10 @@ export function TodoItem({ todo }: { todo: Todo }) {
             <button
               id={`edit-btn-${todo.id}`}
               onClick={handleEdit}
-              disabled={todo.completed}
+              disabled={disabled || todo.completed}
               style={{
                 ...styles.actionBtn,
-                ...(todo.completed ? styles.disabledBtn : {}),
+                ...(disabled || todo.completed ? styles.disabledBtn : {}),
               }}
               fs-assert="todos/edit-item"
               fs-trigger="click"
@@ -127,7 +128,12 @@ export function TodoItem({ todo }: { todo: Todo }) {
                 conditional types (removed + added) as mutually exclusive outcomes. */}
             <button
               onClick={handleDelete}
-              style={{ ...styles.actionBtn, ...styles.deleteBtn }}
+              disabled={disabled}
+              style={{
+                ...styles.actionBtn,
+                ...styles.deleteBtn,
+                ...(disabled ? styles.disabledBtn : {}),
+              }}
               fs-assert="todos/remove-item"
               fs-trigger="click"
               fs-assert-grouped=""

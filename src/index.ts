@@ -1,4 +1,5 @@
 import { assertionTriggerAttr, supportedEvents } from "./config";
+import { createConnectivityHandlers } from "./processors/connectivity";
 import { createAssertionManager } from "./assertions/manager";
 import { interceptErrors } from "./interceptors/error";
 import { interceptNavigation } from "./interceptors/navigation";
@@ -55,6 +56,13 @@ export function init(initialConfig: Partial<Configuration>): () => void {
     capturePhase
   );
 
+  // Network state change listeners
+  const { handleOnline, handleOffline } = createConnectivityHandlers(
+    assertionManager.processElements
+  );
+  window.addEventListener("online", handleOnline);
+  window.addEventListener("offline", handleOffline);
+
   // Set up a MutationObserver to handle DOM changes
   observer = new MutationObserver((mutations) => {
     assertionManager.handleMutations(mutations);
@@ -77,6 +85,11 @@ export function init(initialConfig: Partial<Configuration>): () => void {
     "invariant",
   ]);
 
+  // If the page loaded while offline, immediately process offline-triggered elements
+  if (!navigator.onLine) {
+    handleOffline();
+  }
+
   // Run initial check
   assertionManager.checkAssertions();
 
@@ -90,16 +103,18 @@ export function init(initialConfig: Partial<Configuration>): () => void {
         capturePhase
       );
     });
-    document.removeEventListener(
+    window.removeEventListener(
       "pagehide",
       assertionManager.handlePageUnload,
       capturePhase
     );
-    document.removeEventListener(
+    window.removeEventListener(
       "beforeunload",
       assertionManager.handlePageUnload,
       capturePhase
     );
+    window.removeEventListener("online", handleOnline);
+    window.removeEventListener("offline", handleOffline);
     if (observer) {
       observer.disconnect();
       observer = null;
