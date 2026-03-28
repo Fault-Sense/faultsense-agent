@@ -30,7 +30,7 @@ When asked to add Faultsense assertions to a component, reason about it the same
 | Attribute | Purpose | Example |
 |---|---|---|
 | `fs-assert` | Assertion key (required) | `"checkout/submit-order"` |
-| `fs-trigger` | Event trigger (required) | `"click"`, `"submit"`, `"mount"`, `"invariant"`, `"hover"`, `"focus"`, `"input"`, `"keydown:Escape"`, `"online"`, `"offline"` |
+| `fs-trigger` | Event trigger (required) | `"click"`, `"submit"`, `"mount"`, `"invariant"`, `"event:cart-updated"`, `"event:cart-updated[detail-matches=action:increment]"` |
 | `fs-assert-added` | Element appears in DOM | `".success-msg"` |
 | `fs-assert-removed` | Element removed from DOM | `".modal-content"` |
 | `fs-assert-updated` | Element/subtree mutated | `"#cart-count"` |
@@ -38,6 +38,7 @@ When asked to add Faultsense assertions to a component, reason about it the same
 | `fs-assert-hidden` | Element exists but hidden | `".loading-spinner"` |
 | `fs-assert-loaded` | Media finished loading | `"#hero-image"` |
 | `fs-assert-stable` | Element NOT mutated (inverted updated) | `"#panel"` |
+| `fs-assert-emitted` | CustomEvent fires on document | `"payment:complete"` or `"payment:complete[detail-matches=orderId:\\d+]"` |
 | `fs-assert-after` | Sequence check: parent assertion(s) passed | `"checkout/add-to-cart"` or `"step/A,step/B"` |
 | `fs-assert-{type}-{condition}` | Conditional assertion (UI) | `fs-assert-added-success=".dashboard"` |
 | `fs-assert-grouped` | Group conditionals across types | (no value) |
@@ -191,6 +192,41 @@ Validate that user actions happen in the correct order. `fs-assert-after` checks
 - Chaining works: A → B → C, each `after` checks only its direct parent.
 - **Don't combine with `fs-trigger="invariant"`** — invariants skip immediate resolution, so `after` would never be checked.
 
+### Custom Event Assertions
+
+Two features for integrating with application-level CustomEvents dispatched on `document`.
+
+**Custom Event Triggers** (`fs-trigger="event:<name>"`): Trigger assertion evaluation when a named CustomEvent fires on `document`. Listeners are registered automatically at init and via MutationObserver for dynamically added elements. Works with all existing assertion types.
+
+```html
+<!-- Trigger on a custom event -->
+<div fs-assert="cart/sync" fs-trigger="event:cart-updated"
+  fs-assert-visible="#cart-count[text-matches=\d+]">
+</div>
+
+<!-- With detail-matches: shallow string equality on event.detail properties -->
+<div fs-assert="cart/item-added" fs-trigger="event:cart-updated[detail-matches=action:increment]"
+  fs-assert-updated="#cart-count">
+</div>
+```
+
+- `detail-matches` does shallow string equality on `event.detail` properties (e.g., `action:increment` checks `event.detail.action === "increment"`)
+- Without `detail-matches`, any dispatch of the named event triggers the assertion
+
+**Emitted Assertion Type** (`fs-assert-emitted="<eventName>"`): Passes when a matching CustomEvent fires on `document`. The value is an event name, optionally with `detail-matches` using regex matching.
+
+```html
+<!-- Assert that a payment:complete event fires after clicking Pay -->
+<button fs-assert="checkout/payment" fs-trigger="click"
+  fs-assert-emitted="payment:complete[detail-matches=orderId:\d+]">
+  Pay Now
+</button>
+```
+
+- `detail-matches` on `emitted` uses **regex matching** (unlike the trigger version which uses string equality)
+- NOT compatible with MPA mode — warns and ignores `fs-assert-mpa` on elements with `emitted`
+- **Synchronous dispatch limitation:** if the CustomEvent is dispatched synchronously in the same click handler, the event fires before the assertion is created. Use async dispatch (API callbacks, `setTimeout`, Promises) instead.
+
 ### Placement
 
 - Attributes go on the element the user interacts with (the `event.target`)
@@ -213,6 +249,8 @@ Validate that user actions happen in the correct order. `fs-assert-after` checks
 - **`count` requires an explicit selector** — self-referencing count (no selector) is always 1 and will warn at parse time.
 - **`value-matches` reads `.value` property, not attribute** — only meaningful on form controls (`input`, `textarea`, `select`). MutationObserver doesn't fire on `.value` changes, so use with event triggers (`change`, `blur`).
 - **`checked` is separate from `value-matches`** — `el.value` and `el.checked` are different DOM properties. Use `[checked=true]` for checkbox/radio state.
+- **Don't use `emitted` with MPA mode** — `fs-assert-emitted` listens for live CustomEvents on `document`. MPA assertions persist to localStorage and resolve on the next page load, where the event will never re-fire. The agent warns and ignores `fs-assert-mpa` on elements with `emitted`.
+- **Don't dispatch CustomEvents synchronously in the trigger handler** — if a click handler dispatches a CustomEvent synchronously, it fires before the assertion is created. Use async dispatch (`setTimeout`, Promises, API callbacks) so the event fires after the agent has set up the listener.
 - **Every element needs** `fs-assert` + `fs-trigger` (or `fs-assert-oob`/`fs-assert-oob-fail`) + at least one assertion type
 
 ## Project Context

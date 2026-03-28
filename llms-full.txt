@@ -59,6 +59,8 @@ Keys must be stable across releases. Human-readable labels are configured on the
 | `keydown:<key>` | Specific key pressed (e.g., `keydown:Escape`, `keydown:ctrl+s`) | Any focusable element |
 | `online` | Browser connectivity restored | Any |
 | `offline` | Browser connectivity lost | Any |
+| `event:<name>` | Named CustomEvent fires on `document` | Any |
+| `event:<name>[detail-matches=key:value]` | CustomEvent fires with matching `event.detail` properties (shallow string equality) | Any |
 
 ### Assertion Types
 
@@ -83,6 +85,14 @@ At least one required. Value is a CSS selector, optionally with inline modifiers
 | `fs-assert-after="<key>"` | All referenced parent assertion keys have already passed. Comma-separated for multiple (AND semantics). |
 
 `after` resolves immediately at creation time — it either passes (all parents passed) or fails (at least one hasn't). Produces an independent data point alongside any DOM/route assertions on the same element. Failed `after` assertions recover on re-trigger if parents have since passed.
+
+**Event Assertions:**
+
+| Attribute | Resolves when |
+|---|---|
+| `fs-assert-emitted="<eventName>"` | A matching CustomEvent fires on `document`. Value is an event name, optionally with `[detail-matches=key:pattern]` for regex matching on `event.detail` properties. |
+
+`emitted` listens for live CustomEvents on `document`. The event name is the value before any bracket modifiers. `detail-matches` uses regex (partial match) on `event.detail` property values — e.g., `payment:complete[detail-matches=orderId:\d+]` passes when `event.detail.orderId` matches `\d+`. NOT compatible with MPA mode (warns and ignores). Synchronous dispatch from the same trigger handler will fire before the assertion is created — use async dispatch.
 
 **Conditional Assertions** — append a condition key to the type name:
 
@@ -456,6 +466,24 @@ Each `fs-assert-{type}` attribute creates a separate assertion from the same tri
 
 Asserts: if the results container updates, the success conditional passes. If an error element appears, that conditional passes. No server-side integration needed.
 
+### 11. Custom Event Trigger + Emitted Assertion
+
+```html
+<!-- Trigger assertion when the app dispatches a custom event -->
+<div fs-assert="cart/sync-check" fs-trigger="event:cart-updated[detail-matches=action:add]"
+  fs-assert-visible="#cart-count[text-matches=\d+]">
+</div>
+
+<!-- Assert that clicking Pay causes a payment:complete event to fire -->
+<button fs-assert="checkout/payment" fs-trigger="click"
+  fs-assert-emitted="payment:complete[detail-matches=orderId:\d+]"
+  fs-assert-visible=".confirmation">
+  Pay Now
+</button>
+```
+
+Asserts: the first element validates UI state when the app dispatches `cart-updated` with `detail.action === "add"`. The second asserts that clicking Pay causes both a `payment:complete` CustomEvent (with a numeric `orderId`) and a visible confirmation element. `emitted` and `visible` resolve independently.
+
 ---
 
 ## Framework Syntax
@@ -544,6 +572,10 @@ Svelte passes unknown attributes through on native elements.
 14. **Confusing `checked` with `value-matches` on checkboxes.** `el.value` on a checkbox returns the static `value` attribute (e.g., `"on"`), not the checked state. Use `[checked=true]` for checkbox/radio state, `[value-matches=...]` for input text values.
 
 15. **Using `fs-assert-after` with `fs-trigger="invariant"`.** Invariants skip immediate resolution, so `after` would never be checked. Use `after` with event triggers (`click`, `submit`, etc.) or `mount`.
+
+16. **Dispatching CustomEvents synchronously in the trigger handler.** If a click handler dispatches a CustomEvent synchronously, the event fires before the agent creates the `emitted` assertion listener. The assertion never resolves. Use async dispatch (`setTimeout`, Promises, API callbacks) so the event fires after the assertion is set up.
+
+17. **Using `emitted` with MPA mode.** `fs-assert-emitted` listens for live CustomEvents on `document`. MPA assertions persist to localStorage and resolve on the next page load, where the original event will never re-fire. The agent warns and ignores `fs-assert-mpa` on elements with `emitted`.
 
 ---
 
