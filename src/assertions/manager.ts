@@ -164,7 +164,7 @@ export function createAssertionManager(config: Configuration) {
       return;
     }
     const triggers = eventTriggerAliases[event.type] || [event.type];
-    const elementProcessor = createElementProcessor(triggers, true); // true = eventMode
+    const elementProcessor = createElementProcessor(triggers, true, event);
     const created = eventProcessor(event, elementProcessor);
     enqueueAssertions(created);
 
