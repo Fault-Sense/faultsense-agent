@@ -4,7 +4,6 @@ import { getTodos } from '../server/todos'
 import { TodoList } from '../components/TodoList'
 import { AddTodo } from '../components/AddTodo'
 import { GettingStarted } from '../components/GettingStarted'
-import { ActivityLog } from '../components/ActivityLog'
 
 export const Route = createFileRoute('/todos')({
   loader: () => getTodos(),
@@ -149,7 +148,6 @@ function TodosPage() {
           </>
         )}
         <TodoList todos={todos} disabled={!isOnline} />
-        <ActivityLog />
       </main>
     </div>
   )

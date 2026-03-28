@@ -17,8 +17,6 @@ export function AddTodo({ disabled }: { disabled?: boolean }) {
     }
     setText('')
     router.invalidate()
-    // Dispatch a custom event for the activity log
-    document.dispatchEvent(new CustomEvent('todo:added', { detail: { text: text } }))
   }
 
   return (
@@ -59,7 +57,6 @@ export function AddTodo({ disabled }: { disabled?: boolean }) {
           fs-trigger="click"
           fs-assert-added-success=".todo-item"
           fs-assert-added-error=".add-error"
-          fs-assert-emitted="todo:added"
           fs-assert-timeout="500"
         >
           Add
