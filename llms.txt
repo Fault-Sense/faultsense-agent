@@ -28,6 +28,7 @@ Value is a CSS selector, optionally with inline modifiers in brackets:
 - `fs-assert-visible="<selector>"` — Element exists and visible
 - `fs-assert-hidden="<selector>"` — Element exists but hidden
 - `fs-assert-loaded="<selector>"` — Media element finished loading
+- `fs-assert-stable="<selector>"` — Element NOT mutated during timeout window (inverted `updated`)
 
 Conditional — append a condition key to the type name:
 - `fs-assert-{type}-{condition-key}="<selector>"` — e.g., `fs-assert-added-success=".dashboard"`, `fs-assert-added-error=".error-msg"`
@@ -40,6 +41,10 @@ Conditional — append a condition key to the type name:
 Chained CSS-like brackets after the selector:
 
 - `[text-matches=pattern]` — Text content regex/string match
+- `[value-matches=pattern]` — Form control `.value` property regex match (input, textarea, select)
+- `[checked=true|false]` — Checkbox/radio `.checked` property
+- `[disabled=true|false]` — Disabled state (native `.disabled` or `aria-disabled`)
+- `[count=N]` / `[count-min=N]` / `[count-max=N]` — Number of elements matching the selector
 - `[classlist=active:true,hidden:false]` — Class presence check
 - `[attr=value]` — Any other key is an attribute check
 
@@ -165,6 +170,41 @@ Invariants stay pending and produce no collector traffic while the condition hol
 `fs-assert-oob-fail="key1,key2"` fires when any listed parent assertion fails (timeout, GC, SLA). Dismissed assertions (losing conditional siblings) do NOT trigger oob-fail. Both `fs-assert-oob` and `fs-assert-oob-fail` can coexist on the same element as independent triggers.
 
 OOB rules: no chaining (OOB passing does not trigger further OOB), use state types (`visible`, `hidden`, `added`, `removed`) — not event types (`updated`, `loaded`).
+
+### Stability assertion (no flicker after action)
+
+```html
+<!-- OOB: verify count display doesn't flicker after toggle -->
+<div
+  fs-assert="todos/count-stable"
+  fs-assert-oob="todos/toggle-complete"
+  fs-assert-stable="#todo-count"
+  fs-assert-timeout="500">
+</div>
+```
+
+`stable` passes when no mutation occurs within the timeout window. Fails immediately on any mutation. Best used with OOB (start stability check after expected mutation) or `fs-assert-timeout` for explicit windows. Works with `invariant` trigger for perpetual "never mutate" monitoring.
+
+### Count assertion (cardinality check)
+
+```html
+<!-- After add, verify at least 1 todo exists -->
+<button fs-assert="todos/add-item" fs-trigger="click"
+  fs-assert-added-success=".todo-item[count-min=1]">Add</button>
+```
+
+### Multiple assertion types on one trigger
+
+```html
+<!-- Toggle asserts both classlist change AND edit button disabled state -->
+<input type="checkbox"
+  fs-assert="todos/toggle-complete"
+  fs-trigger="change"
+  fs-assert-updated='.todo-item[classlist=completed:true]'
+  fs-assert-visible='#edit-btn-1[disabled=true]' />
+```
+
+Each `fs-assert-{type}` attribute creates a separate assertion. All fire on the same trigger and resolve independently.
 
 ### Multi-check conditional outcome (OOB pattern)
 

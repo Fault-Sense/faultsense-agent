@@ -73,15 +73,34 @@ function TodosPage() {
           </span>
         </div>
         {todos.length > 0 && (
-          <div
-            id="todo-count"
-            style={styles.count}
-            fs-assert="todos/count-updated"
-            fs-assert-oob="todos/toggle-complete,todos/add-item,todos/remove-item"
-            fs-assert-visible='[text-matches=\d+/\d+ remaining]'
-          >
-            {uncompleted}/{todos.length} remaining
-          </div>
+          <>
+            <div
+              id="todo-count"
+              style={styles.count}
+              fs-assert="todos/count-updated"
+              fs-assert-oob="todos/toggle-complete,todos/add-item,todos/remove-item"
+              fs-assert-visible='[text-matches=\d+/\d+ remaining]'
+            >
+              {uncompleted}/{todos.length} remaining
+            </div>
+            {/* fs-assert count: After add or remove, verify the actual number of
+                .todo-item elements in the DOM matches the expected total. */}
+            <div
+              fs-assert="todos/item-count-correct"
+              fs-assert-oob="todos/add-item,todos/remove-item"
+              fs-assert-visible={`.todo-item[count=${todos.length}]`}
+              style={{ display: 'none' }}
+            />
+            {/* fs-assert stable: After toggle, verify the count display doesn't
+                flicker or re-render unexpectedly (catches React double-render bugs). */}
+            <div
+              fs-assert="todos/count-stable-after-toggle"
+              fs-assert-oob="todos/toggle-complete"
+              fs-assert-stable="#todo-count"
+              fs-assert-timeout="500"
+              style={{ display: 'none' }}
+            />
+          </>
         )}
         <TodoList todos={todos} />
       </main>

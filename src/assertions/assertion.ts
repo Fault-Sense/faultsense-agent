@@ -118,6 +118,12 @@ export function completeAssertion(
   success: boolean,
   failureReason?: string
 ): CompletedAssertion | null {
+  // Invert pass/fail for inverted resolution types (e.g., stable).
+  // Must run BEFORE the invariant guard so stable+invariant works correctly.
+  if (assertion.invertResolution) {
+    success = !success;
+  }
+
   // Invariants only complete on failure or recovery (pass after fail).
   // A pass on a non-failed invariant means "condition holds" — stay pending.
   if (assertion.trigger === "invariant" && success && assertion.previousStatus !== "failed") {

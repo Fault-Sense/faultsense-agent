@@ -60,6 +60,7 @@ export function TodoItem({ todo }: { todo: Todo }) {
         fs-assert="todos/toggle-complete"
         fs-trigger="change"
         fs-assert-updated={`.todo-item[classlist=completed:${!todo.completed}]`}
+        fs-assert-visible={`#edit-btn-${todo.id}[disabled=${!todo.completed}]`}
       />
 
       {isEditing ? (
@@ -102,10 +103,17 @@ export function TodoItem({ todo }: { todo: Todo }) {
             {todo.text}
           </span>
           <div style={styles.actions}>
-            {/* fs-assert: Clicking edit creates the inline input (conditionally rendered) */}
+            {/* fs-assert: Clicking edit creates the inline input (conditionally rendered).
+                Edit is disabled when the todo is completed — the toggle checkbox
+                asserts this via fs-assert-visible with [disabled] modifier. */}
             <button
+              id={`edit-btn-${todo.id}`}
               onClick={handleEdit}
-              style={styles.actionBtn}
+              disabled={todo.completed}
+              style={{
+                ...styles.actionBtn,
+                ...(todo.completed ? styles.disabledBtn : {}),
+              }}
               fs-assert="todos/edit-item"
               fs-trigger="click"
               fs-assert-added=".todo-edit-input"
@@ -183,6 +191,10 @@ const styles: Record<string, React.CSSProperties> = {
   deleteBtn: {
     color: '#dc2626',
     borderColor: '#fecaca',
+  },
+  disabledBtn: {
+    opacity: 0.4,
+    cursor: 'not-allowed',
   },
   editRow: {
     flex: 1,

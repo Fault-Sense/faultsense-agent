@@ -6,6 +6,7 @@ import {
   reservedConditionKeys,
   inlineModifiers,
   supportedModifiersByType,
+  invertedResolutionTypes,
 } from "../config";
 import { parseRoutePattern, validateRoutePattern } from "../resolvers/route";
 import {
@@ -341,6 +342,14 @@ function createAssertions(
       }
     }
 
+    // Warn about count modifiers on self-referencing assertions (no selector)
+    const hasCountMod = resolvedMods["count"] || resolvedMods["count-min"] || resolvedMods["count-max"];
+    if (hasCountMod && !typeEntry.value) {
+      console.warn(
+        `[Faultsense]: Count modifier on self-referencing assertion "${metadata.details["assert"]}" is nonsensical (count is always 1).`
+      );
+    }
+
     return {
       assertionKey: metadata.details["assert"],
       endTime: undefined,
@@ -356,6 +365,7 @@ function createAssertions(
       modifiers: mergedModifiers,
       conditionKey: typeEntry.conditionKey,
       grouped: typeEntry.conditionKey ? metadata.modifiers["grouped"] !== undefined : undefined,
+      invertResolution: invertedResolutionTypes.includes(typeEntry.type) || undefined,
     };
   });
 }

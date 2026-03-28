@@ -67,6 +67,7 @@ At least one required. Value is a CSS selector, optionally with inline modifiers
 | `fs-assert-visible="<selector>"` | The matched element exists and has layout dimensions |
 | `fs-assert-hidden="<selector>"` | The matched element exists but has no layout dimensions |
 | `fs-assert-loaded="<selector>"` | A media element (img/video) matching the selector finishes loading |
+| `fs-assert-stable="<selector>"` | The matched element's subtree is NOT mutated during the timeout window (inverted `updated`) |
 
 **Conditional Assertions** — append a condition key to the type name:
 
@@ -101,6 +102,12 @@ fs-assert-added-success='.success[text-matches=Order #\d+]'
 | Key | Description |
 |---|---|
 | `[text-matches=<pattern>]` | Text content must match (regex or string). Evaluated as `new RegExp(value).test(el.textContent)`. |
+| `[value-matches=<pattern>]` | Form control `.value` property must match (regex). Works on `input`, `textarea`, `select`. Reads the live DOM property, not the HTML attribute. |
+| `[checked=true\|false]` | Checkbox/radio `.checked` DOM property. Reads the live boolean state, not the HTML `checked` attribute. |
+| `[disabled=true\|false]` | Disabled state. Checks native `.disabled` property (form elements) and `aria-disabled="true"` attribute. |
+| `[count=N]` | Exactly N elements must match the selector (`querySelectorAll(selector).length === N`). |
+| `[count-min=N]` | At least N elements must match the selector. |
+| `[count-max=N]` | At most N elements must match the selector. |
 | `[classlist=<class:bool,...>]` | Classes on the element. Format: `active:true,hidden:false` where `true` = must have, `false` = must not have. |
 
 **Unreserved keys** are treated as attribute checks:
@@ -218,6 +225,32 @@ Invariants monitor conditions that should always hold — catching failures with
 - No timeout — invariants are perpetual for the page lifetime
 - Best with state types (`visible`, `hidden`). Event types (`updated`, `loaded`) are allowed but warned against in debug mode.
 - Invariants do not support conditional keys or MPA mode
+
+### Stable Assertions
+
+Stable assertions pass when the target element's subtree is NOT mutated during the timeout window. The temporal inverse of `updated`: any mutation fails immediately, timeout expiry with no mutations passes.
+
+```html
+<!-- OOB: verify price display doesn't flicker after add-to-cart -->
+<div
+  fs-assert="cart/price-stable"
+  fs-assert-oob="cart/add-item"
+  fs-assert-stable="#price-total"
+  fs-assert-timeout="500">
+</div>
+
+<!-- Perpetual: this element should never be mutated -->
+<div id="legal-notice"
+  fs-assert="layout/legal-stable"
+  fs-trigger="invariant"
+  fs-assert-stable="#legal-notice">
+</div>
+```
+
+- **Best with OOB**: Start the stability window after an expected mutation passes. Direct triggers work but will fail on the expected mutation itself.
+- **Works with `invariant`**: Perpetual "never mutate" monitoring. Fails on any mutation, re-arms after failure.
+- **Without `fs-assert-timeout`**: Passes via GC sweep (default 30s). Use explicit timeout for tighter stability windows.
+- **Production bugs caught**: Flickering UI, React double-render loops, optimistic UI rollbacks, WebSocket duplicate renders.
 
 ---
 
@@ -341,7 +374,37 @@ Asserts: if success message appears, the success conditional passes. If validati
 
 Asserts: after a full page reload, the success message is visible. The assertion is stored in localStorage and resolved when the agent initializes on the next page.
 
-### 8. Data Load → Conditional DOM Update
+### 8. Multiple Assertion Types on One Trigger
+
+```html
+<!-- Toggle asserts both classlist change AND edit button disabled state -->
+<input type="checkbox"
+  fs-assert="todos/toggle-complete"
+  fs-trigger="change"
+  fs-assert-updated='.todo-item[classlist=completed:true]'
+  fs-assert-visible='#edit-btn-1[disabled=true]' />
+```
+
+Each `fs-assert-{type}` attribute creates a separate assertion from the same trigger. Both resolve independently. Use specific selectors (ids) to target the right element in lists.
+
+### 9. Count Assertions (Cardinality)
+
+```html
+<!-- After add, verify at least 1 result exists -->
+<button fs-assert="search/execute" fs-trigger="click"
+  fs-assert-added=".result-card[count-min=1]">Search</button>
+
+<!-- OOB: verify total todo count matches expected after add/remove -->
+<div
+  fs-assert="todos/item-count"
+  fs-assert-oob="todos/add-item,todos/remove-item"
+  fs-assert-visible=".todo-item[count=5]">
+</div>
+```
+
+`count` checks `querySelectorAll(selector).length` before per-element modifiers run. Combine with other modifiers: `.item[count=3][text-matches=\w+]` means "3 elements match `.item`, and at least one has matching text."
+
+### 10. Data Load → Conditional DOM Update
 
 ```html
 <button
@@ -434,6 +497,16 @@ Svelte passes unknown attributes through on native elements.
 
 9. **Putting multiple assertion types under the same condition key for AND logic.** `fs-assert-removed-success` and `fs-assert-visible-success` on the same element are siblings (first to resolve dismisses the other), NOT AND. For multiple checks on one outcome, use OOB: the primary check goes on the trigger element, secondary checks go on OOB elements that fire when the primary passes.
 
+10. **Using CSS attribute selectors in inline modifier values.** The bracket parser treats `[` as a modifier delimiter. A selector like `[data-id="123"] .btn[disabled=true]` will be misparsed — `[data-id="123"]` is consumed as a modifier, not as part of the CSS selector. Use id selectors (`#btn-123[disabled=true]`) or class selectors instead.
+
+11. **Using OOB for per-item assertions in lists.** OOB broadcasts to ALL elements matching `fs-assert-oob="key"`. In a list of items, every item's OOB fires when any item's parent assertion passes — not just the acted-on item. Use OOB for singleton elements (count displays, toasts). For per-item state, use multiple assertion types on the trigger element instead.
+
+12. **Using `count` with self-referencing (no selector).** A self-referencing assertion checks the element itself — count of self is always 1. `count` requires an explicit selector to be meaningful.
+
+13. **Using `value-matches` and expecting MutationObserver to detect `.value` changes.** The `.value` DOM property is not an HTML attribute — typing into an input does NOT trigger MutationObserver. `value-matches` resolves reliably with event triggers (`change`, `blur`) or when the element also has a DOM mutation (attribute change, class change).
+
+14. **Confusing `checked` with `value-matches` on checkboxes.** `el.value` on a checkbox returns the static `value` attribute (e.g., `"on"`), not the checked state. Use `[checked=true]` for checkbox/radio state, `[value-matches=...]` for input text values.
+
 ---
 
 ## Event Payload
@@ -444,7 +517,7 @@ Each resolved assertion sends this payload to the collector:
 {
   assertion_key: string;        // from fs-assert (e.g., "checkout/submit-order")
   assertion_trigger: string;    // from fs-trigger
-  assertion_type: string;       // "added" | "removed" | "updated" | "visible" | "hidden" | "loaded"
+  assertion_type: string;       // "added" | "removed" | "updated" | "visible" | "hidden" | "loaded" | "stable"
   assertion_type_value: string; // the CSS selector
   assertion_type_modifiers: {}; // modifier key-value pairs
   condition_key: string;        // condition key (e.g., "success", "error") or "" if unconditional

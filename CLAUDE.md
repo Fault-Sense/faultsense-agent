@@ -37,6 +37,7 @@ When asked to add Faultsense assertions to a component, reason about it the same
 | `fs-assert-visible` | Element exists and visible | `".dashboard"` |
 | `fs-assert-hidden` | Element exists but hidden | `".loading-spinner"` |
 | `fs-assert-loaded` | Media finished loading | `"#hero-image"` |
+| `fs-assert-stable` | Element NOT mutated (inverted updated) | `"#panel"` |
 | `fs-assert-{type}-{condition}` | Conditional assertion (UI) | `fs-assert-added-success=".dashboard"` |
 | `fs-assert-grouped` | Group conditionals across types | (no value) |
 | `fs-assert-oob` | OOB: trigger on parent pass | `fs-assert-oob="todos/toggle"` |
@@ -55,6 +56,10 @@ fs-assert-updated='.panel[classlist=active:true,hidden:false]'
 ```
 
 - `[text-matches=pattern]` — text content regex/string match
+- `[value-matches=pattern]` — form control `.value` property regex match
+- `[checked=true|false]` — checkbox/radio `.checked` property
+- `[disabled=true|false]` — disabled state (native `.disabled` or `aria-disabled`)
+- `[count=N]` / `[count-min=N]` / `[count-max=N]` — element count from `querySelectorAll`
 - `[classlist=class:true,class:false]` — class presence check
 - `[attr=value]` — any other bracket is an attribute check (replaces attrs-match)
 
@@ -179,6 +184,10 @@ Side-effect elements (count labels, totals, toasts, error indicators) can declar
 - **Broad selectors in lists** — `.todo-text` matches ALL items in a list. `added` may resolve against the wrong sibling. Use `updated` when the specific element's content changes, or narrow with IDs/data attributes (`.todo-text[data-id=123]`). `updated` tracks the specific mutation; `added` just checks if any matching element appeared.
 - **Don't use `updated` or `loaded` with OOB** — OOB assertions are created after the DOM change. `updated` and `loaded` need to witness the event and will miss it. Use `visible`, `hidden`, `added`, or `removed` instead.
 - **Invariants use `visible`/`hidden`** — `fs-trigger="invariant"` creates perpetual assertions that only report failures. Use state-based types (`visible`, `hidden`). Event types (`updated`, `loaded`) are allowed but warned against.
+- **`stable` is inverted `updated`** — passes when NO mutation occurs within the timeout window, fails on any mutation. Best used with OOB (trigger stable after an expected mutation passes) or with `fs-assert-timeout` for explicit stability windows. Works with `invariant` trigger for perpetual "never mutate" monitoring.
+- **`count` requires an explicit selector** — self-referencing count (no selector) is always 1 and will warn at parse time.
+- **`value-matches` reads `.value` property, not attribute** — only meaningful on form controls (`input`, `textarea`, `select`). MutationObserver doesn't fire on `.value` changes, so use with event triggers (`change`, `blur`).
+- **`checked` is separate from `value-matches`** — `el.value` and `el.checked` are different DOM properties. Use `[checked=true]` for checkbox/radio state.
 - **Every element needs** `fs-assert` + `fs-trigger` (or `fs-assert-oob`/`fs-assert-oob-fail`) + at least one assertion type
 
 ## Project Context
