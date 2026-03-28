@@ -3,6 +3,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { getTodos } from '../server/todos'
 import { TodoList } from '../components/TodoList'
 import { AddTodo } from '../components/AddTodo'
+import { GettingStarted } from '../components/GettingStarted'
 
 export const Route = createFileRoute('/todos')({
   loader: () => getTodos(),
@@ -100,6 +101,7 @@ function TodosPage() {
         </p>
       </header>
       <main style={styles.main}>
+        <GettingStarted />
         <AddTodo disabled={!isOnline} />
         <div style={styles.demoRow}>
           <span style={styles.demoLabel}>Demos:</span>

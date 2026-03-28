@@ -1,4 +1,4 @@
-import { AssertionType, Configuration, domAssertionTypes, routeAssertionTypes, allAssertionTypes, domModifiers } from "./types";
+import { AssertionType, Configuration, domAssertionTypes, routeAssertionTypes, sequenceAssertionTypes, allAssertionTypes, domModifiers } from "./types";
 
 export const defaultConfiguration: Partial<Configuration> = {
   gcInterval: 30000,
@@ -17,6 +17,7 @@ export const assertionTriggerAttr = `${assertionPrefix.details}trigger`;
 // Re-export for use in resolvers/processors that gate on DOM vs route
 export const domAssertions: string[] = [...domAssertionTypes];
 export const routeAssertions: string[] = [...routeAssertionTypes];
+export const sequenceAssertions: string[] = [...sequenceAssertionTypes];
 
 // Condition key suffix pattern for UI-conditional types: added-success, added-error
 export const conditionKeySuffixPattern = /^[a-z][a-z0-9-]*$/;
@@ -35,6 +36,7 @@ export const supportedModifiersByType: Record<AssertionType, readonly string[]> 
   stable: domModifiers,
   loaded: [],
   route: [],
+  after: [],
 };
 
 // Assertion types whose pass/fail resolution semantics are inverted.

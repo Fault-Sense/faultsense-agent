@@ -37,6 +37,7 @@ import { propertyResolver } from "../resolvers/property";
 import { createLogger } from "../utils/logger";
 import { findAndCreateOobAssertions } from "../processors/oob";
 import { routeResolver } from "../resolvers/route";
+import { sequenceResolver } from "../resolvers/sequence";
 
 // Assertion Manager with pluggable Processors
 export function createAssertionManager(config: Configuration) {
@@ -72,6 +73,15 @@ export function createAssertionManager(config: Configuration) {
           const routeResults = routeResolver([assertion], config);
           if (routeResults.length > 0) {
             deferredResult = routeResults[0];
+          }
+        }
+
+        // Check if a sequence assertion's parent(s) have already passed
+        if (assertion.type === "after") {
+          const sequenceResults = sequenceResolver(activeAssertions, config)
+            .filter(r => r.assertionKey === assertion.assertionKey && r.type === "after");
+          if (sequenceResults.length > 0) {
+            deferredResult = sequenceResults[0];
           }
         }
 

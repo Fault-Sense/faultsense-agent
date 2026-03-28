@@ -52,6 +52,13 @@ Keys must be stable across releases. Human-readable labels are configured on the
 | `load` | Resource finishes loading | img, video, iframe |
 | `error` | Resource fails to load | img, video, iframe |
 | `invariant` | Continuously monitors — only reports failures and recoveries | Any (best with `visible`/`hidden`) |
+| `hover` | Mouse enters the element (alias for `mouseenter`) | Any |
+| `focus` | Element receives focus (alias for `focusin`) | input, button, a |
+| `input` | Value changes while typing | input, textarea |
+| `keydown` | Any key is pressed | Any focusable element |
+| `keydown:<key>` | Specific key pressed (e.g., `keydown:Escape`, `keydown:ctrl+s`) | Any focusable element |
+| `online` | Browser connectivity restored | Any |
+| `offline` | Browser connectivity lost | Any |
 
 ### Assertion Types
 
@@ -68,6 +75,14 @@ At least one required. Value is a CSS selector, optionally with inline modifiers
 | `fs-assert-hidden="<selector>"` | The matched element exists but has no layout dimensions |
 | `fs-assert-loaded="<selector>"` | A media element (img/video) matching the selector finishes loading |
 | `fs-assert-stable="<selector>"` | The matched element's subtree is NOT mutated during the timeout window (inverted `updated`) |
+
+**Sequence Assertions:**
+
+| Attribute | Resolves when |
+|---|---|
+| `fs-assert-after="<key>"` | All referenced parent assertion keys have already passed. Comma-separated for multiple (AND semantics). |
+
+`after` resolves immediately at creation time — it either passes (all parents passed) or fails (at least one hasn't). Produces an independent data point alongside any DOM/route assertions on the same element. Failed `after` assertions recover on re-trigger if parents have since passed.
 
 **Conditional Assertions** — append a condition key to the type name:
 
@@ -338,18 +353,31 @@ Asserts: clicking opens the modal (visible), clicking cancel removes it.
 
 Asserts: clicking the tab makes the corresponding content panel visible.
 
-### 5. Multi-Step Wizard
+### 5. Multi-Step Wizard with Sequence Validation
 
 ```html
-<button class="next-button"
-  fs-assert="wizard/navigate-next"
-  fs-trigger="click"
+<!-- Step 1 -->
+<button fs-assert="wizard/step-1" fs-trigger="click"
   fs-assert-visible=".wizard-step[data-step='2']">
   Next
 </button>
+
+<!-- Step 2: must have completed step 1 -->
+<button fs-assert="wizard/step-2" fs-trigger="click"
+  fs-assert-after="wizard/step-1"
+  fs-assert-visible=".wizard-step[data-step='3']">
+  Next
+</button>
+
+<!-- Step 3: must have completed step 2 -->
+<button fs-assert="wizard/step-3" fs-trigger="click"
+  fs-assert-after="wizard/step-2"
+  fs-assert-visible=".confirmation">
+  Submit
+</button>
 ```
 
-Asserts: clicking next shows the next wizard step.
+Asserts: each step shows the correct content AND validates the user completed the previous step. `after` and `visible` are independent assertions — a sequence violation with correct UI is a visible finding.
 
 ### 6. Form Submit → Conditional Assertions
 
@@ -515,6 +543,8 @@ Svelte passes unknown attributes through on native elements.
 
 14. **Confusing `checked` with `value-matches` on checkboxes.** `el.value` on a checkbox returns the static `value` attribute (e.g., `"on"`), not the checked state. Use `[checked=true]` for checkbox/radio state, `[value-matches=...]` for input text values.
 
+15. **Using `fs-assert-after` with `fs-trigger="invariant"`.** Invariants skip immediate resolution, so `after` would never be checked. Use `after` with event triggers (`click`, `submit`, etc.) or `mount`.
+
 ---
 
 ## Event Payload
@@ -525,7 +555,7 @@ Each resolved assertion sends this payload to the collector:
 {
   assertion_key: string;        // from fs-assert (e.g., "checkout/submit-order")
   assertion_trigger: string;    // from fs-trigger
-  assertion_type: string;       // "added" | "removed" | "updated" | "visible" | "hidden" | "loaded" | "stable"
+  assertion_type: string;       // "added" | "removed" | "updated" | "visible" | "hidden" | "loaded" | "stable" | "route" | "after"
   assertion_type_value: string; // the CSS selector
   assertion_type_modifiers: {}; // modifier key-value pairs
   condition_key: string;        // condition key (e.g., "success", "error") or "" if unconditional
