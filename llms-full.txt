@@ -587,7 +587,7 @@ Each resolved assertion sends this payload to the collector:
 {
   assertion_key: string;        // from fs-assert (e.g., "checkout/submit-order")
   assertion_trigger: string;    // from fs-trigger
-  assertion_type: string;       // "added" | "removed" | "updated" | "visible" | "hidden" | "loaded" | "stable" | "route" | "after"
+  assertion_type: string;       // "added" | "removed" | "updated" | "visible" | "hidden" | "loaded" | "stable" | "emitted" | "route" | "after"
   assertion_type_value: string; // the CSS selector
   assertion_type_modifiers: {}; // modifier key-value pairs
   condition_key: string;        // condition key (e.g., "success", "error") or "" if unconditional
