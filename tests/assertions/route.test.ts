@@ -416,7 +416,7 @@ describe("Faultsense Agent - Assertion Type: route", () => {
         <button
           fs-trigger="click"
           fs-assert="auth/login"
-          fs-assert-grouped=""
+          fs-assert-mutex="each"
           fs-assert-route-success="/dashboard"
           fs-assert-added-error=".error-msg">Login</button>
       `;

@@ -264,12 +264,12 @@ describe("Faultsense Agent - Conditional Assertion Resolution", () => {
     expect(sendToServerMock).toHaveBeenCalledTimes(1);
   });
 
-  it("fs-assert-grouped links conditionals across different types as siblings", async () => {
+  it("fs-assert-mutex links conditionals across different types as siblings", async () => {
     document.body.innerHTML = `
       <button
         fs-trigger="click"
         fs-assert="todos/remove-item"
-        fs-assert-grouped
+        fs-assert-mutex="each"
         fs-assert-removed-success=".todo-item"
         fs-assert-added-error=".error-msg"
         fs-assert-timeout="2000">Delete</button>
@@ -293,7 +293,7 @@ describe("Faultsense Agent - Conditional Assertion Resolution", () => {
             status: "passed",
             conditionKey: "success",
             type: "removed",
-            grouped: true,
+            mutex: "each",
           }),
         ],
         config
@@ -304,12 +304,12 @@ describe("Faultsense Agent - Conditional Assertion Resolution", () => {
     expect(sendToServerMock).toHaveBeenCalledTimes(1);
   });
 
-  it("fs-assert-grouped: timeout dismisses siblings across types", async () => {
+  it("fs-assert-mutex: timeout dismisses siblings across types", async () => {
     document.body.innerHTML = `
       <button
         fs-trigger="click"
         fs-assert="test/delete"
-        fs-assert-grouped
+        fs-assert-mutex="each"
         fs-assert-removed-success=".item"
         fs-assert-added-error=".error-msg"
         fs-assert-timeout="2000">Delete</button>
@@ -339,12 +339,12 @@ describe("Faultsense Agent - Conditional Assertion Resolution", () => {
     );
   });
 
-  it("fs-assert-grouped: late resolution after timeout does not resurrect dismissed sibling", async () => {
+  it("fs-assert-mutex: late resolution after timeout does not resurrect dismissed sibling", async () => {
     document.body.innerHTML = `
       <button
         fs-trigger="click"
         fs-assert="test/delete"
-        fs-assert-grouped
+        fs-assert-mutex="each"
         fs-assert-removed-success=".item"
         fs-assert-added-error=".error-msg"
         fs-assert-timeout="2000">Delete</button>
@@ -377,7 +377,7 @@ describe("Faultsense Agent - Conditional Assertion Resolution", () => {
     });
   });
 
-  it("without fs-assert-grouped, different types are independent", async () => {
+  it("without fs-assert-mutex, different types are independent", async () => {
     document.body.innerHTML = `
       <button
         fs-trigger="click"
@@ -417,5 +417,119 @@ describe("Faultsense Agent - Conditional Assertion Resolution", () => {
     await vi.waitFor(() =>
       expect(sendToServerMock).toHaveBeenCalledTimes(2)
     );
+  });
+
+  it("fs-assert-mutex=conditions: same-key assertions survive when competing key resolves", async () => {
+    document.body.innerHTML = `
+      <button
+        fs-trigger="click"
+        fs-assert="todos/add-item"
+        fs-assert-mutex="conditions"
+        fs-assert-added-success=".todo-item"
+        fs-assert-visible-success="#count"
+        fs-assert-added-error=".error-msg"
+        fs-assert-timeout="2000">Add</button>
+      <span id="count">1</span>
+    `;
+
+    const button = document.querySelector("button") as HTMLButtonElement;
+    button.addEventListener("click", () => {
+      const item = document.createElement("div");
+      item.className = "todo-item";
+      document.body.appendChild(item);
+    });
+
+    button.click();
+
+    await vi.waitFor(() => {
+      const allAssertions = sendToServerMock.mock.calls.flatMap((c: any[]) => c[0]);
+
+      // added-success should pass
+      const addedSuccess = allAssertions.find((a: any) => a.type === "added" && a.conditionKey === "success");
+      expect(addedSuccess).toBeDefined();
+      expect(addedSuccess.status).toBe("passed");
+
+      // visible-success (same key) should also pass — NOT dismissed
+      const visibleSuccess = allAssertions.find((a: any) => a.type === "visible" && a.conditionKey === "success");
+      expect(visibleSuccess).toBeDefined();
+      expect(visibleSuccess.status).toBe("passed");
+
+      // added-error (different key) should be dismissed — NOT sent to collector
+      const errorAssertions = allAssertions.filter((a: any) => a.conditionKey === "error");
+      expect(errorAssertions).toHaveLength(0);
+    });
+  });
+
+  it("fs-assert-mutex=conditions: different-key assertions are dismissed (not sent to collector)", async () => {
+    document.body.innerHTML = `
+      <button
+        fs-trigger="click"
+        fs-assert="test/mutex-cond"
+        fs-assert-mutex="conditions"
+        fs-assert-added-success=".result"
+        fs-assert-added-error=".error-msg">Test</button>
+    `;
+
+    const button = document.querySelector("button") as HTMLButtonElement;
+    button.addEventListener("click", () => {
+      const err = document.createElement("div");
+      err.className = "error-msg";
+      document.body.appendChild(err);
+    });
+
+    button.click();
+
+    await vi.waitFor(() => {
+      const allAssertions = sendToServerMock.mock.calls.flatMap((c: any[]) => c[0]);
+
+      // error wins — sent to collector
+      const errorAssertion = allAssertions.find((a: any) => a.conditionKey === "error");
+      expect(errorAssertion).toBeDefined();
+      expect(errorAssertion.status).toBe("passed");
+
+      // success should be dismissed — NOT sent to collector
+      const successAssertions = allAssertions.filter((a: any) => a.conditionKey === "success");
+      expect(successAssertions).toHaveLength(0);
+    });
+  });
+
+  it("fs-assert-mutex selective: only listed keys compete", async () => {
+    document.body.innerHTML = `
+      <button
+        fs-trigger="click"
+        fs-assert="test/selective"
+        fs-assert-mutex="success,error"
+        fs-assert-added-success=".result"
+        fs-assert-added-error=".error-msg"
+        fs-assert-visible-info="#info">Test</button>
+      <div id="info">Info</div>
+    `;
+
+    const button = document.querySelector("button") as HTMLButtonElement;
+    button.addEventListener("click", () => {
+      const result = document.createElement("div");
+      result.className = "result";
+      document.body.appendChild(result);
+    });
+
+    button.click();
+
+    await vi.waitFor(() => {
+      const allAssertions = sendToServerMock.mock.calls.flatMap((c: any[]) => c[0]);
+
+      // success wins (listed key) — sent to collector
+      const successAssertion = allAssertions.find((a: any) => a.conditionKey === "success");
+      expect(successAssertion).toBeDefined();
+      expect(successAssertion.status).toBe("passed");
+
+      // error (listed, different key) dismissed — NOT sent
+      const errorAssertions = allAssertions.filter((a: any) => a.conditionKey === "error");
+      expect(errorAssertions).toHaveLength(0);
+
+      // info (NOT listed) should resolve independently — passed
+      const infoAssertion = allAssertions.find((a: any) => a.conditionKey === "info");
+      expect(infoAssertion).toBeDefined();
+      expect(infoAssertion.status).toBe("passed");
+    });
   });
 });
