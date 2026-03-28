@@ -41,7 +41,7 @@ When asked to add Faultsense assertions to a component, reason about it the same
 | `fs-assert-emitted` | CustomEvent fires on document | `"payment:complete"` or `"payment:complete[detail-matches=orderId:\\d+]"` |
 | `fs-assert-after` | Sequence check: parent assertion(s) passed | `"checkout/add-to-cart"` or `"step/A,step/B"` |
 | `fs-assert-{type}-{condition}` | Conditional assertion (UI) | `fs-assert-added-success=".dashboard"` |
-| `fs-assert-grouped` | Group conditionals across types | (no value) |
+| `fs-assert-mutex` | Conditional mutual exclusion mode | `"type"` (default), `"each"`, `"conditions"`, `"success,error"` |
 | `fs-assert-oob` | OOB: trigger on parent pass | `fs-assert-oob="todos/toggle"` |
 | `fs-assert-oob-fail` | OOB: trigger on parent fail | `fs-assert-oob-fail="todos/toggle"` |
 | `fs-assert-timeout` | Custom timeout (ms) | `"2000"` |
@@ -104,16 +104,50 @@ Use condition keys to handle mutually exclusive outcomes from a single user acti
 - 3+ conditionals work as a switch: `fs-assert-added-success`, `fs-assert-added-error`, `fs-assert-added-empty`
 - No server-side integration needed — the UI is the signal
 
-**Cross-type grouping (`fs-assert-grouped`):** By default, siblings are scoped to `assertionKey + type`. Add `fs-assert-grouped=""` when mutually exclusive outcomes need different assertion types:
+**Cross-type mutex (`fs-assert-mutex`):** Controls mutual exclusion of conditional assertions. Four modes:
+
+- **`"type"`** — same-type conditionals race (default). `added-success` vs `added-error` are mutually exclusive; cross-type conditionals resolve independently. This is the behavior when `fs-assert-mutex` is omitted.
+- **`"each"`** — all conditionals on the element race as one group. First to resolve wins, all others dismissed.
+- **`"conditions"`** — condition keys form outcome groups. When one key wins, assertions with different keys are dismissed. Same-key assertions resolve independently.
+- **`"success,error"`** — selective: only listed condition keys compete. Unlisted keys resolve independently.
+
+`fs-assert-mutex` requires an explicit value — `fs-assert-mutex=""` is invalid and logs a warning.
+
+**`mutex="each"`** — all conditionals race, first wins:
 
 ```html
 <!-- Delete: remove on success, show error on failure -->
 <button fs-assert="todos/remove-item" fs-trigger="click"
-  fs-assert-grouped=""
+  fs-assert-mutex="each"
   fs-assert-removed-success=".todo-item"
   fs-assert-added-error=".error-msg"
   fs-assert-timeout="5000">Delete</button>
 ```
+
+**`mutex="conditions"`** — condition keys compete as outcome groups:
+
+```html
+<!-- Add: success needs BOTH DOM change AND custom event. Error needs just DOM. -->
+<button fs-assert="todos/add-item" fs-trigger="click"
+  fs-assert-mutex="conditions"
+  fs-assert-added-success=".todo-item"
+  fs-assert-emitted-success="todo:added"
+  fs-assert-added-error=".add-error">Add</button>
+```
+
+When success wins, error is dismissed but both success assertions (`added` and `emitted`) resolve independently. When error wins, both success assertions are dismissed.
+
+**`mutex="success,error"`** — selective: only listed keys compete:
+
+```html
+<button fs-assert="checkout/submit" fs-trigger="click"
+  fs-assert-mutex="success,error"
+  fs-assert-added-success=".confirmation"
+  fs-assert-added-error=".error-msg"
+  fs-assert-updated-analytics="#tracking-pixel">Submit</button>
+```
+
+Only `success` and `error` are mutually exclusive. The `analytics` assertion resolves independently regardless of which condition wins.
 
 ### Invariant Assertions
 
@@ -158,7 +192,7 @@ Side-effect elements (count labels, totals, toasts, error indicators) can declar
 ```html
 <!-- Primary: conditional on the trigger element -->
 <button fs-assert="todos/remove-item" fs-trigger="click"
-  fs-assert-grouped=""
+  fs-assert-mutex="each"
   fs-assert-removed-success=".todo-item"
   fs-assert-added-error=".error-msg">Delete</button>
 
@@ -232,7 +266,7 @@ Two features for integrating with application-level CustomEvents dispatched on `
 - Attributes go on the element the user interacts with (the `event.target`)
 - For forms: `fs-trigger="submit"` on the `<form>` or `fs-trigger="click"` on the button
 - `fs-*` attributes must reach the DOM — in React/Vue/Svelte, use native elements or forward props
-- **React boolean attributes:** React drops custom attributes with boolean `true`. Use `fs-assert-grouped=""` not `fs-assert-grouped` in JSX.
+- **React boolean attributes:** React drops custom attributes with boolean `true`. Always use explicit string values for `fs-*` attributes in JSX (e.g., `fs-assert-mutex="each"`).
 - OOB assertions go on the **side-effect element**, not the trigger element
 
 ### Key Mistakes to Avoid
@@ -263,7 +297,7 @@ Two features for integrating with application-level CustomEvents dispatched on `
 ## Notes
 
 - **Queue/Storage refactor:** MPA-marked assertions currently bypass the in-memory queue and go directly to localStorage (`manager.ts:74`). Storage may be better modeled as an implementation detail of the queue. Flagged for future revisit.
-- **Cross-type conditional grouping:** Conditional sibling groups default to `assertionKey + type`. Add `fs-assert-grouped` (no value) to link all conditionals on an element as siblings regardless of type — e.g., `fs-assert-removed-success` + `fs-assert-added-error` become mutually exclusive outcomes.
+- **Cross-type conditional mutex:** Conditional sibling groups default to `assertionKey + type`. Use `fs-assert-mutex` to link conditionals across types — e.g., `fs-assert-mutex="each"` makes `fs-assert-removed-success` + `fs-assert-added-error` mutually exclusive. See `"each"`, `"conditions"`, and selective modes.
 
 ## Timeout Model
 

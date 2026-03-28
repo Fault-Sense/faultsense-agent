@@ -1,7 +1,7 @@
 ---
 title: "feat: Replace fs-assert-grouped with fs-assert-mutex"
 type: feat
-status: active
+status: completed
 date: 2026-03-28
 origin: docs/brainstorms/2026-03-28-compound-conditional-outcomes-requirements.md
 ---

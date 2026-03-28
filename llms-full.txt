@@ -161,7 +161,7 @@ These apply to the element, not to a specific assertion type:
 |---|---|
 | `fs-assert-timeout="<ms>"` | Override the default timeout (1000ms). Assertion fails if not resolved within this time. |
 | `fs-assert-mpa="true"` | Multi-page assertion. Persisted to localStorage and resolved on the next page load. |
-| `fs-assert-grouped=""` | Group all conditional assertions on this element as siblings regardless of type. Use for mutually exclusive outcomes that need different assertion types (e.g., `removed-success` + `added-error`). |
+| `fs-assert-mutex="<mode>"` | Cross-type conditional grouping. Requires an explicit value (`""` is invalid and warns). Modes: `"each"` — all conditionals race, first wins. `"conditions"` — condition keys compete as outcome groups, same-key assertions resolve independently. `"success,error"` — selective: only listed keys compete, unlisted resolve independently. |
 
 ### Conditional Assertions
 
@@ -175,15 +175,48 @@ Conditional assertions use a `{condition-key}` suffix to define multiple possibl
 
 Multiple conditionals on the same element and type form a **sibling group**. The first conditional whose selector matches resolves the group — others are dismissed. Condition keys are freeform lowercase alphanumeric strings with hyphens (e.g., `success`, `error`, `empty`, `rate-limited`). No server-side integration required.
 
-**Cross-type grouping (`fs-assert-grouped=""`):** By default, siblings are scoped to `assertionKey + type`. Add `fs-assert-grouped=""` when mutually exclusive outcomes need different assertion types:
+**Cross-type mutex (`fs-assert-mutex`):** Controls mutual exclusion of conditional assertions. Four modes:
+
+- **`"type"`** — same-type conditionals race (default). `added-success` vs `added-error` are mutually exclusive; cross-type conditionals resolve independently. This is the behavior when `fs-assert-mutex` is omitted.
+- **`"each"`** — all conditionals on the element race as one group. First to resolve wins, all others dismissed.
+- **`"conditions"`** — condition keys form outcome groups. When one key wins, assertions with different keys are dismissed. Same-key assertions resolve independently.
+- **`"success,error"`** — selective: only listed condition keys compete. Unlisted keys resolve independently.
+
+`fs-assert-mutex` requires an explicit value — `fs-assert-mutex=""` is invalid and logs a warning.
+
+**`mutex="each"`** — all conditionals race, first wins:
 
 ```html
 <button fs-assert="todos/remove-item" fs-trigger="click"
-  fs-assert-grouped=""
+  fs-assert-mutex="each"
   fs-assert-removed-success=".todo-item"
   fs-assert-added-error=".error-msg"
   fs-assert-timeout="5000">Delete</button>
 ```
+
+**`mutex="conditions"`** — condition keys compete as outcome groups:
+
+```html
+<button fs-assert="todos/add-item" fs-trigger="click"
+  fs-assert-mutex="conditions"
+  fs-assert-added-success=".todo-item"
+  fs-assert-emitted-success="todo:added"
+  fs-assert-added-error=".add-error">Add</button>
+```
+
+When success wins, error is dismissed but both success assertions (`added` and `emitted`) resolve independently. When error wins, both success assertions are dismissed.
+
+**`mutex="success,error"`** — selective: only listed keys compete:
+
+```html
+<button fs-assert="checkout/submit" fs-trigger="click"
+  fs-assert-mutex="success,error"
+  fs-assert-added-success=".confirmation"
+  fs-assert-added-error=".error-msg"
+  fs-assert-updated-analytics="#tracking-pixel">Submit</button>
+```
+
+Only `success` and `error` are mutually exclusive. The `analytics` assertion resolves independently regardless of which condition wins.
 
 ### Out-of-Band (OOB) Assertions
 
@@ -226,7 +259,7 @@ OOB assertions fire when a referenced parent assertion passes or fails. Use for 
 ```html
 <!-- Primary: conditional on the trigger -->
 <button fs-assert="todos/remove-item" fs-trigger="click"
-  fs-assert-grouped=""
+  fs-assert-mutex="each"
   fs-assert-removed-success=".todo-item"
   fs-assert-added-error=".error-msg">Delete</button>
 
@@ -511,7 +544,7 @@ The `fs-*` attributes are standard HTML attributes. They work in any framework t
 
 React passes unknown attributes through to the DOM on native elements. For custom components, ensure props are forwarded to the root DOM element.
 
-**Important:** React drops custom attributes with boolean `true` values. Use `fs-assert-grouped=""` (with explicit empty string) not bare `fs-assert-grouped` in JSX.
+**Important:** React drops custom attributes with boolean `true` values. Always use explicit string values for `fs-*` attributes in JSX (e.g., `fs-assert-mutex="each"`).
 
 ### Vue SFC
 
@@ -555,11 +588,11 @@ Svelte passes unknown attributes through on native elements.
 
 6. **Using `updated` or `loaded` with OOB or invariant assertions.** OOB and invariant assertions check current DOM state. Event-based types (`updated`, `loaded`) require witnessing a mutation/event and will miss changes that already occurred. Use state-based types (`visible`, `hidden`, `added`, `removed`).
 
-7. **Using bare boolean attributes in React JSX.** React drops custom attributes with boolean `true` values. Write `fs-assert-grouped=""` not `fs-assert-grouped` in JSX. This applies to any `fs-*` attribute used as a boolean flag.
+7. **Using bare boolean attributes in React JSX.** React drops custom attributes with boolean `true` values. Always use explicit string values for `fs-*` attributes in JSX (e.g., `fs-assert-mutex="each"`).
 
 8. **Using `text-matches` with exact dynamic values.** If the expected text is dynamic (user names, prices, timestamps), use a regex pattern instead of an exact string. `[text-matches=\\d+]` is better than `[text-matches=42]`.
 
-9. **Putting multiple assertion types under the same condition key for AND logic.** `fs-assert-removed-success` and `fs-assert-visible-success` on the same element are siblings (first to resolve dismisses the other), NOT AND. For multiple checks on one outcome, use OOB: the primary check goes on the trigger element, secondary checks go on OOB elements that fire when the primary passes.
+9. **Putting multiple assertion types under the same condition key expecting AND logic with `mutex="each"`.** With `mutex="each"`, `fs-assert-removed-success` and `fs-assert-visible-success` on the same element are siblings (first to resolve dismisses the other), NOT AND. Use `mutex="conditions"` if same-key assertions should resolve independently while competing against other keys. Or use OOB: the primary check goes on the trigger element, secondary checks go on OOB elements that fire when the primary passes.
 
 10. **Using CSS attribute selectors in inline modifier values.** The bracket parser treats `[` as a modifier delimiter. A selector like `[data-id="123"] .btn[disabled=true]` will be misparsed — `[data-id="123"]` is consumed as a modifier, not as part of the CSS selector. Use id selectors (`#btn-123[disabled=true]`) or class selectors instead.
 
