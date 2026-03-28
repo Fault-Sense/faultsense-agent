@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { getTodos } from '../server/todos'
 import { TodoList } from '../components/TodoList'
@@ -8,10 +9,29 @@ export const Route = createFileRoute('/todos')({
   component: TodosPage,
 })
 
+function useOnlineStatus() {
+  const [isOnline, setIsOnline] = useState(true)
+
+  useEffect(() => {
+    setIsOnline(navigator.onLine)
+    const goOnline = () => setIsOnline(true)
+    const goOffline = () => setIsOnline(false)
+    window.addEventListener('online', goOnline)
+    window.addEventListener('offline', goOffline)
+    return () => {
+      window.removeEventListener('online', goOnline)
+      window.removeEventListener('offline', goOffline)
+    }
+  }, [])
+
+  return isOnline
+}
+
 function TodosPage() {
   const navigate = useNavigate()
   const todos = Route.useLoaderData()
   const uncompleted = todos.filter((t) => !t.completed).length
+  const isOnline = useOnlineStatus()
 
   const handleTitleClick = (e: React.MouseEvent<HTMLHeadingElement>) => {
     e.currentTarget.style.display = 'none'
@@ -23,6 +43,25 @@ function TodosPage() {
 
   return (
     <div style={styles.container}>
+      {/* fs-assert: When connectivity is lost, the offline banner should be visible */}
+      <div
+        fs-assert="network/offline-banner-shown"
+        fs-trigger="offline"
+        fs-assert-added="#offline-banner"
+        style={{ display: 'none' }}
+      />
+      {/* fs-assert: When connectivity is restored, the offline banner should be removed */}
+      <div
+        fs-assert="network/offline-banner-hidden"
+        fs-trigger="online"
+        fs-assert-removed="#offline-banner"
+        style={{ display: 'none' }}
+      />
+      {!isOnline && (
+        <div id="offline-banner" style={styles.offlineBanner}>
+          You are offline. Actions are disabled until connectivity is restored.
+        </div>
+      )}
       <header style={styles.header}>
         <div style={styles.titleRow}>
           <h1
@@ -37,8 +76,12 @@ function TodosPage() {
           </h1>
           {/* fs-assert route: clicking logout should navigate back to /login */}
           <button
-            style={styles.logoutBtn}
+            style={{
+              ...styles.logoutBtn,
+              ...(!isOnline ? styles.disabledBtn : {}),
+            }}
             onClick={handleLogout}
+            disabled={!isOnline}
             fs-assert="auth/logout"
             fs-trigger="click"
             fs-assert-route="/login"
@@ -57,7 +100,7 @@ function TodosPage() {
         </p>
       </header>
       <main style={styles.main}>
-        <AddTodo />
+        <AddTodo disabled={!isOnline} />
         <div style={styles.demoRow}>
           <span style={styles.demoLabel}>Demos:</span>
           <button
@@ -102,7 +145,7 @@ function TodosPage() {
             />
           </>
         )}
-        <TodoList todos={todos} />
+        <TodoList todos={todos} disabled={!isOnline} />
       </main>
     </div>
   )
@@ -186,5 +229,20 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '0.75rem',
     color: '#a1a1aa',
     fontStyle: 'italic' as const,
+  },
+  offlineBanner: {
+    padding: '0.75rem 1rem',
+    marginBottom: '1rem',
+    backgroundColor: '#fef2f2',
+    border: '1px solid #fecaca',
+    borderRadius: 6,
+    color: '#dc2626',
+    fontSize: '0.875rem',
+    fontWeight: 500,
+    textAlign: 'center' as const,
+  },
+  disabledBtn: {
+    opacity: 0.4,
+    cursor: 'not-allowed',
   },
 }

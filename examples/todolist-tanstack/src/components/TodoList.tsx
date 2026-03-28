@@ -1,7 +1,7 @@
 import { TodoItem } from './TodoItem'
 import type { Todo } from '../types/todo'
 
-export function TodoList({ todos }: { todos: Todo[] }) {
+export function TodoList({ todos, disabled }: { todos: Todo[]; disabled?: boolean }) {
   if (todos.length === 0) {
     return (
       // fs-assert: Mount trigger — validates empty state renders correctly
@@ -20,7 +20,7 @@ export function TodoList({ todos }: { todos: Todo[] }) {
   return (
     <div style={styles.list}>
       {todos.map((todo) => (
-        <TodoItem key={todo.id} todo={todo} />
+        <TodoItem key={todo.id} todo={todo} disabled={disabled} />
       ))}
     </div>
   )
