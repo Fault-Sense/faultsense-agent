@@ -276,7 +276,7 @@ function renderRow(payload: ApiPayload): void {
   const modKeys = Object.keys(payload.assertion_type_modifiers || {});
   if (modKeys.length > 0) {
     const modStr = modKeys
-      .filter(k => k !== "timeout" && k !== "mpa" && k !== "grouped")
+      .filter(k => k !== "timeout" && k !== "mpa" && k !== "mutex")
       .map(k => `${k}=${(payload.assertion_type_modifiers as Record<string, string>)[k]}`)
       .join(", ");
     if (modStr) {

@@ -81,10 +81,29 @@ export function getSiblingGroup(
   return allAssertions.filter(
     (a) =>
       a.assertionKey === assertion.assertionKey &&
-      (assertion.grouped || a.type === assertion.type) &&
       a.conditionKey !== undefined &&
-      a !== assertion
+      a !== assertion &&
+      isMutexSibling(assertion, a)
   );
+}
+
+function isMutexSibling(resolved: Assertion, candidate: Assertion): boolean {
+  if (!resolved.mutex) {
+    // No mutex — default: same-type siblings only
+    return candidate.type === resolved.type;
+  }
+  if (resolved.mutex === "each") {
+    // All conditionals race
+    return true;
+  }
+  // "conditions" mode — condition keys compete
+  if (resolved.mutexKeys) {
+    // Selective: only listed keys participate
+    if (!resolved.mutexKeys.includes(resolved.conditionKey!)) return false;
+    if (!candidate.conditionKey || !resolved.mutexKeys.includes(candidate.conditionKey)) return false;
+  }
+  // Dismiss different-key assertions, keep same-key co-members
+  return candidate.conditionKey !== resolved.conditionKey;
 }
 
 export function dismissSiblings(

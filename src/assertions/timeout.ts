@@ -17,7 +17,7 @@ function getFailureReasonForAssertion(
             const siblings = getSiblingGroup(assertion, allAssertions);
             allKeys.push(...siblings.map(s => s.conditionKey!));
         }
-        const typeLabel = assertion.grouped ? "" : ` for "${assertion.type}"`;
+        const typeLabel = assertion.mutex ? "" : ` for "${assertion.type}"`;
         return `No conditional assertion${typeLabel} was met within ${timeout}ms. Conditions: ${allKeys.join(", ")}`;
     }
 

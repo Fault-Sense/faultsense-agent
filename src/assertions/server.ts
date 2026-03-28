@@ -16,7 +16,7 @@ function toPayload(
     assertion_key: assertion.assertionKey,
     assertion_trigger: assertion.trigger,
     assertion_type_modifiers: Object.fromEntries(
-      Object.entries(assertion.modifiers).filter(([k]) => k !== "grouped")
+      Object.entries(assertion.modifiers).filter(([k]) => k !== "mutex")
     ) as typeof assertion.modifiers,
     attempts: assertion.attempts || [],
     condition_key: assertion.conditionKey || "",

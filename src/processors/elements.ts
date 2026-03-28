@@ -126,6 +126,31 @@ export function resolveInlineModifiers(
 }
 
 /**
+ * Parse the fs-assert-mutex attribute value into mutex mode and optional key list.
+ * - "each" → all conditionals race (replaces old grouped behavior)
+ * - "conditions" → condition keys compete, same-key co-members resolve independently
+ * - "success,error" → selective: only listed keys compete
+ * - empty/undefined → no mutex
+ */
+function parseMutex(
+  value: string | undefined,
+  conditionKey: string | undefined
+): { mutex?: "each" | "conditions"; mutexKeys?: string[] } {
+  if (!conditionKey || value === undefined) return {};
+  if (value === "") {
+    console.warn('[Faultsense]: fs-assert-mutex requires a value ("each", "conditions", or comma-separated condition keys).');
+    return {};
+  }
+  if (value === "each") return { mutex: "each" };
+  if (value === "conditions") return { mutex: "conditions" };
+  // Comma-separated list of condition keys
+  return {
+    mutex: "conditions",
+    mutexKeys: value.split(",").map(k => k.trim()),
+  };
+}
+
+/**
  * Parse dynamic assertion types from element attributes.
  * Matches: fs-assert-{knownType}-{conditionKey} (e.g., fs-assert-added-success)
  * Condition keys are freeform lowercase alphanumeric strings with hyphens.
@@ -402,7 +427,7 @@ function createAssertions(
       typeValue,
       modifiers: mergedModifiers,
       conditionKey: typeEntry.conditionKey,
-      grouped: typeEntry.conditionKey ? metadata.modifiers["grouped"] !== undefined : undefined,
+      ...parseMutex(metadata.modifiers["mutex"] as string | undefined, typeEntry.conditionKey),
       invertResolution: invertedResolutionTypes.includes(typeEntry.type) || undefined,
     };
   });
