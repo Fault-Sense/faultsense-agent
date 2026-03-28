@@ -30,7 +30,7 @@ When asked to add Faultsense assertions to a component, reason about it the same
 | Attribute | Purpose | Example |
 |---|---|---|
 | `fs-assert` | Assertion key (required) | `"checkout/submit-order"` |
-| `fs-trigger` | Event trigger (required) | `"click"`, `"submit"`, `"mount"`, `"invariant"` |
+| `fs-trigger` | Event trigger (required) | `"click"`, `"submit"`, `"mount"`, `"invariant"`, `"hover"`, `"focus"`, `"input"`, `"keydown:Escape"`, `"online"`, `"offline"` |
 | `fs-assert-added` | Element appears in DOM | `".success-msg"` |
 | `fs-assert-removed` | Element removed from DOM | `".modal-content"` |
 | `fs-assert-updated` | Element/subtree mutated | `"#cart-count"` |
@@ -38,6 +38,7 @@ When asked to add Faultsense assertions to a component, reason about it the same
 | `fs-assert-hidden` | Element exists but hidden | `".loading-spinner"` |
 | `fs-assert-loaded` | Media finished loading | `"#hero-image"` |
 | `fs-assert-stable` | Element NOT mutated (inverted updated) | `"#panel"` |
+| `fs-assert-after` | Sequence check: parent assertion(s) passed | `"checkout/add-to-cart"` or `"step/A,step/B"` |
 | `fs-assert-{type}-{condition}` | Conditional assertion (UI) | `fs-assert-added-success=".dashboard"` |
 | `fs-assert-grouped` | Group conditionals across types | (no value) |
 | `fs-assert-oob` | OOB: trigger on parent pass | `fs-assert-oob="todos/toggle"` |
@@ -167,6 +168,28 @@ Side-effect elements (count labels, totals, toasts, error indicators) can declar
   fs-assert-visible=".success-toast">
 </div>
 ```
+
+### Sequence Assertions (Multi-Step Flows)
+
+Validate that user actions happen in the correct order. `fs-assert-after` checks whether referenced parent assertions have already passed when the trigger fires.
+
+```html
+<!-- Step 1: Add to cart -->
+<button fs-assert="checkout/add-to-cart" fs-trigger="click"
+  fs-assert-added=".cart-item">Add to Cart</button>
+
+<!-- Step 2: Must have added to cart first -->
+<button fs-assert="checkout/submit-payment" fs-trigger="click"
+  fs-assert-after="checkout/add-to-cart"
+  fs-assert-visible=".confirmation">Pay Now</button>
+```
+
+- Value is one or more assertion keys (comma-separated). ALL must have passed (AND semantics).
+- Resolves immediately: passes if all parents passed, fails otherwise.
+- Produces an independent data point alongside any DOM/route assertions on the same element.
+- Failed `after` assertions can recover via re-trigger if the parent passes later.
+- Chaining works: A → B → C, each `after` checks only its direct parent.
+- **Don't combine with `fs-trigger="invariant"`** — invariants skip immediate resolution, so `after` would never be checked.
 
 ### Placement
 
