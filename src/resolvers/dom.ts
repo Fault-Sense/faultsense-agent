@@ -260,8 +260,7 @@ export const elementResolver: ElementResolver = (
         elements = updatedElements;
         break;
       case "stable":
-        // Stable detects any mutation in the subtree — childList, attributes, characterData.
-        elements = [...updatedElements, ...addedElements, ...removedElements];
+        elements = updatedElements;
         break;
       case "visible":
       case "hidden":
