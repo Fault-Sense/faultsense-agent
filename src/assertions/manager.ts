@@ -18,7 +18,7 @@ import { documentResolver, elementResolver, immediateResolver } from "../resolve
 import { globalErrorResolver } from "../resolvers/error";
 
 
-import { eventTriggerAliases } from "../config";
+import { eventTriggerAliases, domAssertions } from "../config";
 import {
   findAssertion,
   getAssertionsForMpaMode,
@@ -54,9 +54,13 @@ export function createAssertionManager(config: Configuration) {
       if (isAssertionPending(assertion)) {
         let deferredResult: CompletedAssertion | null = null;
 
-        // Check for DOM visibility assertions (visible, hidden)
-        // These are most likely to change state without triggering DOM mutations
-        if (assertion.type === "visible" || assertion.type === "hidden") {
+        // Check state-based DOM assertion types via immediateResolver.
+        // Exclude event-based types that need to witness actual DOM events/mutations:
+        // - loaded: must witness load/error event
+        // - stable: inverted updated, must NOT witness mutations within timeout
+        // - updated: must witness a DOM mutation, not just element existence
+        const eventBasedTypes = ["loaded", "stable", "updated"];
+        if (domAssertions.includes(assertion.type) && !eventBasedTypes.includes(assertion.type)) {
           const documentResults = immediateResolver([assertion], config);
           if (documentResults.length > 0) {
             deferredResult = documentResults[0];
@@ -108,6 +112,7 @@ export function createAssertionManager(config: Configuration) {
         // Re-trigger on a pending assertion — track the attempt timestamp
         if (!existingAssertion.attempts) existingAssertion.attempts = [];
         existingAssertion.attempts.push(Date.now());
+        checkImmediateResolved(existingAssertion);
       } else if (!existingAssertion) {
         activeAssertions.push(newAssertion);
 
