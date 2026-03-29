@@ -771,11 +771,9 @@ function renderRow(payload: ApiPayload): void {
 }
 
 function formatTime(isoTimestamp: string): string {
-  const diff = Date.now() - new Date(isoTimestamp).getTime();
-  if (diff < 1000) return "now";
-  if (diff < 60000) return `${Math.floor(diff / 1000)}s ago`;
-  if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
-  return `${Math.floor(diff / 3600000)}h ago`;
+  const d = new Date(isoTimestamp);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 }
 
 // --- Lifecycle ---

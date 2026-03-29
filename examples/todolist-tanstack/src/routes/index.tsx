@@ -43,7 +43,7 @@ function HomePage() {
         </p>
       </header>
       <main style={styles.main}>
-        <AddTodo />
+        <AddTodo todoCount={todos.length} />
         <div style={styles.demoRow}>
           <span style={styles.demoLabel}>Demos:</span>
           {/* GC demo: asserts on a selector that never appears. No SLA timeout,
