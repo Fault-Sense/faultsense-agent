@@ -628,6 +628,7 @@ Each resolved assertion sends this payload to the collector:
   release_label: string;        // from configuration
   status: "passed" | "failed";
   timestamp: string;            // ISO 8601 timestamp
+  user_context?: Record<string, any>;  // developer-provided context from init config or setUserContext()
   error_context?: {             // present only when an uncaught JS exception occurred during the assertion's lifetime
     message: string;
     stack?: string;
@@ -651,7 +652,8 @@ Each resolved assertion sends this payload to the collector:
   src="https://unpkg.com/faultsense@latest/dist/faultsense-agent.min.js"
   data-release-label="0.0.0"
   data-collector-url="console"
-  data-debug="true">
+  data-debug="true"
+  data-user-context='{"plan":"pro"}'>
 </script>
 ```
 
@@ -663,7 +665,8 @@ Each resolved assertion sends this payload to the collector:
   Faultsense.init({
     releaseLabel: '0.0.0',
     collectorURL: Faultsense.collectors.consoleCollector,
-    debug: true
+    debug: true,
+    userContext: { plan: 'pro' }
   });
 </script>
 ```
@@ -677,3 +680,29 @@ Each resolved assertion sends this payload to the collector:
 | `apiKey` | string | If URL | — | API key (required when collectorURL is a URL) |
 | `timeout` | number | No | 1000 | Default assertion timeout in ms |
 | `debug` | boolean | No | false | Enable console logging |
+| `userContext` | `Record<string, any>` | No | — | Arbitrary context attached to all assertion payloads (e.g., userId, plan tier) |
+
+### API Methods
+
+| Method | Description |
+|---|---|
+| `Faultsense.init(config)` | Initialize the agent with configuration options |
+| `Faultsense.cleanup()` | Tear down the agent, remove all listeners and observers |
+| `Faultsense.registerCleanupHook(fn)` | Register a function to run during cleanup |
+| `Faultsense.setUserContext(context)` | Replace the current user context. Does not merge — pass the complete context each time. |
+
+**`setUserContext` example:**
+
+```javascript
+// At init
+Faultsense.init({
+  releaseLabel: '1.0.0',
+  collectorURL: '...',
+  userContext: { plan: 'pro' }
+});
+
+// After login — replaces the entire context
+Faultsense.setUserContext({ userId: 'u_123', plan: 'pro' });
+```
+
+All subsequent assertion payloads include the `user_context` field with the current context at resolution time.

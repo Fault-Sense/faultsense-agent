@@ -20,6 +20,8 @@ function LoginPage() {
       setError(result.error)
       return
     }
+    // Set user context after successful login
+    window.Faultsense?.setUserContext?.({ username })
     navigate({ to: '/todos' })
   }
 

@@ -27,6 +27,10 @@ function toPayload(
     payload.error_context = assertion.errorContext;
   }
 
+  if (config.userContext) {
+    payload.user_context = config.userContext;
+  }
+
   return payload;
 }
 
