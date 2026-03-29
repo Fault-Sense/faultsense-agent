@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useRouter } from '@tanstack/react-router'
 import { addTodo } from '../server/todos'
 
-export function AddTodo({ disabled }: { disabled?: boolean }) {
+export function AddTodo({ disabled, todoCount }: { disabled?: boolean; todoCount: number }) {
   const router = useRouter()
   const [text, setText] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -58,7 +58,7 @@ export function AddTodo({ disabled }: { disabled?: boolean }) {
           fs-assert="todos/add-item"
           fs-trigger="click"
           fs-assert-mutex="conditions"
-          fs-assert-added-success=".todo-item"
+          fs-assert-added-success={`.todo-item[count=${todoCount + 1}]`}
           fs-assert-emitted-success="todo:added"
           fs-assert-added-error=".add-error"
           fs-assert-timeout="500"

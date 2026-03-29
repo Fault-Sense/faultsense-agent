@@ -103,7 +103,7 @@ function TodosPage() {
       </header>
       <main style={styles.main}>
         <GettingStarted />
-        <AddTodo disabled={!isOnline} />
+        <AddTodo disabled={!isOnline} todoCount={todos.length} />
         <div style={styles.demoRow}>
           <span style={styles.demoLabel}>Demos:</span>
           <button
