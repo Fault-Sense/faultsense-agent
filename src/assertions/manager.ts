@@ -146,7 +146,7 @@ export function createAssertionManager(config: Configuration) {
               (a) =>
                 a !== newAssertion &&
                 a.assertionKey === newAssertion.assertionKey &&
-                (newAssertion.grouped || a.type === newAssertion.type) &&
+                (newAssertion.mutex || a.type === newAssertion.type) &&
                 a.conditionKey !== undefined &&
                 a.timeoutId !== undefined
             );

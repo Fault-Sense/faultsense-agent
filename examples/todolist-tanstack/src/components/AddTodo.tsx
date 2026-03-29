@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useRouter } from '@tanstack/react-router'
 import { addTodo } from '../server/todos'
 
-export function AddTodo({ disabled }: { disabled?: boolean }) {
+export function AddTodo({ disabled, todoCount }: { disabled?: boolean; todoCount: number }) {
   const router = useRouter()
   const [text, setText] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -17,6 +17,7 @@ export function AddTodo({ disabled }: { disabled?: boolean }) {
     }
     setText('')
     router.invalidate()
+    document.dispatchEvent(new CustomEvent('todo:added', { detail: { text: text } }))
   }
 
   return (
@@ -42,10 +43,11 @@ export function AddTodo({ disabled }: { disabled?: boolean }) {
           fs-trigger="input"
           fs-assert-visible="#char-count[text-matches=\d+/100]"
         />
-        {/* fs-assert: Clicking add should create a new .todo-item on success,
-            or show a validation error when submitting blank text.
-            SLA timeout at 500ms — adding "SLOW" will exceed it (2s server delay).
-            Normal adds resolve well within the SLA. */}
+        {/* fs-assert: Clicking add should create a new .todo-item AND emit
+            todo:added on success, or show a validation error on failure.
+            mutex="conditions" means success/error condition keys compete —
+            if error wins, both success assertions (added + emitted) are dismissed.
+            If success wins, both success assertions resolve independently. */}
         <button
           type="submit"
           style={{
@@ -55,7 +57,9 @@ export function AddTodo({ disabled }: { disabled?: boolean }) {
           disabled={disabled}
           fs-assert="todos/add-item"
           fs-trigger="click"
-          fs-assert-added-success=".todo-item"
+          fs-assert-mutex="conditions"
+          fs-assert-added-success={`.todo-item[count=${todoCount + 1}]`}
+          fs-assert-emitted-success="todo:added"
           fs-assert-added-error=".add-error"
           fs-assert-timeout="500"
         >

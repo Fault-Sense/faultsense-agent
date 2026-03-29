@@ -60,7 +60,7 @@ export const supportedAssertions = {
   modifiers: [
     "mpa",
     "timeout",
-    "grouped",
+    "mutex",
   ],
 };
 

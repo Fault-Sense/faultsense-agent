@@ -274,7 +274,7 @@ describe("Faultsense Agent - Assertion Type: stable", () => {
       <div id="error-msg" style="display:none">Error</div>
       <button fs-trigger="click"
         fs-assert="form/submit"
-        fs-assert-grouped=""
+        fs-assert-mutex="each"
         fs-assert-stable-success="#panel"
         fs-assert-added-error="#error-msg"
         fs-assert-timeout="1000">Submit</button>

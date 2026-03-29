@@ -47,13 +47,14 @@ function LoginPage() {
           />
           {/* fs-assert route: on success, navigate to /todos.
               On error, show .login-error message.
-              Grouped because success is a route assertion and error is a DOM assertion. */}
+              Mutex="each" because success is a route assertion and error is a DOM assertion —
+              they need cross-type mutual exclusion. */}
           <button
             type="submit"
             style={styles.button}
             fs-assert="auth/login"
             fs-trigger="click"
-            fs-assert-grouped=""
+            fs-assert-mutex="each"
             fs-assert-route-success="/todos"
             fs-assert-added-error=".login-error"
           >

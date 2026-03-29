@@ -568,7 +568,7 @@ describe("Faultsense Agent - OOB (Out-of-Band) Assertions", () => {
       <button
         fs-trigger="click"
         fs-assert="action/conditional"
-        fs-assert-grouped=""
+        fs-assert-mutex="each"
         fs-assert-added-success=".success-msg"
         fs-assert-added-error=".error-msg">Click</button>
 

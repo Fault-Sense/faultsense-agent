@@ -4,6 +4,7 @@ import { getTodos } from '../server/todos'
 import { TodoList } from '../components/TodoList'
 import { AddTodo } from '../components/AddTodo'
 import { GettingStarted } from '../components/GettingStarted'
+import { ActivityLog } from '../components/ActivityLog'
 
 export const Route = createFileRoute('/todos')({
   loader: () => getTodos(),
@@ -102,7 +103,7 @@ function TodosPage() {
       </header>
       <main style={styles.main}>
         <GettingStarted />
-        <AddTodo disabled={!isOnline} />
+        <AddTodo disabled={!isOnline} todoCount={todos.length} />
         <div style={styles.demoRow}>
           <span style={styles.demoLabel}>Demos:</span>
           <button
@@ -148,6 +149,7 @@ function TodosPage() {
           </>
         )}
         <TodoList todos={todos} disabled={!isOnline} />
+        <ActivityLog />
       </main>
     </div>
   )
