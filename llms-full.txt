@@ -627,10 +627,18 @@ Each resolved assertion sends this payload to the collector:
   element_snapshot: string;     // outerHTML of the trigger element at assertion creation time
   release_label: string;        // from configuration
   status: "passed" | "failed";
-  status_reason: string;        // failure explanation (or "")
   timestamp: string;            // ISO 8601 timestamp
+  error_context?: {             // present only when an uncaught JS exception occurred during the assertion's lifetime
+    message: string;
+    stack?: string;
+    source?: string;
+    lineno?: number;
+    colno?: number;
+  };
 }
 ```
+
+**Error context:** JS errors do not instantly fail assertions. When an uncaught exception occurs, all pending assertions are tagged with `error_context` (first error wins — subsequent errors do not overwrite). The assertion continues resolving normally via DOM observation, timeout, or GC. If it passes, `error_context` tells the collector "passed but JS error in session." If it fails, `error_context` provides the likely cause. The collector derives human-readable failure messages from assertion metadata (type, selector, modifiers, timeout) — the agent sends no failure reason strings.
 
 ---
 

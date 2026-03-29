@@ -63,7 +63,6 @@ describe("Faultsense Agent - Assertion Types: removed", () => {
         [
           expect.objectContaining({
             status: "passed",
-            statusReason: "",
           }),
         ],
         config
@@ -90,7 +89,6 @@ describe("Faultsense Agent - Assertion Types: removed", () => {
         [
           expect.objectContaining({
             status: "passed",
-            statusReason: "",
           }),
         ],
         config
@@ -119,7 +117,6 @@ describe("Faultsense Agent - Assertion Types: removed", () => {
         [
           expect.objectContaining({
             status: "failed",
-            statusReason: "Expected #panel to be removed within 1000ms.",
           }),
         ],
         config

@@ -139,7 +139,6 @@ describe("Faultsense Agent - Conditional Assertion Resolution", () => {
           expect.objectContaining({
             status: "failed",
             conditionKey: "success",
-            statusReason: expect.stringContaining("Text does not match"),
           }),
         ],
         config
@@ -173,7 +172,6 @@ describe("Faultsense Agent - Conditional Assertion Resolution", () => {
         [
           expect.objectContaining({
             status: "failed",
-            statusReason: expect.stringMatching(/No conditional assertion.*Conditions: results, empty, error/),
           }),
         ],
         config
@@ -334,7 +332,6 @@ describe("Faultsense Agent - Conditional Assertion Resolution", () => {
     expect(allAssertions[0]).toEqual(
       expect.objectContaining({
         status: "failed",
-        statusReason: expect.stringContaining("No conditional assertion was met"),
       })
     );
   });

@@ -6,10 +6,9 @@ function toPayload(
   assertion: CompletedAssertion,
   config: Configuration
 ): ApiPayload {
-  return {
+  const payload: ApiPayload = {
     api_key: config.apiKey || "",
     status: assertion.status,
-    status_reason: assertion.statusReason || "",
     timestamp: new Date(assertion.startTime).toISOString(),
     assertion_type: assertion.type,
     assertion_type_value: assertion.typeValue,
@@ -23,6 +22,12 @@ function toPayload(
     release_label: config.releaseLabel,
     element_snapshot: assertion.elementSnapshot
   };
+
+  if (assertion.errorContext) {
+    payload.error_context = assertion.errorContext;
+  }
+
+  return payload;
 }
 
 function sendToFunction(

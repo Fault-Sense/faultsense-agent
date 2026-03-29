@@ -81,7 +81,6 @@ describe("Faultsense Agent - Mount Assetion", () => {
         [
           expect.objectContaining({
             status: "passed",
-            statusReason: "",
           }),
         ],
         config
@@ -111,7 +110,6 @@ describe("Faultsense Agent - Mount Assetion", () => {
         [
           expect.objectContaining({
             status: "passed",
-            statusReason: "",
           }),
         ],
         config
@@ -145,7 +143,6 @@ describe("Faultsense Agent - Mount Assetion", () => {
         [
           expect.objectContaining({
             status: "passed",
-            statusReason: "",
           }),
         ],
         config

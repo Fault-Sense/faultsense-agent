@@ -66,7 +66,6 @@ describe("Faultsense Agent - Assertion Type: stable", () => {
         [
           expect.objectContaining({
             status: "passed", // inverted: timeout → pass
-            statusReason: "",
           }),
         ],
         config
@@ -253,7 +252,6 @@ describe("Faultsense Agent - Assertion Type: stable", () => {
         [
           expect.objectContaining({
             status: "passed", // inverted: stale unload → pass (no mutation)
-            statusReason: "",
           }),
         ],
         config

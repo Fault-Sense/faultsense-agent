@@ -19,7 +19,6 @@ function makeAssertion(overrides: Partial<Assertion> = {}): Assertion {
     startTime: Date.now(),
     endTime: undefined,
     status: undefined,
-    statusReason: "",
     timeout: 0,
     mpa_mode: false,
     elementSnapshot: "<button>Test</button>",
@@ -46,7 +45,6 @@ describe("sequenceResolver", () => {
     expect(results[0]).toMatchObject({
       assertionKey: "flow/step-B",
       status: "passed",
-      statusReason: "",
     });
   });
 
@@ -60,7 +58,6 @@ describe("sequenceResolver", () => {
     expect(results).toHaveLength(1);
     expect(results[0]).toMatchObject({
       status: "failed",
-      statusReason: 'Precondition not met: "step/A" has not passed.',
     });
   });
 
@@ -135,7 +132,6 @@ describe("sequenceResolver", () => {
     expect(results).toHaveLength(1);
     expect(results[0]).toMatchObject({
       status: "failed",
-      statusReason: 'Precondition not met: "step/B" has not passed.',
     });
   });
 

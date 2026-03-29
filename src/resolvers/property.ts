@@ -23,13 +23,7 @@ export const propertyResolver: AssertionCollectionResolver = (
        * we can check if the image has rendered to pass the assertion
        */
       if (el instanceof HTMLImageElement && el.complete) {
-        const completed = completeAssertion(
-          assertion,
-          el.naturalWidth > 0,
-          `Img ${assertion.typeValue} (${el.getAttribute(
-            "src"
-          )}) marked as complete, but has failed to render (naturalWidth is 0).`
-        );
+        const completed = completeAssertion(assertion, el.naturalWidth > 0);
         if (completed) {
           acc.push(completed);
         }
@@ -39,7 +33,7 @@ export const propertyResolver: AssertionCollectionResolver = (
        * But we can check if the video has loaded enough data to play to pass the assertion
        */
       if (el instanceof HTMLVideoElement && el.readyState >= 3) {
-        const completed = completeAssertion(assertion, true, "");
+        const completed = completeAssertion(assertion, true);
         if (completed) {
           acc.push(completed);
         }

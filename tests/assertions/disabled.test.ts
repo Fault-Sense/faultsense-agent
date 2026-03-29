@@ -106,7 +106,7 @@ describe("Faultsense Agent - Modifier: disabled", () => {
 
     await vi.waitFor(() =>
       expect(sendToServerMock).toHaveBeenCalledWith(
-        [expect.objectContaining({ status: "failed", statusReason: expect.stringContaining("disabled") })],
+        [expect.objectContaining({ status: "failed" })],
         config
       )
     );

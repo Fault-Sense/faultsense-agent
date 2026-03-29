@@ -81,7 +81,6 @@ describe("Faultsense Agent - Loaded Assetion", () => {
         [
           expect.objectContaining({
             status: "passed",
-            statusReason: "",
           }),
         ],
         config
@@ -110,8 +109,6 @@ describe("Faultsense Agent - Loaded Assetion", () => {
         [
           expect.objectContaining({
             status: "failed",
-            statusReason:
-              "Expected #my-img (/some/img/png) to be loaded but onerror was triggered",
           }),
         ],
         config
@@ -136,7 +133,6 @@ describe("Faultsense Agent - Loaded Assetion", () => {
         [
           expect.objectContaining({
             status: "failed",
-            statusReason: "Expected #my-img to be loaded within 1000ms.",
           }),
         ],
         config
@@ -167,7 +163,6 @@ describe("Faultsense Agent - Loaded Assetion", () => {
         [
           expect.objectContaining({
             status: "failed",
-            statusReason: "Expected #my-img to be loaded within 1000ms.",
           }),
         ],
         config
@@ -194,7 +189,6 @@ describe("Faultsense Agent - Loaded Assetion", () => {
         [
           expect.objectContaining({
             status: "passed",
-            statusReason: "",
           }),
         ],
         config
@@ -223,7 +217,6 @@ describe("Faultsense Agent - Loaded Assetion", () => {
         [
           expect.objectContaining({
             status: "passed",
-            statusReason: "",
           }),
         ],
         config
@@ -252,8 +245,6 @@ describe("Faultsense Agent - Loaded Assetion", () => {
         [
           expect.objectContaining({
             status: "failed",
-            statusReason:
-              "Img #container img (/some/img/png) marked as complete, but has failed to render (naturalWidth is 0).",
           }),
         ],
         config
@@ -281,7 +272,6 @@ describe("Faultsense Agent - Loaded Assetion", () => {
           expect.objectContaining({
             trigger: "load",
             status: "passed",
-            statusReason: "",
           }),
         ],
         config
@@ -300,8 +290,6 @@ describe("Faultsense Agent - Loaded Assetion", () => {
           expect.objectContaining({
             trigger: "load",
             status: "failed",
-            statusReason:
-              "Expected #container img (/some/img/png) to be loaded but onerror was triggered",
           }),
         ],
         config

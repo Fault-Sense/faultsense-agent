@@ -88,13 +88,12 @@ export interface Assertion {
   oob?: boolean;
   endTime?: number;
   status?: AssertionStatus;
-  statusReason?: string;
+  errorContext?: ErrorInfo;
   modifiers: Partial<Record<AssertionModifiers, AssertionModiferValue>>;
   attempts?: number[];
   previousStartTime?: number;
   previousEndTime?: number;
   previousStatus?: AssertionStatus;
-  previousStatusReason?: string;
   timeoutId?: ReturnType<typeof setTimeout>;
   invertResolution?: boolean;
 }
@@ -116,8 +115,14 @@ export interface ApiPayload {
   condition_key: string;
   element_snapshot: string;
   release_label: string;
-  status_reason: string;
   status: AssertionStatus;
+  error_context?: {
+    message: string;
+    stack?: string;
+    source?: string;
+    lineno?: number;
+    colno?: number;
+  };
   timestamp: string; // ISO String using start timestamp
 }
 

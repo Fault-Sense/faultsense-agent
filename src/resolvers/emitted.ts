@@ -47,7 +47,7 @@ export function emittedResolver(
       }
     }
 
-    const result = completeAssertion(assertion, true, "");
+    const result = completeAssertion(assertion, true);
     if (result) completed.push(result);
   }
 

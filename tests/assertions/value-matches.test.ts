@@ -58,7 +58,7 @@ describe("Faultsense Agent - Modifier: value-matches", () => {
 
     await vi.waitFor(() =>
       expect(sendToServerMock).toHaveBeenCalledWith(
-        [expect.objectContaining({ status: "passed", statusReason: "" })],
+        [expect.objectContaining({ status: "passed" })],
         config
       )
     );
@@ -83,7 +83,7 @@ describe("Faultsense Agent - Modifier: value-matches", () => {
 
     await vi.waitFor(() =>
       expect(sendToServerMock).toHaveBeenCalledWith(
-        [expect.objectContaining({ status: "failed", statusReason: expect.stringContaining("Value does not match") })],
+        [expect.objectContaining({ status: "failed" })],
         config
       )
     );

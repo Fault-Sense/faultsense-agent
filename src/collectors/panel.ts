@@ -137,7 +137,7 @@ const PANEL_CSS = `
     padding-left: 16px;
   }
   .fs-detail span { color: #71717a; }
-  .fs-reason {
+  .fs-error-context {
     color: #fca5a5;
     font-size: 11px;
     padding-left: 16px;
@@ -289,12 +289,12 @@ function renderRow(payload: ApiPayload): void {
   row.appendChild(rowHeader);
   row.appendChild(detail);
 
-  // Failure reason
-  if (payload.status_reason) {
-    const reason = document.createElement("div");
-    reason.className = "fs-reason";
-    reason.textContent = payload.status_reason;
-    row.appendChild(reason);
+  // Error context
+  if (payload.error_context) {
+    const errorCtx = document.createElement("div");
+    errorCtx.className = "fs-error-context";
+    errorCtx.textContent = `\u26A0 ${payload.error_context.message}`;
+    row.appendChild(errorCtx);
   }
 
   // Prepend (most recent at top)

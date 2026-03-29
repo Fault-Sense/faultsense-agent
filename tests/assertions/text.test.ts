@@ -81,7 +81,6 @@ describe("Faultsense Agent - Assertion Type modifer: text-matches", () => {
         [
           expect.objectContaining({
             status: "passed",
-            statusReason: "",
           }),
         ],
         config
@@ -113,7 +112,6 @@ describe("Faultsense Agent - Assertion Type modifer: text-matches", () => {
         [
           expect.objectContaining({
             status: "failed",
-            statusReason: 'Text does not match "Hello World"',
           }),
         ],
         config
@@ -145,7 +143,6 @@ describe("Faultsense Agent - Assertion Type modifer: text-matches", () => {
         [
           expect.objectContaining({
             status: "passed",
-            statusReason: "",
           }),
         ],
         config
@@ -177,7 +174,6 @@ describe("Faultsense Agent - Assertion Type modifer: text-matches", () => {
         [
           expect.objectContaining({
             status: "failed",
-            statusReason: 'Text does not match "Count: [a-z]+"',
           }),
         ],
         config
@@ -207,7 +203,6 @@ describe("Faultsense Agent - Assertion Type modifer: text-matches", () => {
         [
           expect.objectContaining({
             status: "failed",
-            statusReason: 'Text does not match "Count: [a-z]+"',
           }),
         ],
         config
@@ -260,7 +255,6 @@ describe("Faultsense Agent - Assertion Type modifer: text-matches", () => {
         [
           expect.objectContaining({
             status: "passed",
-            statusReason: "",
           }),
         ],
         config
@@ -283,7 +277,6 @@ describe("Faultsense Agent - Assertion Type modifer: text-matches", () => {
         [
           expect.objectContaining({
             status: "passed",
-            statusReason: "",
           }),
         ],
         config

@@ -17,7 +17,6 @@ function makePayload(overrides: Partial<ApiPayload> = {}): ApiPayload {
     element_snapshot: "<button>Submit</button>",
     release_label: "dev",
     status: "passed",
-    status_reason: "",
     timestamp: new Date().toISOString(),
     ...overrides,
   };
@@ -164,24 +163,22 @@ describe("Panel Collector", () => {
       expect(detail.textContent).toContain("text-matches");
     });
 
-    it("should display failure reason when present", () => {
+    it("should display error context when present", () => {
       getCollector()(
         makePayload({
           status: "failed",
-          status_reason: "Expected .success to be added within 1000ms",
+          error_context: { message: "ReferenceError: foo is not defined" },
         })
       );
-      const reason = getShadowRoot().querySelector(".fs-reason")!;
-      expect(reason).not.toBeNull();
-      expect(reason.textContent).toContain(
-        "Expected .success to be added within 1000ms"
-      );
+      const errorCtx = getShadowRoot().querySelector(".fs-error-context")!;
+      expect(errorCtx).not.toBeNull();
+      expect(errorCtx.textContent).toContain("ReferenceError: foo is not defined");
     });
 
-    it("should not show reason element when no reason", () => {
-      getCollector()(makePayload({ status_reason: "" }));
-      const reason = getShadowRoot().querySelector(".fs-reason");
-      expect(reason).toBeNull();
+    it("should not show error context element when absent", () => {
+      getCollector()(makePayload({}));
+      const errorCtx = getShadowRoot().querySelector(".fs-error-context");
+      expect(errorCtx).toBeNull();
     });
   });
 

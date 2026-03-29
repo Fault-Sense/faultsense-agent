@@ -526,7 +526,6 @@ describe("Faultsense Agent - Assertion Type: route", () => {
           [
             expect.objectContaining({
               status: "failed",
-              statusReason: "Expected URL to match /dashboard within 2000ms.",
             }),
           ],
           config
@@ -551,7 +550,6 @@ describe("Faultsense Agent - Assertion Type: route", () => {
           [
             expect.objectContaining({
               status: "failed",
-              statusReason: expect.stringContaining("did not resolve within"),
             }),
           ],
           config

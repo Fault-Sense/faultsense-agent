@@ -169,11 +169,7 @@ export function httpResponseResolver(
     } else {
       const declaredConditions = statusAssertions.map(a => getResponseStatus(a)).join(', ');
       for (const assertion of statusAssertions) {
-        const failed = completeAssertion(
-          assertion,
-          false,
-          `HTTP response status ${responseInfo.status} did not match any declared condition (${declaredConditions})`
-        );
+        const failed = completeAssertion(assertion, false);
         if (failed) completed.push(failed);
       }
     }
@@ -185,7 +181,7 @@ export function httpResponseResolver(
       parsedBody = JSON.parse(responseInfo.responseText);
     } catch {
       for (const a of jsonAssertions) {
-        const failed = completeAssertion(a, false, "Response body is not valid JSON");
+        const failed = completeAssertion(a, false);
         if (failed) completed.push(failed);
       }
       return completed;
@@ -204,17 +200,13 @@ export function httpResponseResolver(
       } else {
         const declaredKeys = jsonAssertions.map(a => getResponseJsonKey(a)).join(', ');
         for (const a of jsonAssertions) {
-          const failed = completeAssertion(
-            a,
-            false,
-            `Response body does not contain any declared key (${declaredKeys})`
-          );
+          const failed = completeAssertion(a, false);
           if (failed) completed.push(failed);
         }
       }
     } else {
       for (const a of jsonAssertions) {
-        const failed = completeAssertion(a, false, "Response body is not a JSON object");
+        const failed = completeAssertion(a, false);
         if (failed) completed.push(failed);
       }
     }
@@ -225,7 +217,7 @@ export function httpResponseResolver(
 
 export const httpErrorResolver: HttpErrorResolver = (errorInfo, assertions) => {
   return assertions.reduce((acc: CompletedAssertion[], assertion) => {
-    const completed = completeAssertion(assertion, false, errorInfo.message);
+    const completed = completeAssertion(assertion, false);
     if (completed) {
       acc.push(completed);
     }

@@ -79,7 +79,6 @@ describe("Faultsense Agent - Assertion Type modifer: classlist", () => {
         [
           expect.objectContaining({
             status: "passed",
-            statusReason: "",
           }),
         ],
         config
@@ -108,7 +107,6 @@ describe("Faultsense Agent - Assertion Type modifer: classlist", () => {
         [
           expect.objectContaining({
             status: "passed",
-            statusReason: "",
           }),
         ],
         config
@@ -137,8 +135,6 @@ describe("Faultsense Agent - Assertion Type modifer: classlist", () => {
         [
           expect.objectContaining({
             status: "failed",
-            statusReason:
-              'Expected classlist does not match: "{"foo":true,"test":false,"bar":false}"',
           }),
         ],
         config
@@ -167,7 +163,6 @@ describe("Faultsense Agent - Assertion Type modifer: classlist", () => {
         [
           expect.objectContaining({
             status: "passed",
-            statusReason: "",
           }),
         ],
         config
