@@ -460,7 +460,7 @@ export function createAssertionManager(config: Configuration) {
     return getPendingAssertions(activeAssertions).length;
   };
 
-  const setUserContext = (context: Record<string, any>): void => {
+  const setUserContext = (context: Record<string, any> | undefined): void => {
     config.userContext = context;
   };
 

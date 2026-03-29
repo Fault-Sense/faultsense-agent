@@ -136,7 +136,7 @@ declare global {
       cleanup?: () => void;
       collectors?: Record<string, CollectorFunction>;
       registerCleanupHook?: (fn: () => void) => void;
-      setUserContext?: (context: Record<string, any>) => void;
+      setUserContext?: (context: Record<string, any> | undefined) => void;
     };
   }
 }

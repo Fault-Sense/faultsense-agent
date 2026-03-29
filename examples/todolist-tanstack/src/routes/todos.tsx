@@ -40,6 +40,7 @@ function TodosPage() {
   }
 
   const handleLogout = () => {
+    window.Faultsense?.setUserContext?.(undefined)
     navigate({ to: '/login' })
   }
 
