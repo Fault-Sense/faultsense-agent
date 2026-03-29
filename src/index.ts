@@ -98,6 +98,11 @@ export function init(initialConfig: Partial<Configuration>): () => void {
     assertionManager.registerCustomEventElement(el);
   }
 
+  // Expose setUserContext on the global API
+  if (window.Faultsense) {
+    window.Faultsense.setUserContext = assertionManager.setUserContext;
+  }
+
   // Run initial check
   assertionManager.checkAssertions();
 
@@ -162,6 +167,11 @@ export function init(initialConfig: Partial<Configuration>): () => void {
       gcInterval: Number(script.getAttribute("data-gc-interval")) || undefined,
       unloadGracePeriod: Number(script.getAttribute("data-unload-grace-period")) || undefined,
       debug: script.getAttribute("data-debug") === "true" || undefined,
+      userContext: (() => {
+        const attr = script.getAttribute("data-user-context");
+        if (!attr) return undefined;
+        try { return JSON.parse(attr); } catch { return undefined; }
+      })(),
     };
   }
 

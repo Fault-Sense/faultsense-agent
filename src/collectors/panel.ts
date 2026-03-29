@@ -144,6 +144,13 @@ const PANEL_CSS = `
     margin-top: 2px;
   }
 
+  .fs-user-context {
+    color: #93c5fd;
+    font-size: 10px;
+    padding-left: 16px;
+    margin-top: 2px;
+  }
+
   .fs-badge {
     position: fixed;
     bottom: 16px;
@@ -295,6 +302,16 @@ function renderRow(payload: ApiPayload): void {
     errorCtx.className = "fs-error-context";
     errorCtx.textContent = `\u26A0 ${payload.error_context.message}`;
     row.appendChild(errorCtx);
+  }
+
+  // User context
+  if (payload.user_context) {
+    const userCtx = document.createElement("div");
+    userCtx.className = "fs-user-context";
+    userCtx.textContent = Object.entries(payload.user_context)
+      .map(([k, v]) => `${k}=${v}`)
+      .join(", ");
+    row.appendChild(userCtx);
   }
 
   // Prepend (most recent at top)

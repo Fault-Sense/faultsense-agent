@@ -460,6 +460,10 @@ export function createAssertionManager(config: Configuration) {
     return getPendingAssertions(activeAssertions).length;
   };
 
+  const setUserContext = (context: Record<string, any> | undefined): void => {
+    config.userContext = context;
+  };
+
   // Expose the API for managing Processors, Resolvers and interacting with the manager
   return {
     handleEvent,
@@ -476,5 +480,6 @@ export function createAssertionManager(config: Configuration) {
     handlePageUnload,
     setAssertionCountCallback,
     getPendingAssertionCount,
+    setUserContext,
   };
 }
