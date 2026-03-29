@@ -16,7 +16,6 @@ function makePayload(overrides: Partial<ApiPayload> = {}): ApiPayload {
     element_snapshot: "<button>Submit</button>",
     release_label: "dev",
     status: "passed",
-    status_reason: "",
     timestamp: new Date().toISOString(),
     ...overrides,
   };
@@ -51,33 +50,29 @@ describe("Console Collector", () => {
     expect(endSpy).toHaveBeenCalled();
   });
 
-  it("should log failure reason when present", () => {
+  it("should log error context when present", () => {
     vi.spyOn(console, "groupCollapsed").mockImplementation(() => {});
     const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
     vi.spyOn(console, "groupEnd").mockImplementation(() => {});
 
+    const errorContext = { message: "ReferenceError: foo is not defined", stack: "at bar:1:1" };
     const collector = window.Faultsense!.collectors!.console;
-    collector(
-      makePayload({
-        status: "failed",
-        status_reason: "Timeout exceeded",
-      })
-    );
+    collector(makePayload({ error_context: errorContext }));
 
-    expect(logSpy).toHaveBeenCalledWith("Reason:", "Timeout exceeded");
+    expect(logSpy).toHaveBeenCalledWith("Error Context:", errorContext);
   });
 
-  it("should not log reason when empty", () => {
+  it("should not log error context when absent", () => {
     vi.spyOn(console, "groupCollapsed").mockImplementation(() => {});
     const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
     vi.spyOn(console, "groupEnd").mockImplementation(() => {});
 
     const collector = window.Faultsense!.collectors!.console;
-    collector(makePayload({ status_reason: "" }));
+    collector(makePayload({}));
 
-    const reasonCalls = logSpy.mock.calls.filter(
-      (call) => call[0] === "Reason:"
+    const errorCalls = logSpy.mock.calls.filter(
+      (call) => call[0] === "Error Context:"
     );
-    expect(reasonCalls.length).toBe(0);
+    expect(errorCalls.length).toBe(0);
   });
 });

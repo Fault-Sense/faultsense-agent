@@ -18,17 +18,13 @@ describe("Faultsense Agent - Assertions with global errors", () => {
   };
 
   beforeEach(() => {
-    // Ensure HTMLElement is mocked on every test run (in case watch mode clears it)
     if (typeof HTMLElement === "undefined") {
       (global as any).HTMLElement = class { };
     }
 
-    // Use fake timers to control setInterval
     vi.useFakeTimers();
-    // Mock Date.now() to return a fixed timestamp
     vi.spyOn(Date, "now").mockImplementation(() => fixedDateNow);
 
-    // Mock the sendToCollector function in the resolve module
     sendToServerMock = vi
       .spyOn(resolveModule, "sendToCollector")
       .mockImplementation(() => { });
@@ -44,12 +40,10 @@ describe("Faultsense Agent - Assertions with global errors", () => {
       }),
     }));
 
-    // Initialize the agent script
     cleanupFn = init(config);
   });
 
   afterEach(() => {
-    // Restore original timers and mocks
     cleanupFn();
     vi.clearAllTimers();
     vi.useRealTimers();
@@ -58,29 +52,42 @@ describe("Faultsense Agent - Assertions with global errors", () => {
     vi.spyOn(Date, "now").mockRestore();
   });
 
-  it("Assertions should fail if any unhandled error is thrown", async () => {
+  it("JS error should tag pending assertions with errorContext but NOT fail them", async () => {
     document.body.innerHTML = `
       <button fs-trigger="click" fs-assert-added="#panel" fs-assert="btn-click">Click</button>
     `;
 
     const button = document.querySelector("button") as HTMLButtonElement;
-    button.addEventListener("click", async () => {
-      window.onerror!(
-        "TestError", // Error message
-        "http://example.com/script.js", // Source file
-        10, // Line number
-        15, // Column number
-        new Error("TestError") // Error object
-      );
-    });
     button.click();
+
+    // Fire a JS error while the assertion is pending
+    window.onerror!(
+      "TestError",
+      "http://example.com/script.js",
+      10,
+      15,
+      new Error("TestError")
+    );
+
+    // The assertion should NOT be immediately failed
+    expect(sendToServerMock).not.toHaveBeenCalled();
+
+    // Now resolve the assertion by adding #panel to the DOM
+    const panel = document.createElement("div");
+    panel.id = "panel";
+    document.body.appendChild(panel);
 
     await vi.waitFor(() =>
       expect(sendToServerMock).toHaveBeenCalledWith(
         [
           expect.objectContaining({
-            status: "failed",
-            statusReason: "TestError",
+            status: "passed",
+            errorContext: expect.objectContaining({
+              message: "TestError",
+              source: "http://example.com/script.js",
+              lineno: 10,
+              colno: 15,
+            }),
           }),
         ],
         config
@@ -88,29 +95,111 @@ describe("Faultsense Agent - Assertions with global errors", () => {
     );
   });
 
-  it("Assertions should fail if an unhandledrejection error is thrown", async () => {
+  it("unhandledrejection should tag pending assertions with errorContext but NOT fail them", async () => {
     document.body.innerHTML = `
       <button fs-trigger="click" fs-assert-added="#panel" fs-assert="btn-click">Click</button>
     `;
+
+    const button = document.querySelector("button") as HTMLButtonElement;
+    button.click();
 
     // Simulate an unhandled promise rejection
     const unhandledRejectionEvent = new Event("unhandledrejection");
     (unhandledRejectionEvent as any).reason = new Error(
       "Unhandled Promise Rejection"
     );
+    window.dispatchEvent(unhandledRejectionEvent);
 
-    const button = document.querySelector("button") as HTMLButtonElement;
-    button.addEventListener("click", async () => {
-      window.dispatchEvent(unhandledRejectionEvent);
-    });
-    button.click();
+    // The assertion should NOT be immediately failed
+    expect(sendToServerMock).not.toHaveBeenCalled();
+
+    // Resolve the assertion by adding #panel
+    const panel = document.createElement("div");
+    panel.id = "panel";
+    document.body.appendChild(panel);
 
     await vi.waitFor(() =>
       expect(sendToServerMock).toHaveBeenCalledWith(
         [
           expect.objectContaining({
-            status: "failed",
-            statusReason: "Unhandled Promise Rejection",
+            status: "passed",
+            errorContext: expect.objectContaining({
+              message: "Unhandled Promise Rejection",
+            }),
+          }),
+        ],
+        config
+      )
+    );
+  });
+
+  it("errorContext should be undefined on normal assertion pass (no JS error)", async () => {
+    document.body.innerHTML = `
+      <button fs-trigger="click" fs-assert-added="#panel" fs-assert="btn-click">Click</button>
+    `;
+
+    const button = document.querySelector("button") as HTMLButtonElement;
+    button.click();
+
+    const panel = document.createElement("div");
+    panel.id = "panel";
+    document.body.appendChild(panel);
+
+    await vi.waitFor(() =>
+      expect(sendToServerMock).toHaveBeenCalledWith(
+        [
+          expect.objectContaining({
+            status: "passed",
+          }),
+        ],
+        config
+      )
+    );
+
+    const assertion = sendToServerMock.mock.calls[0][0][0];
+    expect(assertion.errorContext).toBeUndefined();
+  });
+
+  it("first error wins — second error should not overwrite errorContext", async () => {
+    document.body.innerHTML = `
+      <button fs-trigger="click" fs-assert-added="#panel" fs-assert="btn-click">Click</button>
+    `;
+
+    const button = document.querySelector("button") as HTMLButtonElement;
+    button.click();
+
+    // Fire first error
+    window.onerror!(
+      "FirstError",
+      "http://example.com/first.js",
+      1,
+      1,
+      new Error("FirstError")
+    );
+
+    // Fire second error
+    window.onerror!(
+      "SecondError",
+      "http://example.com/second.js",
+      2,
+      2,
+      new Error("SecondError")
+    );
+
+    // Resolve the assertion
+    const panel = document.createElement("div");
+    panel.id = "panel";
+    document.body.appendChild(panel);
+
+    await vi.waitFor(() =>
+      expect(sendToServerMock).toHaveBeenCalledWith(
+        [
+          expect.objectContaining({
+            status: "passed",
+            errorContext: expect.objectContaining({
+              message: "FirstError",
+              source: "http://example.com/first.js",
+            }),
           }),
         ],
         config

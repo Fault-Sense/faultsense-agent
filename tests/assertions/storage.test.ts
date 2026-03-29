@@ -19,11 +19,9 @@ describe("Faultsense Agent - Assertion Storage", () => {
         gcInterval: 30000, unloadGracePeriod: 2000,
         status: undefined,
         modifiers: {} as Record<AssertionModifiers, string>,
-        statusReason: "",
         startTime: Date.now(),
         endTime: Date.now(),
         previousStatus: undefined,
-        previousStatusReason: "",
         previousStartTime: Date.now(),
         previousEndTime: Date.now(),
         mpa_mode: false,
@@ -217,7 +215,6 @@ describe("Faultsense Agent - Assertion Storage", () => {
                 createMockAssertion({
                     assertionKey: "detailed-assertion",
                     status: "passed",
-                    statusReason: "Element found successfully",
                     timeout: 5000,
                     elementSnapshot: "<button>Click me</button>"
                 })
@@ -229,7 +226,6 @@ describe("Faultsense Agent - Assertion Storage", () => {
                 createMockAssertion({
                     assertionKey: "another-assertion",
                     status: "failed",
-                    statusReason: "Timeout exceeded",
                     timeout: 3000,
                     elementSnapshot: "<div>Not found</div>"
                 })
@@ -243,14 +239,12 @@ describe("Faultsense Agent - Assertion Storage", () => {
             // First assertion data preserved
             expect(finalState[0].assertionKey).toBe("detailed-assertion");
             expect(finalState[0].status).toBe("passed");
-            expect(finalState[0].statusReason).toBe("Element found successfully");
             expect(finalState[0].timeout).toBe(5000);
             expect(finalState[0].elementSnapshot).toBe("<button>Click me</button>");
 
             // Second assertion data preserved
             expect(finalState[1].assertionKey).toBe("another-assertion");
             expect(finalState[1].status).toBe("failed");
-            expect(finalState[1].statusReason).toBe("Timeout exceeded");
             expect(finalState[1].timeout).toBe(3000);
             expect(finalState[1].elementSnapshot).toBe("<div>Not found</div>");
         });

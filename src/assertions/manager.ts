@@ -418,7 +418,6 @@ export function createAssertionManager(config: Configuration) {
           Object.assign(inv, {
             status: "passed" as const,
             endTime: now,
-            statusReason: "",
           })
         ) as CompletedAssertion[];
         sendToCollector(completed, config);
@@ -435,13 +434,9 @@ export function createAssertionManager(config: Configuration) {
         for (const a of staleOnUnload) {
           // Inverted resolution types (e.g., stable) pass on unload — no mutation occurred
           const status = a.invertResolution ? "passed" as const : "failed" as const;
-          const statusReason = a.invertResolution
-            ? ""
-            : `Assertion did not resolve before page unload (age: ${now - a.startTime}ms).`;
           const result = Object.assign(a, {
             status,
             endTime: now,
-            statusReason,
           }) as unknown as CompletedAssertion;
           completed.push(result);
         }

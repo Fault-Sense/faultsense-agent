@@ -2,51 +2,11 @@ import { completeAssertion } from "../assertions/assertion";
 import { domAssertions } from "../config";
 import {
   Assertion,
-  AssertionModifiers,
-  AssertionType,
   CompletedAssertion,
   ElementResolver,
   AssertionCollectionResolver,
 } from "../types";
 import { isVisible } from "../utils/elements";
-
-type FailureReasonCode = AssertionType | AssertionModifiers | "";
-
-export function getFailureReasonForAssertion(
-  failureReasonCode: FailureReasonCode,
-  expected: Assertion
-): string {
-  switch (failureReasonCode) {
-    case "visible":
-      return `Expected ${expected.typeValue} to be visible (found but hidden).`;
-    case "hidden":
-      return `Expected ${expected.typeValue} to be hidden (found but visible).`;
-    case "text-matches":
-      return `Text does not match "${expected.modifiers["text-matches"]}"`;
-    case "attrs-match":
-      return `Attributes do not match all: "${expected.modifiers["attrs-match"]}"`;
-    case "classlist":
-      return `Expected classlist does not match: "${expected.modifiers["classlist"]}"`;
-    case "value-matches":
-      return `Value does not match "${expected.modifiers["value-matches"]}"`;
-    case "checked":
-      return `Expected checked=${expected.modifiers["checked"]}`;
-    case "disabled":
-      return `Expected disabled=${expected.modifiers["disabled"]}`;
-    case "count":
-      return `Element count does not match expected ${expected.modifiers["count"]} for "${expected.typeValue}"`;
-    case "count-min":
-      return `Element count below minimum ${expected.modifiers["count-min"]} for "${expected.typeValue}"`;
-    case "count-max":
-      return `Element count exceeds maximum ${expected.modifiers["count-max"]} for "${expected.typeValue}"`;
-    case "focused":
-      return `Expected focused=${expected.modifiers["focused"]}`;
-    case "focused-within":
-      return `Expected focused-within=${expected.modifiers["focused-within"]}`;
-    default:
-      return `Unknown Failure: ${failureReasonCode}`;
-  }
-}
 
 const assertionTypeMatchers: Record<
   string,
@@ -78,69 +38,51 @@ const assertionTypeMatchers: Record<
  */
 const modifiersMap: Record<
   string,
-  (el: HTMLElement, modValue: any) => [boolean, FailureReasonCode]
+  (el: HTMLElement, modValue: any) => boolean
 > = {
-  "text-matches": (el: HTMLElement, modValue: string) => [
+  "text-matches": (el: HTMLElement, modValue: string) =>
     el.textContent ? new RegExp(modValue).test(el.textContent) : false,
-    "text-matches",
-  ],
   "attrs-match": (el: HTMLElement, modValue: string) => {
-    // Note: This debug log would need access to config/logger to be conditional
-    // For now, removing it as it's likely debug output
     let attrs;
     try {
       attrs = JSON.parse(modValue);
     } catch (e) {
-      return [false, "attrs-match"];
+      return false;
     }
-    return [
-      Object.entries(attrs).every(([key, value]) => {
-        try {
-          return new RegExp("^(?:" + (value as string) + ")$").test(el.getAttribute(key) || "");
-        } catch {
-          return el.getAttribute(key) === value;
-        }
-      }),
-      "attrs-match",
-    ];
+    return Object.entries(attrs).every(([key, value]) => {
+      try {
+        return new RegExp("^(?:" + (value as string) + ")$").test(el.getAttribute(key) || "");
+      } catch {
+        return el.getAttribute(key) === value;
+      }
+    });
   },
   classlist: (el: HTMLElement, modValue: string) => {
     let classMap: Record<string, boolean>;
     try {
       classMap = JSON.parse(modValue);
     } catch (e) {
-      return [false, "classlist"];
+      return false;
     }
-    return [
-      Object.entries(classMap).every(([className, shouldExist]) =>
-        shouldExist
-          ? el.classList.contains(className)
-          : !el.classList.contains(className)
-      ),
-      "classlist",
-    ];
+    return Object.entries(classMap).every(([className, shouldExist]) =>
+      shouldExist
+        ? el.classList.contains(className)
+        : !el.classList.contains(className)
+    );
   },
-  "value-matches": (el: HTMLElement, modValue: string) => [
+  "value-matches": (el: HTMLElement, modValue: string) =>
     "value" in el ? new RegExp(modValue).test((el as HTMLInputElement).value) : false,
-    "value-matches",
-  ],
-  checked: (el: HTMLElement, modValue: string) => [
+  checked: (el: HTMLElement, modValue: string) =>
     "checked" in el ? (el as HTMLInputElement).checked === (modValue === "true") : false,
-    "checked",
-  ],
   disabled: (el: HTMLElement, modValue: string) => {
     const isDisabled = ("disabled" in el && (el as HTMLButtonElement).disabled) ||
       el.getAttribute("aria-disabled") === "true";
-    return [modValue === "true" ? isDisabled : !isDisabled, "disabled"];
+    return modValue === "true" ? isDisabled : !isDisabled;
   },
-  focused: (el: HTMLElement, modValue: string) => [
+  focused: (el: HTMLElement, modValue: string) =>
     (document.activeElement === el) === (modValue === "true"),
-    "focused",
-  ],
-  "focused-within": (el: HTMLElement, modValue: string) => [
+  "focused-within": (el: HTMLElement, modValue: string) =>
     el.matches(":focus-within") === (modValue === "true"),
-    "focused-within",
-  ],
 };
 
 /**
@@ -149,10 +91,10 @@ const modifiersMap: Record<
  */
 const baseAssertionFns: Record<
   string,
-  (el: HTMLElement) => [boolean, FailureReasonCode]
+  (el: HTMLElement) => boolean
 > = {
-  visible: (el: HTMLElement) => [isVisible(el), "visible"],
-  hidden: (el: HTMLElement) => [!isVisible(el), "hidden"],
+  visible: (el: HTMLElement) => isVisible(el),
+  hidden: (el: HTMLElement) => !isVisible(el),
 };
 
 // Selector-level modifiers are checked before per-element iteration
@@ -163,8 +105,8 @@ const selectorLevelModifiers = new Set(["count", "count-min", "count-max"]);
  */
 export function getAssertionModifierFns(
   assertion: Assertion
-): Array<(el: HTMLElement) => [boolean, FailureReasonCode]> {
-  const mods: Array<(el: HTMLElement) => [boolean, FailureReasonCode]> = [];
+): Array<(el: HTMLElement) => boolean> {
+  const mods: Array<(el: HTMLElement) => boolean> = [];
 
   if (baseAssertionFns[assertion.type]) {
     mods.push(baseAssertionFns[assertion.type]);
@@ -182,9 +124,9 @@ export function getAssertionModifierFns(
 
 /**
  * Pre-check count modifiers against querySelectorAll result count.
- * Returns [false, reason] on failure, null if count passes or no count modifiers.
+ * Returns false on failure, null if count passes or no count modifiers.
  */
-function checkCountModifiers(assertion: Assertion): [false, FailureReasonCode] | null {
+function checkCountModifiers(assertion: Assertion): false | null {
   const mods = assertion.modifiers;
   if (!mods) return null;
   const count = mods["count"];
@@ -194,9 +136,9 @@ function checkCountModifiers(assertion: Assertion): [false, FailureReasonCode] |
   if (!assertion.typeValue) return null; // self-referencing, warned at parse time
 
   const actual = document.querySelectorAll(assertion.typeValue).length;
-  if (count && actual !== Number(count)) return [false, "count"];
-  if (countMin && actual < Number(countMin)) return [false, "count-min"];
-  if (countMax && actual > Number(countMax)) return [false, "count-max"];
+  if (count && actual !== Number(count)) return false;
+  if (countMin && actual < Number(countMin)) return false;
+  if (countMax && actual > Number(countMax)) return false;
   return null;
 }
 
@@ -218,41 +160,28 @@ function handleAssertion(
   // Pre-check selector-level count modifiers before per-element iteration
   const countResult = checkCountModifiers(assertion);
   if (countResult !== null) {
-    const [, reasonCode] = countResult;
-    return completeAssertion(assertion, false, getFailureReasonForAssertion(reasonCode, assertion));
+    return completeAssertion(assertion, false);
   }
 
   const modifierFns = getAssertionModifierFns(assertion);
 
   // No modifiers — first match is sufficient
   if (modifierFns.length === 0) {
-    return completeAssertion(assertion, true, "");
+    return completeAssertion(assertion, true);
   }
 
   // Check each matching element — pass if any satisfies all modifiers
   for (const el of matchingElements) {
     let allPassed = true;
     for (const fn of modifierFns) {
-      const [result] = fn(el);
-      if (!result) { allPassed = false; break; }
+      if (!fn(el)) { allPassed = false; break; }
     }
     if (allPassed) {
-      return completeAssertion(assertion, true, "");
+      return completeAssertion(assertion, true);
     }
   }
 
-  // No element satisfied all modifiers — fail using first match for the reason
-  let failureReason: FailureReasonCode = "";
-  for (const fn of modifierFns) {
-    const [result, reason] = fn(matchingElements[0]);
-    if (!result) { failureReason = reason; break; }
-  }
-
-  return completeAssertion(
-    assertion,
-    false,
-    failureReason ? getFailureReasonForAssertion(failureReason, assertion) : ""
-  );
+  return completeAssertion(assertion, false);
 }
 
 export const elementResolver: ElementResolver = (
@@ -326,24 +255,15 @@ export const immediateResolver: AssertionCollectionResolver = (
 
     if (matcher(matchingElement)) {
       let hasPassed = true;
-      let failureReason: FailureReasonCode = "";
       for (const fn of getAssertionModifierFns(assertion)) {
-        const [result, reason] = fn(matchingElement);
-        if (!result) {
+        if (!fn(matchingElement)) {
           hasPassed = false;
-          failureReason = reason;
           break;
         }
       }
 
       if (hasPassed) { // ignore failures in this resolver
-        const completed = completeAssertion(
-          assertion,
-          hasPassed,
-          failureReason
-            ? getFailureReasonForAssertion(failureReason, assertion)
-            : ""
-        );
+        const completed = completeAssertion(assertion, hasPassed);
 
         if (completed) {
           acc.push(completed);
@@ -378,23 +298,14 @@ export const documentResolver: AssertionCollectionResolver = (
 
     if (matcher(matchingElement)) {
       let hasPassed = true;
-      let failureReason: FailureReasonCode = "";
       for (const fn of getAssertionModifierFns(assertion)) {
-        const [result, reason] = fn(matchingElement);
-        if (!result) {
+        if (!fn(matchingElement)) {
           hasPassed = false;
-          failureReason = reason;
           break;
         }
       }
 
-      const completed = completeAssertion(
-        assertion,
-        hasPassed,
-        failureReason
-          ? getFailureReasonForAssertion(failureReason, assertion)
-          : ""
-      );
+      const completed = completeAssertion(assertion, hasPassed);
 
       if (completed) {
         acc.push(completed);

@@ -14,19 +14,13 @@ export function eventResolver(
       }
 
       if (event.type === "load") {
-        const completed = completeAssertion(assertion, true, "");
+        const completed = completeAssertion(assertion, true);
         if (completed) {
           acc.push(completed);
         }
       }
       if (event.type === "error") {
-        const completed = completeAssertion(
-          assertion,
-          false,
-          `Expected ${assertion.typeValue} (${el.getAttribute(
-            "src"
-          )}) to be loaded but onerror was triggered`
-        );
+        const completed = completeAssertion(assertion, false);
         if (completed) {
           acc.push(completed);
         }

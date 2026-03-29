@@ -79,7 +79,6 @@ describe("Faultsense Agent - Duplication Assertion Prevention", () => {
         [
           expect.objectContaining({
             status: "passed",
-            statusReason: "",
           }),
         ],
         config
@@ -107,7 +106,6 @@ describe("Faultsense Agent - Duplication Assertion Prevention", () => {
         [
           expect.objectContaining({
             status: "passed",
-            statusReason: "",
           }),
         ],
         config

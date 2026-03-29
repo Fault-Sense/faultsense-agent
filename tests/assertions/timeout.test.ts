@@ -103,7 +103,6 @@ describe("Faultsense Agent - Timeout Override", () => {
                 [
                     expect.objectContaining({
                         status: "passed",
-                        statusReason: "",
                         timeout: 2000, // Should use the override timeout
                     }),
                 ],
@@ -150,7 +149,6 @@ describe("Faultsense Agent - Timeout Override", () => {
                 [
                     expect.objectContaining({
                         status: "failed",
-                        statusReason: "Expected #delayed-content to be visible within 1500ms.",
                         timeout: 1500, // Should use the override timeout
                     }),
                 ],

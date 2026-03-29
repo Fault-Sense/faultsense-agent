@@ -114,7 +114,6 @@ describe("Faultsense Agent - Multi-Step Sequence Assertions", () => {
           assertionKey: "checkout/submit-payment",
           type: "after",
           status: "failed",
-          statusReason: 'Precondition not met: "checkout/add-to-cart" has not passed.',
         })],
         config
       )
