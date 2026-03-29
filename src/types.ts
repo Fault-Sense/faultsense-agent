@@ -8,6 +8,7 @@ export interface Configuration {
   unloadGracePeriod: number;
   collectorURL: string | CollectorFunction;
   debug: boolean;
+  userContext?: Record<string, any>;
 }
 
 // Converts HTMLElement into an Assertion;
@@ -123,6 +124,7 @@ export interface ApiPayload {
     lineno?: number;
     colno?: number;
   };
+  user_context?: Record<string, any>;
   timestamp: string; // ISO String using start timestamp
 }
 
@@ -134,6 +136,7 @@ declare global {
       cleanup?: () => void;
       collectors?: Record<string, CollectorFunction>;
       registerCleanupHook?: (fn: () => void) => void;
+      setUserContext?: (context: Record<string, any>) => void;
     };
   }
 }
