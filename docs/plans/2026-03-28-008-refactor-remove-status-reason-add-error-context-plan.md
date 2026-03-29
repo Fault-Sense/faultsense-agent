@@ -1,7 +1,7 @@
 ---
 title: "refactor: Remove statusReason, add errorContext"
 type: refactor
-status: active
+status: completed
 date: 2026-03-28
 origin: docs/brainstorms/2026-03-28-status-reason-removal-requirements.md
 ---
