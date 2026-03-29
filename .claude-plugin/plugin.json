@@ -1,0 +1,12 @@
+{
+  "name": "faultsense",
+  "version": "1.0.0",
+  "description": "Instrument web apps with Faultsense production assertion monitoring",
+  "author": {
+    "name": "Faultsense",
+    "url": "https://faultsense.org"
+  },
+  "repository": "https://github.com/Fault-Sense/faultsense-agent",
+  "license": "FSL-1.1-ALv2",
+  "keywords": ["monitoring", "assertions", "production", "feature-health"]
+}
