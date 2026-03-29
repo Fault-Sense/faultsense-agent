@@ -35,8 +35,8 @@ const consoleCollector = (payload: ApiPayload) => {
   console.log("Timestamp:", payload.timestamp);
   console.log("Release:", payload.release_label);
   console.log("Element Snapshot:", payload.element_snapshot);
-  if (payload.status_reason) {
-    console.log("Reason:", payload.status_reason);
+  if (payload.error_context) {
+    console.log("Error Context:", payload.error_context);
   }
   console.log("Full Payload:", payload);
   console.groupEnd();

@@ -81,7 +81,6 @@ describe("Faultsense Agent - GC Sweep and Timeout Changes", () => {
       [
         expect.objectContaining({
           status: "failed",
-          statusReason: expect.stringContaining("within 1000ms"),
         }),
       ],
       config
@@ -110,7 +109,6 @@ describe("Faultsense Agent - GC Sweep and Timeout Changes", () => {
       [
         expect.objectContaining({
           status: "failed",
-          statusReason: expect.stringContaining("did not resolve within"),
         }),
       ],
       config
@@ -168,7 +166,6 @@ describe("Faultsense Agent - GC Sweep and Timeout Changes", () => {
         expect.objectContaining({
           assertionKey: "test/old",
           status: "failed",
-          statusReason: expect.stringContaining("page unload"),
         }),
       ])
     );

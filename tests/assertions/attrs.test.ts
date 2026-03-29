@@ -80,7 +80,6 @@ describe("Faultsense Agent - Assertion Type modifer: attrs-match", () => {
         [
           expect.objectContaining({
             status: "passed",
-            statusReason: "",
           }),
         ],
         config
@@ -110,8 +109,6 @@ describe("Faultsense Agent - Assertion Type modifer: attrs-match", () => {
         [
           expect.objectContaining({
             status: "failed",
-            statusReason:
-              'Attributes do not match all: "{"src":"/path/to/bar.png","width":"100","height":"100","alt":"some text"}"',
           }),
         ],
         config
@@ -141,7 +138,6 @@ describe("Faultsense Agent - Assertion Type modifer: attrs-match", () => {
         [
           expect.objectContaining({
             status: "passed",
-            statusReason: "",
           }),
         ],
         config
@@ -171,7 +167,6 @@ describe("Faultsense Agent - Assertion Type modifer: attrs-match", () => {
         [
           expect.objectContaining({
             status: "passed",
-            statusReason: "",
           }),
         ],
         config
@@ -230,7 +225,6 @@ describe("Faultsense Agent - Assertion Type modifer: attrs-match", () => {
         [
           expect.objectContaining({
             status: "passed",
-            statusReason: "",
           }),
         ],
         config

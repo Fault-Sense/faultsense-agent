@@ -25,8 +25,7 @@ export function sequenceResolver(
 
     const result = completeAssertion(
       assertion,
-      !firstUnmet,
-      firstUnmet ? `Precondition not met: "${firstUnmet}" has not passed.` : ""
+      !firstUnmet
     );
 
     if (result) completed.push(result);

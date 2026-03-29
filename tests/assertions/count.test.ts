@@ -92,7 +92,6 @@ describe("Faultsense Agent - Modifier: count", () => {
       expect(sendToServerMock).toHaveBeenCalledWith(
         [expect.objectContaining({
           status: "failed",
-          statusReason: expect.stringContaining("count does not match"),
         })],
         config
       )
@@ -150,7 +149,6 @@ describe("Faultsense Agent - Modifier: count", () => {
       expect(sendToServerMock).toHaveBeenCalledWith(
         [expect.objectContaining({
           status: "failed",
-          statusReason: expect.stringContaining("count below minimum"),
         })],
         config
       )

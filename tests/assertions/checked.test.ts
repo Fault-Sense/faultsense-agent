@@ -83,7 +83,7 @@ describe("Faultsense Agent - Modifier: checked", () => {
 
     await vi.waitFor(() =>
       expect(sendToServerMock).toHaveBeenCalledWith(
-        [expect.objectContaining({ status: "failed", statusReason: expect.stringContaining("checked") })],
+        [expect.objectContaining({ status: "failed" })],
         config
       )
     );

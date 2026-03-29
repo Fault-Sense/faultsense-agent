@@ -112,7 +112,6 @@ describe("Faultsense Agent - Assertion MPA Mode", () => {
           expect.objectContaining({
             assertionKey: "mpa-mode-test-click",
             status: "passed",
-            statusReason: "",
           }),
         ],
         config
@@ -164,7 +163,6 @@ describe("Faultsense Agent - Assertion MPA Mode", () => {
           expect.objectContaining({
             assertionKey: "mpa-mode-test-click",
             status: "failed",
-            statusReason: "Expected #panel to be added within 1000ms.",
           }),
         ],
         config
@@ -220,7 +218,6 @@ describe("Faultsense Agent - Assertion MPA Mode", () => {
           expect.objectContaining({
             assertionKey: "mpa-mode-test-click",
             status: "passed",
-            statusReason: "",
           }),
         ],
         config

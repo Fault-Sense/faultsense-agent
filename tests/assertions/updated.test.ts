@@ -77,7 +77,6 @@ describe("Faultsense Agent - Assertion Type: updated", () => {
         [
           expect.objectContaining({
             status: "passed",
-            statusReason: "",
           }),
         ],
         config
@@ -104,7 +103,6 @@ describe("Faultsense Agent - Assertion Type: updated", () => {
         [
           expect.objectContaining({
             status: "passed",
-            statusReason: "",
           }),
         ],
         config
@@ -131,7 +129,6 @@ describe("Faultsense Agent - Assertion Type: updated", () => {
         [
           expect.objectContaining({
             status: "passed",
-            statusReason: "",
           }),
         ],
         config
@@ -159,7 +156,6 @@ describe("Faultsense Agent - Assertion Type: updated", () => {
         [
           expect.objectContaining({
             status: "passed",
-            statusReason: "",
           }),
         ],
         config
@@ -187,7 +183,6 @@ describe("Faultsense Agent - Assertion Type: updated", () => {
         [
           expect.objectContaining({
             status: "passed",
-            statusReason: "",
           }),
         ],
         config
@@ -217,7 +212,6 @@ describe("Faultsense Agent - Assertion Type: updated", () => {
         [
           expect.objectContaining({
             status: "passed",
-            statusReason: "",
           }),
         ],
         config
@@ -247,7 +241,6 @@ describe("Faultsense Agent - Assertion Type: updated", () => {
         [
           expect.objectContaining({
             status: "passed",
-            statusReason: "",
           }),
         ],
         config
@@ -281,7 +274,6 @@ describe("Faultsense Agent - Assertion Type: updated", () => {
         [
           expect.objectContaining({
             status: "passed",
-            statusReason: "",
           }),
         ],
         config
@@ -311,7 +303,6 @@ describe("Faultsense Agent - Assertion Type: updated", () => {
         [
           expect.objectContaining({
             status: "failed",
-            statusReason: expect.stringContaining("classlist"),
           }),
         ],
         config

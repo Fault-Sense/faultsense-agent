@@ -85,7 +85,7 @@ describe("Faultsense Agent - Modifier: focused", () => {
 
     await vi.waitFor(() =>
       expect(sendToServerMock).toHaveBeenCalledWith(
-        [expect.objectContaining({ status: "failed", statusReason: expect.stringContaining("focused") })],
+        [expect.objectContaining({ status: "failed" })],
         config
       )
     );
@@ -137,7 +137,7 @@ describe("Faultsense Agent - Modifier: focused", () => {
     // correct failure reason rather than throwing an error
     await vi.waitFor(() =>
       expect(sendToServerMock).toHaveBeenCalledWith(
-        [expect.objectContaining({ statusReason: expect.stringContaining("focused-within") })],
+        [expect.objectContaining({ status: "failed" })],
         config
       )
     );

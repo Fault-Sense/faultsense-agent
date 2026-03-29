@@ -1,17 +1,16 @@
-import { completeAssertion } from "../assertions/assertion";
 import { Assertion, CompletedAssertion, GlobalErrorResolver } from "../types";
 
 export const globalErrorResolver: GlobalErrorResolver = (
   errorInfo,
   assertions
 ) => {
-  return assertions.reduce((acc: CompletedAssertion[], assertion) => {
-    // TODO store more info about the error like .stack
-    const completed = completeAssertion(assertion, false, errorInfo.message);
-    if (completed) {
-      acc.push(completed);
-      return acc;
+  for (const assertion of assertions) {
+    if (!assertion.endTime) {
+      // First error wins — don't overwrite existing errorContext
+      if (!assertion.errorContext) {
+        assertion.errorContext = errorInfo;
+      }
     }
-    return acc;
-  }, []);
+  }
+  return []; // Tag only — don't fail assertions
 };

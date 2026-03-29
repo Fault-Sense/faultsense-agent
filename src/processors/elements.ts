@@ -423,7 +423,6 @@ function createAssertions(
       mpa_mode: mpaMode,
       startTime: Date.now(),
       status: undefined,
-      statusReason: "",
       timeout: Number(metadata.modifiers["timeout"]) || 0,
       type: typeEntry.type as AssertionType,
       typeValue,

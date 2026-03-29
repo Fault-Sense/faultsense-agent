@@ -49,14 +49,13 @@ export function retryCompletedAssertion(
   // so it shouldn't count as a status change for dedup purposes.
   if (assertion.status !== "dismissed") {
     assertion.previousStatus = assertion.status;
-    assertion.previousStatusReason = assertion.statusReason;
   }
   assertion.previousStartTime = assertion.startTime;
   assertion.previousEndTime = assertion.endTime;
 
-  // Clear current status, reason, and time for re-use
+  // Clear current status and time for re-use
   assertion.status = undefined;
-  assertion.statusReason = undefined;
+  assertion.errorContext = undefined;
   assertion.endTime = undefined;
   assertion.startTime = Date.now();
   assertion.attempts = undefined;
@@ -127,7 +126,6 @@ export function dismissAssertion(assertion: Assertion): CompletedAssertion | nul
     return Object.assign(assertion, {
       status: "dismissed" as const,
       endTime: Date.now(),
-      statusReason: "",
     }) as CompletedAssertion;
   }
   return null;
@@ -135,8 +133,7 @@ export function dismissAssertion(assertion: Assertion): CompletedAssertion | nul
 
 export function completeAssertion(
   assertion: Assertion,
-  success: boolean,
-  failureReason?: string
+  success: boolean
 ): CompletedAssertion | null {
   // Invert pass/fail for inverted resolution types (e.g., stable).
   // Must run BEFORE the invariant guard so stable+invariant works correctly.
@@ -158,7 +155,6 @@ export function completeAssertion(
     return Object.assign(assertion, {
       status: newStatus,
       endTime: Date.now(),
-      statusReason: success ? "" : failureReason,
     }) as CompletedAssertion;
   }
   // NOOP
