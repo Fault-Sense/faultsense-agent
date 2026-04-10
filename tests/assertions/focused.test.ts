@@ -71,7 +71,8 @@ describe("Faultsense Agent - Modifier: focused", () => {
       <input id="other" type="text" />
       <button fs-trigger="click"
         fs-assert-updated='#target[focused=true]'
-        fs-assert="form/focus-check">Click</button>
+        fs-assert="form/focus-check"
+        fs-assert-timeout="1000">Click</button>
     `;
 
     const button = document.querySelector("button") as HTMLButtonElement;
@@ -82,6 +83,9 @@ describe("Faultsense Agent - Modifier: focused", () => {
     });
 
     button.click();
+
+    fixedDateNow += 1001;
+    vi.advanceTimersByTime(1000);
 
     await vi.waitFor(() =>
       expect(sendToServerMock).toHaveBeenCalledWith(
@@ -122,7 +126,8 @@ describe("Faultsense Agent - Modifier: focused", () => {
       <div id="container"><input id="child" type="text" /></div>
       <button fs-trigger="click"
         fs-assert-updated='#container[focused-within=true]'
-        fs-assert="form/focus-within-check">Click</button>
+        fs-assert="form/focus-within-check"
+        fs-assert-timeout="1000">Click</button>
     `;
 
     const button = document.querySelector("button") as HTMLButtonElement;
@@ -132,6 +137,9 @@ describe("Faultsense Agent - Modifier: focused", () => {
     });
 
     button.click();
+
+    fixedDateNow += 1001;
+    vi.advanceTimersByTime(1000);
 
     // In jsdom, :focus-within is not supported so this will fail with the
     // correct failure reason rather than throwing an error

@@ -69,7 +69,8 @@ describe("Faultsense Agent - Modifier: checked", () => {
       <input id="cb" type="checkbox" />
       <button fs-trigger="click"
         fs-assert-updated='#cb[checked=true]'
-        fs-assert="form/checkbox-check">Click</button>
+        fs-assert="form/checkbox-check"
+        fs-assert-timeout="1000">Click</button>
     `;
 
     const button = document.querySelector("button") as HTMLButtonElement;
@@ -80,6 +81,9 @@ describe("Faultsense Agent - Modifier: checked", () => {
     });
 
     button.click();
+
+    fixedDateNow += 1001;
+    vi.advanceTimersByTime(1000);
 
     await vi.waitFor(() =>
       expect(sendToServerMock).toHaveBeenCalledWith(
@@ -119,7 +123,8 @@ describe("Faultsense Agent - Modifier: checked", () => {
       <div id="target">text</div>
       <button fs-trigger="click"
         fs-assert-updated='#target[checked=true]'
-        fs-assert="div/checked-check">Click</button>
+        fs-assert="div/checked-check"
+        fs-assert-timeout="1000">Click</button>
     `;
 
     const button = document.querySelector("button") as HTMLButtonElement;
@@ -128,6 +133,9 @@ describe("Faultsense Agent - Modifier: checked", () => {
     });
 
     button.click();
+
+    fixedDateNow += 1001;
+    vi.advanceTimersByTime(1000);
 
     await vi.waitFor(() =>
       expect(sendToServerMock).toHaveBeenCalledWith(

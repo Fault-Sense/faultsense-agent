@@ -115,12 +115,15 @@ describe("Faultsense Agent - Assertion Type: hidden", () => {
 
   it("hidden should fail if the element exists but is visisble", async () => {
     document.body.innerHTML = `
-      <button fs-trigger="click" fs-assert-hidden="#panel" fs-assert="btn-click">Click</button>
+      <button fs-trigger="click" fs-assert-hidden="#panel" fs-assert="btn-click" fs-assert-timeout="1000">Click</button>
       <div id="panel" style="display: block; width: 100px; height: 100px;"></div>
     `;
 
     const button = document.querySelector("button") as HTMLButtonElement;
     button.click();
+
+    fixedDateNow += 1001;
+    vi.advanceTimersByTime(1000);
 
     await vi.waitFor(() =>
       expect(sendToServerMock).toHaveBeenCalledWith(

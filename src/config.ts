@@ -1,7 +1,7 @@
 import { AssertionType, Configuration, domAssertionTypes, routeAssertionTypes, sequenceAssertionTypes, allAssertionTypes, domModifiers } from "./types";
 
 export const defaultConfiguration: Partial<Configuration> = {
-  gcInterval: 30000,
+  gcInterval: 5000,
   unloadGracePeriod: 2000,
   collectorURL: "//faultsense.com/collector/",
   debug: false,

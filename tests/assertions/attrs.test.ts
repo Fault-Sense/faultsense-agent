@@ -93,6 +93,7 @@ describe("Faultsense Agent - Assertion Type modifer: attrs-match", () => {
       <button fs-trigger="click"
       fs-assert-updated='#logo[src=/path/to/bar.png][width=100][height=100][alt=some text]'
       fs-assert="img-src-update"
+      fs-assert-timeout="1000"
      >Click</button>
     `;
 
@@ -102,6 +103,9 @@ describe("Faultsense Agent - Assertion Type modifer: attrs-match", () => {
     });
 
     button.click();
+
+    fixedDateNow += 1001;
+    vi.advanceTimersByTime(1000);
 
     await vi.waitFor(() =>
       expect(sendToServerMock).toHaveBeenNthCalledWith(
@@ -180,6 +184,7 @@ describe("Faultsense Agent - Assertion Type modifer: attrs-match", () => {
       <button fs-trigger="click"
         fs-assert-updated='#card[data-state=^loaded]'
         fs-assert="card/state-update"
+        fs-assert-timeout="1000"
       >Click</button>
     `;
 
@@ -189,6 +194,9 @@ describe("Faultsense Agent - Assertion Type modifer: attrs-match", () => {
     });
 
     button.click();
+
+    fixedDateNow += 1001;
+    vi.advanceTimersByTime(1000);
 
     await vi.waitFor(() =>
       expect(sendToServerMock).toHaveBeenNthCalledWith(

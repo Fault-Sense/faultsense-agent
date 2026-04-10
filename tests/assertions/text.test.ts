@@ -94,6 +94,7 @@ describe("Faultsense Agent - Assertion Type modifer: text-matches", () => {
       <button fs-trigger="click"
       fs-assert-updated='#note[text-matches=Hello World]'
       fs-assert="panel-text-update"
+      fs-assert-timeout="1000"
      >Click</button>
     `;
 
@@ -105,6 +106,9 @@ describe("Faultsense Agent - Assertion Type modifer: text-matches", () => {
     });
 
     button.click();
+
+    fixedDateNow += 1001;
+    vi.advanceTimersByTime(1000);
 
     await vi.waitFor(() =>
       expect(sendToServerMock).toHaveBeenNthCalledWith(
@@ -156,6 +160,7 @@ describe("Faultsense Agent - Assertion Type modifer: text-matches", () => {
       <button fs-trigger="click"
       fs-assert-updated='#note[text-matches=Count: [a-z]+]'
       fs-assert="panel-text-update"
+      fs-assert-timeout="1000"
      >Click</button>
     `;
 
@@ -167,6 +172,9 @@ describe("Faultsense Agent - Assertion Type modifer: text-matches", () => {
     });
 
     button.click();
+
+    fixedDateNow += 1001;
+    vi.advanceTimersByTime(1000);
 
     await vi.waitFor(() =>
       expect(sendToServerMock).toHaveBeenNthCalledWith(
@@ -187,6 +195,7 @@ describe("Faultsense Agent - Assertion Type modifer: text-matches", () => {
       <button fs-trigger="click"
       fs-assert-updated='#note[text-matches=Count: [a-z]+]'
       fs-assert="panel-text-update"
+      fs-assert-timeout="1000"
      >Click</button>
     `;
 
@@ -196,6 +205,9 @@ describe("Faultsense Agent - Assertion Type modifer: text-matches", () => {
     });
 
     button.click();
+
+    fixedDateNow += 1001;
+    vi.advanceTimersByTime(1000);
 
     await vi.waitFor(() =>
       expect(sendToServerMock).toHaveBeenNthCalledWith(
