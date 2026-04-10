@@ -59,7 +59,7 @@ Is the target element NEW (doesn't exist before the action)?
 
 **The critical distinction:** `added` = element doesn't exist yet. `updated` = element exists, content changes. `visible` = element exists, check it has dimensions. Getting this wrong is the #1 instrumentation mistake.
 
-**Mutation-observed vs query-based:** `added`, `removed`, and `updated` resolve from MutationObserver records — they capture the exact moment a DOM change happens and can't be missed. `visible` and `hidden` resolve via point-in-time `querySelector` + layout checks — if an element appears and disappears quickly (e.g., fast edit → save), the check can race and miss it. **Prefer mutation-observed types for elements with short lifetimes.** Use `added`/`removed` for conditionally rendered elements, not `visible`/`hidden`.
+**Mutation-observed vs query-based:** `added`, `removed`, and `updated` resolve *only* from MutationObserver records — they capture the exact moment a DOM change happens and can't be missed. Importantly, a pre-existing match at trigger time is **not** treated as a pass: `added` waits for an actual insertion, `removed` waits for an actual deletion. `visible` and `hidden` resolve via point-in-time `querySelector` + layout checks and will pass immediately if the current state satisfies the assertion. **Prefer mutation-observed types for elements with short lifetimes.** Use `added`/`removed` for conditionally rendered elements, not `visible`/`hidden`.
 
 ---
 

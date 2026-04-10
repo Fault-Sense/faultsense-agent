@@ -47,6 +47,58 @@ describe("Faultsense Agent - Conditional Assertion Resolution", () => {
     vi.spyOn(Date, "now").mockRestore();
   });
 
+  it("pre-existing element matching success selector does NOT false-pass at trigger time", async () => {
+    // Regression: landing page demo bug. Blank add submits to server, which
+    // returns a .demo-error paragraph via HX-Retarget. At click time the DOM
+    // already contains a .todo-item (pre-populated list). The success
+    // conditional (fs-assert-added-success=".todo-item") must NOT resolve
+    // from the pre-existing element — `added` is a mutation-observed type
+    // and a pre-existing match is not "added by this trigger". Under
+    // mutex="conditions", a false success would dismiss the error sibling,
+    // and the error variant would never reach the collector.
+    //
+    // Re-init after seeding the DOM so the MutationObserver attaches AFTER
+    // the pre-existing elements exist — matching the real-world flow where
+    // Faultsense init runs after server-rendered HTML is present.
+    cleanupFn();
+    document.body.innerHTML = `
+      <div class="todo-item">Pre-existing todo</div>
+      <button
+        fs-trigger="click"
+        fs-assert="todos/add-item"
+        fs-assert-mutex="conditions"
+        fs-assert-added-success=".todo-item"
+        fs-assert-added-error=".demo-error">Add</button>
+    `;
+    cleanupFn = init(config);
+
+    const button = document.querySelector("button") as HTMLButtonElement;
+    button.addEventListener("click", () => {
+      // Simulate the server responding with an error paragraph (async would
+      // be HTMX's HX-Retarget swap — synchronous here for test determinism).
+      const err = document.createElement("p");
+      err.className = "demo-error";
+      err.textContent = "Please enter a task description.";
+      document.body.appendChild(err);
+    });
+
+    button.click();
+
+    await vi.waitFor(() =>
+      expect(sendToServerMock).toHaveBeenCalledWith(
+        [
+          expect.objectContaining({
+            status: "passed",
+            conditionKey: "error",
+          }),
+        ],
+        config
+      )
+    );
+    // Success is dismissed by the error win — only one payload sent.
+    expect(sendToServerMock).toHaveBeenCalledTimes(1);
+  });
+
   it("first conditional to pass wins, siblings dismissed", async () => {
     document.body.innerHTML = `
       <button

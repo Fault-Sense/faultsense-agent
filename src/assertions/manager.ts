@@ -60,11 +60,17 @@ export function createAssertionManager(config: Configuration) {
         let deferredResult: CompletedAssertion | null = null;
 
         // Check state-based DOM assertion types via immediateResolver.
-        // Exclude event-based types that need to witness actual DOM events/mutations:
+        // Exclude types whose semantics require observing an actual DOM event
+        // or mutation — a pre-existing match at trigger time is a false pass:
         // - loaded: must witness load/error event
         // - stable: inverted updated, must NOT witness mutations within timeout
         // - updated: must witness a DOM mutation, not just element existence
-        const eventBasedTypes = ["loaded", "stable", "updated"];
+        // - added: pre-existing elements aren't "added" by this trigger
+        // - removed: pre-missing elements weren't "removed" by this trigger
+        // visible/hidden legitimately check current layout state.
+        // OOB assertions still resolve against current state via a direct
+        // immediateResolver call in settle(), so this exclusion is trigger-only.
+        const eventBasedTypes = ["loaded", "stable", "updated", "added", "removed"];
         if (domAssertions.includes(assertion.type) && !eventBasedTypes.includes(assertion.type)) {
           const documentResults = immediateResolver([assertion], config);
           if (documentResults.length > 0) {
