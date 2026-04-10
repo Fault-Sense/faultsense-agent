@@ -382,7 +382,7 @@ Stable assertions pass when the target element's subtree is NOT mutated during t
 
 - **Best with OOB**: Start the stability window after an expected mutation passes.
 - **Works with `invariant`**: Perpetual "never mutate" monitoring.
-- **Without `fs-assert-timeout`**: Passes via GC sweep (default 30s). Use explicit timeout for tighter stability windows.
+- **Without `fs-assert-timeout`**: Passes via GC sweep (default 5s). Use explicit timeout for tighter stability windows.
 
 ### Sequence Assertions (Multi-Step Flows)
 
@@ -458,13 +458,49 @@ This works in any framework with dynamic attribute values (React JSX, Vue `:attr
 
 ---
 
+## HTMX Patterns
+
+HTMX is fully supported — the agent's wait-for-pass resolver handles HTMX's transient swap states (`htmx-swapping`, `htmx-added`, `htmx-settling`) automatically, with no framework-specific configuration. A few patterns are worth knowing:
+
+**`added` vs `updated` depends on the swap strategy, not the markup.** This is the #1 HTMX instrumentation mistake.
+
+| Swap | DOM effect | Correct type |
+|---|---|---|
+| `hx-swap="outerHTML"` (no morph) | Old element removed, new element inserted | `fs-assert-added` |
+| `hx-swap="innerHTML"` | Parent keeps identity, children replaced | `fs-assert-updated` on parent, or `fs-assert-added` on the new children |
+| `hx-swap="morph:outerHTML"` (idiomorph) | Target element is **patched in place** — same DOM node, attributes/class/children mutate | `fs-assert-updated` |
+| `hx-swap="morph:innerHTML"` | Parent and its children patched in place | `fs-assert-updated` |
+| `hx-swap="beforeend"` / `afterbegin"` | New child appended, existing siblings untouched | `fs-assert-added` |
+
+The common trap: a button with `hx-swap="morph:outerHTML"` toggling a row between view mode (`.todo-item`) and edit mode (`.todo-item-edit`) looks like "a new edit row appeared" — but with idiomorph, it's the same `<div id="todo-1">` getting its class and children patched. Use `fs-assert-updated=".todo-item-edit"`, not `fs-assert-added`.
+
+**JavaScript class toggles are `updated`, not `added`.** When a click handler does `element.classList.add('complete')` on an existing node, the element is mutated, not added. `fs-assert-added=".foo.complete"` will never match (the element isn't in `addedElements`). Use `fs-assert-updated`.
+
+**Narrow selectors in lists.** During a standard (non-morph) `outerHTML` swap, the old and new elements briefly coexist as the browser processes the mutation batch. Under wait-for-pass this isn't a correctness problem, but broad selectors can match the wrong element. Prefer specific ids over class selectors:
+
+```html
+<!-- Good: targets the specific item being toggled -->
+fs-assert-added="#todo-123[classlist=completed:true]"
+
+<!-- Risky: matches every .todo-item on the page -->
+fs-assert-added=".todo-item[classlist=completed:true]"
+```
+
+**OOB swaps.** HTMX's `hx-swap-oob` pairs naturally with Faultsense's `fs-assert-oob`. Put the OOB assertion on the side-effect element (count display, toast container, error indicator) and reference the primary assertion key. The agent re-queries the DOM state when the parent resolves, so OOB assertions see the HTMX response already applied.
+
+**Transient swap classes.** You do NOT need to special-case `htmx-swapping`, `htmx-added`, or `htmx-settling` in your modifier checks. The resolver waits for a mutation batch that satisfies the assertion, so intermediate states where these classes are present but the target class isn't yet settled are silently ignored.
+
+**Fake checkboxes / icon-in-button patterns.** HTMX apps often use `<button>` with nested `<span>` or `<svg>` icons instead of native `<input>` elements. Clicks on the inner icon resolve to the button's `fs-trigger` automatically — put the instrumentation on the `<button>`, not on the icon span.
+
+---
+
 ## Timeout Model
 
 Assertions resolve naturally when the DOM changes. There is no default per-assertion timer.
 
 - **No default timeout.** Assertions without `fs-assert-timeout` wait until the DOM resolves them or the GC cleans them up.
 - **SLA timeout** (`fs-assert-timeout="2000"`) — opt-in performance contract. Fails if the expected outcome doesn't happen within the declared time.
-- **GC sweep** (`config.gcInterval`, default 30s) — background timer cleans up stale assertions.
+- **GC sweep** (`config.gcInterval`, default 5s) — background timer cleans up stale assertions. Matches Playwright's default assertion timeout.
 - **Page unload** — assertions older than `config.unloadGracePeriod` (default 2s) are failed on page close. Fresh assertions are silently dropped.
 - **Re-trigger tracking** — when a user re-triggers an action while its assertion is still pending, the timestamp is recorded in an `attempts[]` array.
 
@@ -474,7 +510,7 @@ Assertions resolve naturally when the DOM changes. There is no default per-asser
 
 ## Placement Rules
 
-1. **Attributes go on the trigger element** — the element the user directly interacts with. Only the exact `event.target` is processed.
+1. **Attributes go on the trigger element** — the element the user directly interacts with. Clicks on descendants of an instrumented element (icon spans inside a button, text inside a label, any non-instrumented child) resolve up to the nearest `fs-trigger` ancestor via `closest()`, so nested content works naturally without `pointer-events: none` workarounds.
 2. **For forms**: Use `fs-trigger="submit"` on the `<form>` element, OR `fs-trigger="click"` on the submit `<button>`.
 3. **For mount/unmount**: Place on the element being observed.
 4. **For load/error**: Place on the media element itself.
@@ -488,7 +524,7 @@ Assertions resolve naturally when the DOM changes. There is no default per-asser
 
 ## Common Mistakes
 
-1. **Putting `fs-trigger` on a parent instead of the interacted element.** The agent only processes the exact `event.target`. A `<div>` wrapper above a `<button>` is not the target when the button is clicked.
+1. **Placing `fs-trigger` too high in the tree.** The agent walks up from `event.target` to the nearest `fs-trigger` ancestor, so nested icons and text inside an instrumented button work fine. But broad placement — e.g., `fs-trigger="click"` on a container `<div>` that wraps multiple unrelated children — will fire for ANY click inside it, producing noisy assertions. Put the trigger on the specific element the user is meant to interact with.
 
 2. **Using reserved words as condition keys.** Avoid assertion type names (`added`, `removed`, `updated`, `visible`, `hidden`, `loaded`, `oob`, `oob-fail`) as condition keys.
 
