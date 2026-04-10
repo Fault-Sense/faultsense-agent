@@ -5,11 +5,18 @@
 >
   <!-- todos/toggle-complete: under hx-boost's outerHTML swap, the
        .todo-item is REPLACED (removed + added), not mutated in place.
-       That means `updated` misses it — elementResolver only checks
-       `updatedElements` for `updated` type, and a childList swap puts
-       the parent (#todo-list) there, not the new item. Use `added`:
-       the new .todo-item lands in `addedElements` and the classlist /
-       data-status modifiers verify the expected next state.
+       `updated` misses it — elementResolver only checks `updatedElements`
+       for `updated` type, and a childList swap puts the parent
+       (#todo-list) there, not the new item. Use `added`: the new item
+       lands in `addedElements`.
+
+       The selector targets `#todo-<id>` (the specific item being toggled)
+       instead of `.todo-item` so the modifier check only considers the
+       one item that actually changed. Using `.todo-item` makes the
+       resolver iterate every added .todo-item in the mutation batch,
+       which can fail if another item is re-rendered in a way that
+       doesn't match the expected classlist for THIS toggle.
+
        (React uses `updated` because React mutates className in place,
        firing an `attributes` mutation where target IS the todo-item.) -->
   <input
@@ -22,7 +29,7 @@
     hx-swap="outerHTML"
     fs-assert="todos/toggle-complete"
     fs-trigger="change"
-    fs-assert-added=".todo-item[classlist=completed:<%= !todo.completed %>][data-status=active|completed]"
+    fs-assert-added="#todo-<%= todo.id %>[classlist=completed:<%= !todo.completed %>]"
     fs-assert-visible="#edit-btn-<%= todo.id %>[disabled=<%= !todo.completed %>]"
   />
   <span class="text"><%= todo.text %></span>

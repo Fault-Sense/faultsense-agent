@@ -4,11 +4,24 @@
   data-status="editing"
 >
   <input type="checkbox" class="checkbox" disabled />
-  <div class="edit-row">
-    <!-- todos/cancel-edit: pressing Escape removes the edit input by
-         swapping back to the read-only partial. keydown:Escape filter
-         ensures only Escape creates the assertion. -->
 
+  <!-- todos/save-edit: sentinel for the save flow. Fires on a custom
+       'todo:save-edit' event dispatched from the input's blur handler
+       below. Using an event-trigger sentinel (instead of fs-trigger
+       on the Save button) avoids a race: when the user clicks Save,
+       the input blurs first, HTMX's blur trigger sends the hx-post,
+       and by the time the click event reaches the Save button the
+       server may have already responded and swapped the edit partial
+       out — so a click trigger can miss. Blur always fires first. -->
+  <div style="display:none"
+    fs-assert="todos/save-edit"
+    fs-trigger="event:todo:save-edit"
+    fs-assert-removed=".todo-edit-input"></div>
+
+  <div class="edit-row">
+    <!-- todos/cancel-edit: fires on Escape via keydown filter.
+         The script below also dispatches the cancel request via
+         htmx.ajax when Escape is pressed. -->
     <input
       class="edit-input todo-edit-input"
       type="text"
@@ -23,23 +36,17 @@
       fs-trigger="keydown:Escape"
       fs-assert-removed=".todo-edit-input"
     />
-    <!-- todos/save-edit: clicking Save removes the edit input by swapping
-         the item back to its read-only markup. -->
     <button
       class="save-btn"
+      type="button"
       hx-post="/todos/<%= todo.id %>"
       hx-include="closest .todo-item"
       hx-target="closest .todo-item"
       hx-swap="outerHTML"
-      fs-assert="todos/save-edit"
-      fs-trigger="click"
-      fs-assert-removed=".todo-edit-input"
     >Save</button>
   </div>
 </div>
 <script>
-  // Leading `;` defends against ASI if another script precedes this one in
-  // HTMX's swap processing pipeline.
   ;(function () {
     var el = document.getElementById('todo-<%= todo.id %>')
     if (!el) return
@@ -55,10 +62,20 @@
     input.focus()
     if (typeof input.select === 'function') input.select()
 
+    // Dispatch a 'todo:save-edit' custom event on blur so the sentinel
+    // above can create its save-edit assertion. Escape also causes a
+    // blur via our cancel handler, so we skip if the cancel flag was set.
+    var cancelled = false
+    input.addEventListener('blur', function () {
+      if (cancelled) return
+      document.dispatchEvent(new CustomEvent('todo:save-edit'))
+    })
+
     // Escape cancels edit by re-fetching the read-only partial.
     input.addEventListener('keydown', function (e) {
       if (e.key === 'Escape') {
         e.preventDefault()
+        cancelled = true
         window.htmx.ajax('GET', '/todos/<%= todo.id %>/cancel-edit', {
           target: '#todo-<%= todo.id %>',
           swap: 'outerHTML',

@@ -307,11 +307,27 @@ const XRAY_CSS = `
 function createPanel(): void {
   if (!document.body) return;
 
-  hostElement = document.createElement("div");
-  hostElement.id = "fs-panel-host";
-  document.body.appendChild(hostElement);
+  // If the host element already exists in the DOM (e.g., the page's layout
+  // includes <div id="fs-panel-host" hx-preserve="true"></div> so HTMX boost
+  // swaps don't tear the panel down), reuse it. Otherwise create it fresh
+  // and tag it with hx-preserve so HTMX is hinted to keep it across swaps.
+  const existing = document.getElementById("fs-panel-host") as HTMLElement | null;
+  if (existing) {
+    hostElement = existing;
+  } else {
+    hostElement = document.createElement("div");
+    hostElement.id = "fs-panel-host";
+    document.body.appendChild(hostElement);
+  }
+  // Marker for HTMX hx-boost and other swap-based navigation frameworks.
+  // HTMX matches hx-preserve elements by id across swaps; if the new swap
+  // content also has <div id="fs-panel-host" hx-preserve="true"></div>,
+  // the old element (with its panel state) is kept intact.
+  hostElement.setAttribute("hx-preserve", "true");
 
-  shadowRoot = hostElement.attachShadow({ mode: "open" });
+  // If the host already has a shadow root (e.g., from a prior init on the
+  // same element across a virtual nav), reuse it.
+  shadowRoot = hostElement.shadowRoot || hostElement.attachShadow({ mode: "open" });
 
   const style = document.createElement("style");
   style.textContent = PANEL_CSS;
