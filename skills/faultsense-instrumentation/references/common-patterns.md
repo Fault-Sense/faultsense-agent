@@ -416,9 +416,13 @@ HTMX preserves focus on swapped elements that have a matching `id` pre- and post
 <form hx-on::after-settle="this.querySelector('.edit-input').focus()">
 ```
 
-### 5. MPA mode is for hard nav, not hx-boost
+### 5. MPA mode is for hard nav only
 
-`fs-assert-mpa="true"` persists assertions to localStorage and resolves them on the NEXT page load. Under hx-boost there is no next page load — only a virtual nav. The agent now auto-reloads MPA assertions on virtual navs (hx-boost, history.pushState), so they resolve against the new DOM in the same tick. In practice that means MPA mode under hx-boost behaves like a same-page assertion — you don't need MPA mode in pure SPA routing. Use it only when a subset of your app does real page navigation.
+`fs-assert-mpa="true"` is an opt-in signal that means "persist this assertion across a real page navigation." The agent writes it to `localStorage` on `pagehide` and reloads it on the next init (the next real `DOMContentLoaded`).
+
+**Do not use `fs-assert-mpa="true"` on hx-boosted routes.** hx-boost never fires a real unload, so MPA assertions created under boost are written to storage but never reloaded — they're orphaned. Under hx-boost the agent session is long-lived, so you don't need MPA mode: a regular DOM assertion can wait for the new view to render and resolve naturally.
+
+MPA is only appropriate when a subset of your app does actual hard navigation (e.g., a legacy flow wrapped inside an otherwise SPA app, or a form that POSTs to a different origin).
 
 ### 6. Scope `stable` assertions outside the swap target
 

@@ -11,7 +11,9 @@ date: 2026-04-10
 
 Port `examples/todolist-tanstack/` to a sibling `examples/todolist-htmx/` using HTMX 2.0.8 + Express + EJS. The UI, CSS, copy, and assertion coverage must be apples-to-apples with the React version. The goal is to prove Faultsense works identically against a fundamentally different rendering paradigm (server-rendered HTML fragments + hx-swap) and to surface any agent bugs or documentation gaps that HTMX exposes.
 
-Audit already surfaced three real agent bugs that must be fixed as part of this work. Learnings researcher and HTMX docs researcher confirmed the rest of the port should "just work" because discovery piggybacks on MutationObserver and all HTMX lifecycle events bubble to `document`.
+Initial audit flagged three risks that looked like real agent bugs. Working through the code (and a review with @mitch) turned all three into non-issues — see the **Retro** section at the bottom of this plan. The port ultimately shipped without any agent changes; only documentation updates were needed.
+
+Learnings researcher and HTMX docs researcher confirmed the rest of the port should "just work" because discovery piggybacks on MutationObserver and all HTMX lifecycle events bubble to `document`.
 
 ## Problem Statement
 
@@ -21,7 +23,7 @@ Faultsense's public positioning is "works in any framework that renders to DOM."
 - It exercises agent code paths the React example never does: body-level DOM swaps, `HX-Trigger` → CustomEvent, SPA navigation via raw `history.pushState` without any router library.
 - If it works here, the same pattern extends to Hotwire, Unpoly, Datastar, Alpine.js + swap extensions, and the broader HTML-over-the-wire family.
 
-The HTMX port doubles as a forcing function for three known agent bugs and for documentation gaps that only become visible outside React.
+The HTMX port doubles as a forcing function for documentation gaps that only become visible outside React. (An initial audit also flagged three suspected agent bugs, but those turned out to be misreads — see Retro.)
 
 ## Proposed Solution
 
@@ -35,7 +37,7 @@ Build a standalone sibling example at `examples/todolist-htmx/`:
 
 In parallel with the port:
 
-1. Fix three agent bugs surfaced by the audit (virtual-nav lifecycle).
+1. ~~Fix three agent bugs surfaced by the audit (virtual-nav lifecycle).~~ Dropped after review — none of them were real bugs. See Retro.
 2. Add an HTMX section to `skills/faultsense-instrumentation/references/framework-syntax.md`.
 3. Add HTMX-specific gotchas to `skills/faultsense-instrumentation/references/common-patterns.md`.
 
@@ -125,34 +127,15 @@ Every assertion key stays the same. Placement and dynamic value expression chang
 
 EJS `<%= expr %>` interpolates `true`/`false` into the attribute the same way JSX `{!todo.completed}` does. This is the document-ready pattern we'll put into `framework-syntax.md`.
 
-### Agent fixes (required for Phase 3)
+### ~~Agent fixes (required for Phase 3)~~ — dropped; see Retro
 
-The audit found that HTMX hx-boost exercises three code paths that are currently broken. None of these are HTMX-specific — they apply to any SPA that uses `history.pushState` without a full page load. The HTMX port is the forcing function, but the fix belongs in the agent core.
+**Originally proposed:** a framework-agnostic virtual-nav lifecycle that would flush stale assertions, auto-pass invariants, and reload MPA assertions on any `history.pushState` URL-path change. Implemented, tested, and shipped in commit `fix(agent): virtual-nav lifecycle for pushState path changes` — then reverted after review. Every premise turned out to be wrong. See the **Retro** section below for the detailed walk-through.
 
-**Fix 1: Virtual-nav lifecycle on pushState URL-path change.**
+Short version:
 
-Current state: `src/interceptors/navigation.ts:4-17` intercepts pushState/replaceState/popstate and calls a handler. `src/assertions/manager.ts:285` runs the route resolver on the handler. No cleanup of the previous "page" runs. `src/assertions/manager.ts:406` runs only on real `pagehide`, which hx-boost does not fire.
-
-Proposed behavior: extend `handleNavigation` to detect URL-path changes (not any pushState — must compare old vs new pathname). When path changes:
-
-1. Fail pending non-MPA, non-invariant, non-route assertions whose age > `config.unloadGracePeriod` — mirrors the real-unload path (`manager.ts:406` branch).
-2. Auto-pass pending invariants from the old page as "all-clear" signal — mirrors the real-unload invariant handling.
-3. Call `loadAssertions()` from `src/assertions/storage.ts` to reload any MPA assertions persisted from storage so they can resolve against the new DOM.
-4. Run the route resolver against the new URL (already happens).
-
-This fix is framework-agnostic — it fixes hx-boost, React Router, Vue Router, and any other SPA that uses pushState.
-
-**Regression risk:** the existing TanStack example uses pushState via TanStack Router and relies on route assertions firing on nav. The existing behavior (route resolver fires on nav) must be preserved. The new behavior only ADDS lifecycle cleanup — it must not fail assertions that the TanStack example expects to stay pending across a route change. Verify by running the existing TanStack example end-to-end after the fix.
-
-**Fix 2: MPA + SPA footgun — document, don't runtime-check.**
-
-`fs-assert-mpa="true"` is incompatible with hx-boost because MPA assertions persist to localStorage and reload on `DOMContentLoaded`, which hx-boost never re-fires. Fix 1 (`loadAssertions()` on virtual nav) partially resolves this — MPA assertions will now reload. But the semantics get fuzzy: MPA is supposed to mean "I expect this to happen on the NEXT page, not this one." In a virtual nav there's no clear boundary.
-
-Decision: ship Fix 1's `loadAssertions()` call (which handles the common case) and document the nuance in `common-patterns.md` — MPA mode is designed for hard nav, and in SPA routing the assertion resolves as soon as the virtual nav lands. No runtime warning needed.
-
-**Fix 3: OOB stale-element reference — already safe.**
-
-Audit confirmed OOB firing uses `document.querySelectorAll()` at fire time, not cached element refs. No fix needed. Noted here to close the audit loop.
+- **Stale assertions** are already cleaned up by the GC sweep. Assertion data is aggregated API-side across users; there's no real-time requirement that would justify an extra virtual-nav flush on top of GC.
+- **Invariants don't fail on element removal.** `elementResolver` only consults `addedElements`+`updatedElements` for `visible`/`hidden` types (`src/resolvers/dom.ts:213-216`). Removing the watched element leaves the invariant pending, which is the correct behavior — real unload auto-passes it (`tests/assertions/invariant.test.ts:223`).
+- **MPA mode is an opt-in signal** that explicitly means "resolve on the next HARD nav." Reloading on virtual nav silently rewrites the contract. Under hx-boost the right answer is "don't use MPA mode" — documentation, not runtime.
 
 ### Documentation updates
 
@@ -203,7 +186,7 @@ re-rendered.
 2. **Error responses don't swap by default.** HTMX drops 4xx/5xx response bodies. For `fs-assert-*-error` to fire, either (a) return 200 with an error fragment, (b) use the `response-targets` extension + `hx-target-error`, or (c) set `htmx.config.responseHandling` to swap error statuses.
 3. **Focus is not automatic on swap.** For `[focused=true]` modifiers on swapped inputs, add `autofocus` on the input or use `hx-on::after-settle="this.querySelector('input').focus()"`.
 4. **Form submit still fires under HTMX.** HTMX calls `preventDefault()` on the submit event AFTER listeners have run. `fs-trigger="submit"` and `fs-trigger="click"` on a boosted form both work unchanged.
-5. **MPA mode is for hard nav, not hx-boost.** In an hx-boost app, MPA assertions will resolve immediately on the virtual nav (after Fix 1 lands). For cross-page persistence with hx-boost, skip MPA — the agent session persists naturally.
+5. **MPA mode is for hard nav only.** `fs-assert-mpa="true"` is an opt-in signal for real page navigations. Don't use it on hx-boosted routes — under hx-boost the agent session is long-lived and regular DOM assertions work across virtual navs without MPA.
 6. **Scope stable assertions carefully.** `fs-assert-stable="#foo"` fails if any swap touches `#foo`. If `#foo` is inside `hx-target`, stable will fail on every swap. Use `fs-assert-stable` on elements OUTSIDE the swap target.
 
 ### Phasing
@@ -228,13 +211,7 @@ re-rendered.
 - Follow the instrumentation mapping table above.
 - Record any gotcha that appears but isn't in the plan — compound into a `docs/solutions/` file at the end.
 
-**Phase 4: agent fixes.**
-
-- Implement Fix 1 (virtual-nav lifecycle) in `src/interceptors/navigation.ts` + `src/assertions/manager.ts`.
-- Regression-test the existing TanStack example end-to-end.
-- Verify the three broken assertions in the HTMX example (invariant across nav, MPA nuance, pending assertion cleanup) now behave correctly.
-- Run `npm test` — no vitest regressions.
-- Run `npm run build` and `npm run build:size`. If the gzipped bundle size shifts, update `README.md` and `SKILL.md` per the feedback rule.
+**~~Phase 4: agent fixes.~~** Dropped — see Retro. Shipped and reverted in-branch; no agent source changes in the final diff. `npm test` + `npm run build:size` still belong here as quality gates for the example.
 
 **Phase 5: documentation.**
 
@@ -245,7 +222,7 @@ re-rendered.
 
 **Phase 6: compound.**
 
-- After the port lands and works end-to-end, run `/ce:compound` to codify any new institutional knowledge (gotchas discovered during Phase 3, any new resolver behavior from Fix 1, template-interpolation pattern for dynamic values).
+- After the port lands and works end-to-end, run `/ce:compound` to codify any new institutional knowledge (HTMX gotchas discovered during Phase 3, template-interpolation pattern for dynamic values, the audit misreads documented in the Retro).
 
 ## System-wide impact
 
@@ -263,7 +240,7 @@ User clicks Add → native submit event fires → Faultsense capture-phase liste
 
 - In-memory store resets on server restart. Acceptable for a demo — matches the TanStack example.
 - No persistent state crosses processes. No migration concerns.
-- Cross-page assertion leak is the real lifecycle risk, addressed by Fix 1.
+- ~~Cross-page assertion leak is the real lifecycle risk, addressed by Fix 1.~~ Cleaned up by GC, no extra handling needed — see Retro.
 
 ### API surface parity
 
@@ -276,11 +253,11 @@ User clicks Add → native submit event fires → Faultsense capture-phase liste
 1. **Happy-path loop.** Add → toggle → edit → save → delete → add. Every assertion fires green in the panel. Count display updates after each change. No stale pending assertions.
 2. **SLOW todo.** Add "SLOW" — server delays 2s, fs-assert-timeout=500 fails. Panel shows timeout failure with the expected reason.
 3. **FAIL delete.** Delete a "FAIL" todo — server returns 200 + error fragment → `fs-assert-added-error` wins the mutex, `fs-assert-removed-success` dismissed. Panel shows the conditional error branch.
-4. **Full nav loop.** Login → todos → logout → login → todos (via hx-boost twice). Before Fix 1: assertion leak, invariants hang, MPA assertions orphaned. After Fix 1: every loop is clean, no cruft in localStorage, no leaked pending assertions.
+4. **Full nav loop.** Login → todos → logout → login → todos (via hx-boost twice). Every loop is clean — pending assertions are cleaned up by GC, invariants stay pending across virtual nav (they don't fail on element removal, per `elementResolver`'s added/updated filter), MPA assertions are not in play under hx-boost.
 5. **Rapid interactions.** Mash the Add button 5 times fast. Re-trigger tracking records attempts; no assertion overlap or loss.
 6. **Title invariant violation.** Click the title to hide it. Invariant fails and shows in the panel, same as TanStack example. Recovers if the title becomes visible again via dev tools.
 7. **Offline toggle.** Use dev tools to simulate offline — offline banner assertion fires. Go back online — banner-hidden assertion fires.
-8. **Regression on TanStack example.** After Fix 1 lands, re-run the TanStack example end-to-end. Every assertion still fires, no new failures.
+8. ~~**Regression on TanStack example.** After Fix 1 lands, re-run the TanStack example end-to-end. Every assertion still fires, no new failures.~~ No longer needed — Fix 1 reverted.
 
 ## Acceptance criteria
 
@@ -298,20 +275,14 @@ User clicks Add → native submit event fires → Faultsense capture-phase liste
 - [ ] No console errors in the happy path
 - [ ] `hx-boost="true"` is set on `<body>` and works on all links/forms
 
-### Agent fixes
+### ~~Agent fixes~~ — dropped, see Retro
 
-- [ ] `src/interceptors/navigation.ts` — URL-path change detection (compare old vs new pathname before invoking handler)
-- [ ] `src/assertions/manager.ts` — `handleVirtualNav()` runs the unload-style flush for non-invariant/non-route assertions
-- [ ] Pending invariants auto-pass on virtual nav as "all-clear"
-- [ ] `loadAssertions()` runs on virtual nav to reload MPA assertions from localStorage
-- [ ] Existing TanStack example still passes end-to-end (regression check)
-- [ ] `npm test` — no vitest regressions
-- [ ] New vitest coverage for the virtual-nav lifecycle path
+- [x] `npm test` — 316 pre-existing tests still pass; no agent source changes in the final diff
 
 ### Documentation
 
 - [ ] `skills/faultsense-instrumentation/references/framework-syntax.md` — HTMX section added
-- [ ] `skills/faultsense-instrumentation/references/common-patterns.md` — HTMX gotchas section added (6 items)
+- [ ] `skills/faultsense-instrumentation/references/common-patterns.md` — HTMX gotchas section added (8 items)
 - [ ] `examples/todolist-htmx/README.md` — run, demo, and cross-link to TanStack example
 - [ ] Root `README.md` examples list updated to mention both variants
 - [ ] If bundle size shifts, update gzipped size in README.md and SKILL.md per feedback rule
@@ -320,14 +291,14 @@ User clicks Add → native submit event fires → Faultsense capture-phase liste
 
 - [ ] `npm run build` produces valid `dist/faultsense-agent.min.js`
 - [ ] `npm run build:size` — record any delta in plan completion notes
-- [ ] All three audit bugs (virtual nav leak, invariant-across-nav, MPA + hx-boost) are fixed or documented
+- [x] All three audit bugs walked through and dismissed: stale leak handled by GC, invariants don't fail on removal, MPA is opt-in hard-nav only (see Retro)
 - [ ] Compound doc written in `docs/solutions/` capturing any new gotcha surfaced during Phase 3
 
 ## Success metrics
 
 - Every assertion in the HTMX example passes green in manual testing of the happy path.
 - Conditional failure paths (SLOW timeout, FAIL delete) trigger the expected error branches.
-- After Fix 1, navigating login → todos → logout → login three times leaves zero orphaned assertions in the panel or localStorage.
+- Navigating login → todos → logout → login repeatedly is clean — no leaked pending assertions visible in the panel (GC handles the natural stale-case).
 - HTMX section of the framework syntax doc makes porting to a third framework (Vue, Svelte, plain HTML) a mechanical exercise, not a research project.
 
 ## Dependencies & risks
@@ -335,11 +306,9 @@ User clicks Add → native submit event fires → Faultsense capture-phase liste
 **Dependencies:**
 - HTMX 2.0.8 (current stable) — https://cdn.jsdelivr.net/npm/htmx.org@2.0.8/dist/htmx.min.js
 - Express 4 or 5 + EJS 3
-- Agent Fix 1 must land before the HTMX example's nav flow fully validates. Acceptable sequence: port lands with a known issue flag → Fix 1 lands → port flag removed.
 
 **Risks:**
 
-- **Agent Fix 1 regresses TanStack example.** Virtual-nav flush changes behavior on pushState. Must preserve TanStack auth/login and auth/logout route assertions. Mitigation: explicit regression test after the fix, run the existing example end-to-end before shipping.
 - **HX-Location subtleties.** HTMX's HX-Location re-issues a boosted fetch to the new URL. If the backend sends the full page HTML for the target, HTMX swaps `body` innerHTML — which must not break the script tags (Faultsense + panel must be loaded once, in the layout, and survive the swap). Mitigation: layout renders scripts in `<head>` with `defer`; body innerHTML swap preserves head → scripts stay loaded.
 - **OOB partial collisions.** If both a primary swap (e.g., outerHTML on a todo-item) and an OOB swap (innerHTML:#todo-count) arrive in the same response, HTMX applies both. Faultsense's OOB processor queues off parent assertion resolution, which happens after both swaps settle. Order is fine — but worth watching during Phase 3 testing.
 - **Focus timing on edit.** `[focused=true]` on the edit input may race with HTMX's autofocus handling. Fallback: `hx-on::after-settle="this.querySelector('input').focus()"`.
@@ -363,7 +332,7 @@ User clicks Add → native submit event fires → Faultsense capture-phase liste
 **Internal references:**
 
 - React example to port: `examples/todolist-tanstack/src/routes/todos.tsx`, `src/routes/login.tsx`, `src/components/{TodoList,TodoItem,AddTodo,GettingStarted,ActivityLog}.tsx`, `src/server/todos.ts`
-- Agent source touched by Fix 1: `src/interceptors/navigation.ts:4-17`, `src/assertions/manager.ts:285` (handleNavigation), `src/assertions/manager.ts:406` (handlePageUnload), `src/assertions/storage.ts:7` (loadAssertions), `src/processors/mutations.ts:3-32`, `src/processors/elements.ts:201-219`
+- Agent source examined during the (dropped) Fix 1 investigation: `src/interceptors/navigation.ts:4-17`, `src/assertions/manager.ts:285` (handleNavigation), `src/assertions/manager.ts:406` (handlePageUnload), `src/assertions/storage.ts:7` (loadAssertions), `src/processors/mutations.ts:3-32`, `src/processors/elements.ts:201-219`, `src/resolvers/dom.ts:187-231` (elementResolver — the file that disproved the invariant-on-removal claim)
 - Skills to update: `skills/faultsense-instrumentation/SKILL.md`, `skills/faultsense-instrumentation/references/framework-syntax.md`, `skills/faultsense-instrumentation/references/common-patterns.md`
 
 **External references:**
@@ -378,4 +347,57 @@ User clicks Add → native submit event fires → Faultsense capture-phase liste
 - Response handling / error handling: https://htmx.org/docs/#response-handling
 - response-targets extension (optional): https://htmx.org/extensions/response-targets/
 - Express template engines: https://expressjs.com/en/guide/using-template-engines.html
-- HTMX 2.0.8 CDN: https://cdn.jsdelivr.net/npm/htmx.org@2.0.8/dist/htmx.min.js
+- HTMX 2.0.8 CDN: https://cdn.jsdelivr.net/npm/htmx.org@2.0.8/
+
+## Retro — why Fix 1 was wrong
+
+The initial audit ran an Explore subagent against `src/` looking for HTMX risk areas. It came back with three "HIGH RISK" findings about hx-boost that all turned out to be misreads. I implemented Fix 1, shipped it with tests, and reverted it after Mitch pushed back in review. This section exists so future-me (and anyone else reading) doesn't walk into the same traps.
+
+### Misread 1: "pending non-invariant assertions leak forever on hx-boost"
+
+**Claim:** Without a real `pagehide`, `handlePageUnload` never runs, so pending assertions from the old virtual page leak into the next one indefinitely.
+
+**Reality:** The GC sweep (`config.gcInterval`, default 30s; 10s in the example's debug config) already cleans them up. I missed that GC runs continuously from `scheduleGc` in `enqueueAssertions`, not only at unload.
+
+**Why Fix 1 added nothing useful:** The only thing virtual-nav flush added over GC was *immediacy* — failing stale assertions within the grace period on nav instead of waiting 10–30s for GC. Mitch's counter: the data is aggregated API-side across all users, not consumed in real time. There is no downstream consumer that cares whether a stale assertion fails at T+2s or T+30s. The immediacy was a solution to a problem no one has.
+
+**Lesson:** before proposing a fix, check whether an existing mechanism already handles the case. GC is the catch-all for "pending but never resolved." Don't duplicate it.
+
+### Misread 2: "invariants fail on element removal under hx-boost"
+
+**Claim:** When hx-boost swaps body innerHTML, the old invariant's element is in `removedElements`, the invariant resolver fails the assertion, and then the new page re-creates it — producing a spurious failure on every virtual nav.
+
+**Reality:** `elementResolver` in `src/resolvers/dom.ts:200-217` is a switch statement on `assertion.type`. For `visible`/`hidden` assertions it only consults `addedElements` + `updatedElements`. **`removedElements` is not in the list for visible-type invariants.** Removing the watched element does not fail the assertion — it leaves it pending. The existing test `element removal leaves invariant pending — auto-passed on page unload` at `tests/assertions/invariant.test.ts:223-256` has been asserting this exact behavior for months.
+
+**Why I missed it:** the audit subagent asserted the failure path without tracing through the resolver's type-based element filtering. I trusted the audit without grepping for the assertion type → element list mapping myself.
+
+**Why the fix was actively harmful:** auto-passing invariants on virtual nav prematurely resolves them. A developer declaring `fs-assert="layout/title-visible" fs-trigger="invariant"` is saying "I expect this to hold for the *entire* agent session." Virtual nav is not the end of the session under hx-boost — the page is long-lived. Only real `pagehide` should auto-pass. My fix violated the invariant contract.
+
+**Lesson:** when a subagent's audit contradicts an existing test, trust the test and re-read the code. Resolvers that branch by assertion type are easy to mis-summarize.
+
+### Misread 3: "MPA mode is silently broken under hx-boost"
+
+**Claim:** `fs-assert-mpa="true"` stores to localStorage on `pagehide` and reloads on init. Under hx-boost, neither fires. So MPA assertions sit in localStorage forever, orphaned. Fix: reload on virtual nav.
+
+**Reality:** MPA is an *opt-in* signal with explicit semantics — "resolve on the next HARD page navigation." The developer who writes `fs-assert-mpa="true"` is saying "I know this code will run under a real browser navigation, and I want the assertion to survive it." Auto-reloading on virtual nav silently rewrites that contract: now the assertion resolves on virtual nav too, which is *not what the developer opted into*. In the hybrid case (some hard navs, some hx-boost), the change produces wrong behavior, not better behavior.
+
+**Lesson:** opt-in APIs with explicit semantics should never have their contracts silently rewritten by "helpful" runtime behavior. If the API doesn't fit a new context (hx-boost), the right answer is usually documentation, not a runtime workaround.
+
+### What actually went wrong in the audit process
+
+Four meta-lessons:
+
+1. **The audit subagent was over-confident.** It tagged three findings as "HIGH RISK" with file:line evidence and no hedging. The evidence was the right file but the wrong reading. I shouldn't have taken the risk ratings as ground truth without independent verification — especially for claims that contradict existing tests.
+2. **I didn't run the existing test suite against my mental model.** A 30-second grep for `invariant.*remove` in `tests/` would have surfaced the existing test that disproves Misread 2 before I wrote a single line of the fix.
+3. **I conflated "behavior under hx-boost is different" with "behavior under hx-boost is broken."** Different isn't broken. The agent session surviving a virtual nav is a *feature*, not a bug — it's what makes long-lived SPAs observable at all. My fix tried to make hx-boost look like a hard unload, which is backwards.
+4. **I skipped the pushback step.** When I presented the plan, I had Mitch as a reviewer available — and once he actually read the proposed fix, both misreads fell out of a single exchange. The cost of surfacing the proposed fix for a 5-minute review *before* writing it would have saved ~2 hours of implementation + revert work.
+
+### What the HTMX port actually validated
+
+Stripping the false positives away, here's what shipped:
+
+- The existing agent design handles server-rendered-swap frameworks correctly with zero code changes. MutationObserver discovery, route assertions, invariants, OOB, conditionals, custom event triggers — all work out of the box under hx-boost.
+- The HTMX-specific content is entirely in the *instrumentation layer*: how you interpolate dynamic values server-side, how you wire CustomEvents (use `HX-Trigger` header, not synchronous `document.dispatchEvent`), how you preserve attributes across OOB swaps (`innerHTML:#target`, not `outerHTML`), and when to scope stable assertions outside swap targets.
+- These are doc additions, not code additions. They live in `framework-syntax.md` (new HTMX section) and `common-patterns.md` (new HTMX gotchas section). Nothing in `src/` needed to change.
+
+**Final diff from `main`:** 1 new example directory (`examples/todolist-htmx/`), 2 doc sections added, 1 README example list entry, 1 bundle-size field still at 8.5 KB. No agent source changes. 316 tests, same as `main`.dist/htmx.min.js

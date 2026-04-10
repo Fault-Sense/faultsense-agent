@@ -66,8 +66,12 @@ Writing this port surfaced several HTMX-specific patterns worth knowing about. T
 6. **Interpolate dynamic assertion values with `<%= expr %>` the same way you'd use JSX `{expr}`.** See the toggle checkbox in `views/partials/todo-item.ejs`.
 7. **Stale attribute values on long-lived elements require an OOB re-render.** The Add button's `fs-assert-added-success=".todo-item[count=N]"` goes stale after every add/delete; the `mutation-oob.ejs` partial re-renders the button via `hx-swap-oob="outerHTML:#add-todo-button"` on every mutation response.
 
-## Agent fix that shipped with this port
+## What this port validated (and unvalidated)
 
-Porting the TanStack example forced a real agent bug into the open: SPA navigation via `history.pushState` (which is what hx-boost uses) never fired the same lifecycle flush as a real page unload. Pending assertions from the old "page" leaked into the next virtual page, invariants never auto-passed, and MPA-mode assertions in localStorage were never reloaded.
+The port started with an audit that flagged three risks under hx-boost: stale assertions leaking between virtual pages, invariants failing when their target element gets swapped away, and MPA assertions in `localStorage` never reloading. Working through the code turned all three into non-issues:
 
-The fix is framework-agnostic — it's in the navigation interceptor, not HTMX-specific code. Any SPA router that uses `history.pushState` (React Router, Vue Router, TanStack Router, Solid Router, htmx hx-boost) now gets a clean virtual-nav lifecycle. See the commit `fix(agent): virtual-nav lifecycle for pushState path changes` and `tests/assertions/virtual-nav.test.ts` for the details.
+1. **Stale assertions** — cleaned up by the normal GC sweep (`config.gcInterval`). Assertion data is aggregated API-side across users; there's no real-time requirement that would justify an extra virtual-nav flush.
+2. **Invariants across virtual nav** — `elementResolver` only consults `addedElements` and `updatedElements` for `visible`/`hidden` assertions (`src/resolvers/dom.ts:213-216`). Removing the watched element does NOT fail the invariant. It stays pending across the swap and resolves correctly on the real page unload — which is exactly the documented contract (`tests/assertions/invariant.test.ts:223` — "element removal leaves invariant pending — auto-passed on page unload").
+3. **MPA + hx-boost** — `fs-assert-mpa="true"` is an explicit opt-in for hard nav. Under hx-boost you don't need it; the agent session is long-lived and regular DOM assertions work across virtual navs without any special handling. Documentation, not code.
+
+Net result: no agent changes were needed. The port validated that the existing design already handles server-rendered-swap frameworks correctly, and the HTMX-specific gotchas above are all about *how you instrument* (server interpolation, HX-Trigger, hx-swap-oob=innerHTML) rather than *what the agent needs to do differently*.
