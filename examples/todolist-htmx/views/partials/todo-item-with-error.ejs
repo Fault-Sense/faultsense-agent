@@ -13,7 +13,7 @@
     hx-swap="outerHTML"
     fs-assert="todos/toggle-complete"
     fs-trigger="change"
-    fs-assert-updated=".todo-item[classlist=completed:<%= !todo.completed %>][data-status=active|completed]"
+    fs-assert-added=".todo-item[classlist=completed:<%= !todo.completed %>][data-status=active|completed]"
     fs-assert-visible="#edit-btn-<%= todo.id %>[disabled=<%= !todo.completed %>]"
   />
   <span class="text"><%= todo.text %></span>

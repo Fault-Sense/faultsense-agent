@@ -23,26 +23,43 @@
       fs-trigger="keydown:Escape"
       fs-assert-removed=".todo-edit-input"
     />
+    <!-- todos/save-edit: clicking Save removes the edit input by swapping
+         the item back to its read-only markup. -->
     <button
       class="save-btn"
       hx-post="/todos/<%= todo.id %>"
       hx-include="closest .todo-item"
       hx-target="closest .todo-item"
       hx-swap="outerHTML"
+      fs-assert="todos/save-edit"
+      fs-trigger="click"
+      fs-assert-removed=".todo-edit-input"
     >Save</button>
   </div>
 </div>
 <script>
-  // Escape key cancels edit by re-fetching the read-only partial.
-  (function () {
-    const el = document.getElementById('todo-<%= todo.id %>')
+  // Leading `;` defends against ASI if another script precedes this one in
+  // HTMX's swap processing pipeline.
+  ;(function () {
+    var el = document.getElementById('todo-<%= todo.id %>')
     if (!el) return
-    const input = el.querySelector('.todo-edit-input')
+    var input = el.querySelector('.todo-edit-input')
     if (!input) return
+
+    // Explicitly focus the input — `autofocus` only works on initial page
+    // parse, not on elements inserted via outerHTML swap. HTMX executes
+    // inline scripts synchronously during swap processing, which runs
+    // BEFORE the MutationObserver callback microtask fires — so by the
+    // time elementResolver checks `focused=true` for todos/edit-item,
+    // document.activeElement === input is already true.
+    input.focus()
+    if (typeof input.select === 'function') input.select()
+
+    // Escape cancels edit by re-fetching the read-only partial.
     input.addEventListener('keydown', function (e) {
       if (e.key === 'Escape') {
         e.preventDefault()
-        htmx.ajax('GET', '/todos/<%= todo.id %>/cancel-edit', {
+        window.htmx.ajax('GET', '/todos/<%= todo.id %>/cancel-edit', {
           target: '#todo-<%= todo.id %>',
           swap: 'outerHTML',
         })
