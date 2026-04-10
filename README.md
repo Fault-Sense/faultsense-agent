@@ -4,7 +4,7 @@
 
 ## E2E Test Assertions That Run Against Real Users
 
-Faultsense is a lightweight (8.5 KB gzipped) browser agent that validates feature correctness in production. Your AI coding assistant instruments the assertions — the same reasoning it uses to write Playwright or Cypress tests — and real user sessions validate them.
+Faultsense is a lightweight (8.6 KB gzipped) browser agent that validates feature correctness in production. Your AI coding assistant instruments the assertions — the same reasoning it uses to write Playwright or Cypress tests — and real user sessions validate them.
 
 ```html
 <button

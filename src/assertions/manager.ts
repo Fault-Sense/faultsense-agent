@@ -282,9 +282,104 @@ export function createAssertionManager(config: Configuration) {
     );
   };
 
-  const handleNavigation = (): void => {
+  const handleNavigation = (previousPath?: string): void => {
+    const currentPath =
+      typeof window !== "undefined" ? window.location.pathname : "";
+    const pathChanged =
+      previousPath !== undefined && previousPath !== currentPath;
+
+    // URL path changed (hx-boost, React Router nav, etc.) — run the
+    // virtual-unload lifecycle BEFORE the route resolver so stale
+    // assertions are flushed and MPA assertions are re-hydrated.
+    if (pathChanged) {
+      handleVirtualNav();
+      // Run a full check so any reloaded MPA/DOM assertions resolve
+      // against the new DOM in the same tick.
+      checkAssertions();
+      return;
+    }
+
     const pending = getPendingAssertions(activeAssertions);
     settle(routeResolver(pending, config));
+  };
+
+  /**
+   * Virtual-nav lifecycle — mirrors handlePageUnload for SPA navigations
+   * that don't fire a real pagehide/beforeunload (hx-boost, TanStack
+   * Router, React Router, etc.).
+   *
+   * - Auto-pass pending invariants from the old "page" (all-clear)
+   * - Fail stale non-invariant, non-route assertions older than grace period
+   * - Reload any MPA assertions from storage so they resolve against the
+   *   new DOM (fixes the MPA + hx-boost footgun)
+   */
+  const handleVirtualNav = (): void => {
+    const now = Date.now();
+
+    // Auto-pass pending invariants. They held until the nav, so treat
+    // them as "all clear" for the old page — same as real unload.
+    const pendingInvariants = activeAssertions.filter(
+      (a) =>
+        a.trigger === "invariant" &&
+        !a.endTime &&
+        a.previousStatus !== "failed"
+    );
+    if (pendingInvariants.length > 0) {
+      const completed = pendingInvariants.map((inv) =>
+        Object.assign(inv, {
+          status: "passed" as const,
+          endTime: now,
+        })
+      ) as CompletedAssertion[];
+      completed.forEach((a) => clearAssertionTimeout(a));
+      sendToCollector(completed, config);
+    }
+
+    // Fail stale non-invariant, non-route assertions older than grace period.
+    // Route assertions are excluded — the route resolver runs right after
+    // this and may legitimately satisfy them against the new URL.
+    const staleOnNav = activeAssertions.filter(
+      (a) =>
+        !a.endTime &&
+        a.trigger !== "invariant" &&
+        a.type !== "route" &&
+        now - a.startTime > config.unloadGracePeriod
+    );
+    if (staleOnNav.length > 0) {
+      const completed: CompletedAssertion[] = [];
+      for (const a of staleOnNav) {
+        const status = a.invertResolution
+          ? ("passed" as const)
+          : ("failed" as const);
+        const result = Object.assign(a, {
+          status,
+          endTime: now,
+        }) as unknown as CompletedAssertion;
+        completed.push(result);
+        clearAssertionTimeout(a);
+      }
+      sendToCollector(completed, config);
+    }
+
+    // Reload any MPA assertions from storage. In pure SPA mode storage
+    // is usually empty, but this handles the hybrid case where a prior
+    // hard nav stored MPA assertions awaiting the next "page load".
+    const loaded = loadAssertions();
+    if (loaded.length > 0) {
+      activeAssertions.push(...loaded);
+      loaded.forEach((assertion) => {
+        if (assertion.timeout > 0) {
+          createAssertionTimeout(assertion, config, (completedAssertion) => {
+            settle([completedAssertion]);
+          });
+        }
+      });
+    }
+
+    // Notify about assertion count change
+    if (assertionCountCallback) {
+      assertionCountCallback(getPendingAssertions(activeAssertions).length);
+    }
   };
 
   const checkAssertions = (): void => {
