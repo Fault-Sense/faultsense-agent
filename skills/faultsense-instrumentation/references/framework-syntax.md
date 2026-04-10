@@ -93,3 +93,79 @@ Vue passes unknown attributes through via `inheritAttrs` (default: true).
 ```
 
 Svelte passes unknown attributes through on native elements.
+
+---
+
+## HTMX + server templates (EJS, Handlebars, Nunjucks, ERB, Jinja, etc.)
+
+HTMX ships server-rendered HTML fragments and swaps them into the DOM. `fs-*` attributes are authored in the template and arrive in the DOM as plain HTML — no framework glue required.
+
+```ejs
+<button
+  hx-post="/todos"
+  hx-target="#todo-list"
+  hx-swap="beforeend"
+  fs-assert="todos/add-item"
+  fs-trigger="click"
+  fs-assert-added=".todo-item">
+  Add
+</button>
+```
+
+### Dynamic assertion values from server state
+
+The React JSX pattern of interpolating the EXPECTED NEXT STATE works identically with server templates:
+
+```ejs
+<input
+  type="checkbox"
+  <%= todo.completed ? 'checked' : '' %>
+  hx-patch="/todos/<%= todo.id %>/toggle"
+  hx-target="closest .todo-item"
+  hx-swap="outerHTML"
+  fs-assert="todos/toggle-complete"
+  fs-trigger="change"
+  fs-assert-updated=".todo-item[classlist=completed:<%= !todo.completed %>]" />
+```
+
+EJS `<%= !todo.completed %>` renders `true` or `false` into the attribute — the same semantics as React JSX `{!todo.completed}`. The server already knows the current state, so compute the negation in the template.
+
+### HX-Trigger response header is the async dispatch path
+
+For `fs-assert-emitted`, dispatch the CustomEvent via the HTMX `HX-Trigger` response header. HTMX fires the event on `document.body` after the swap settles — it bubbles to `document`, and the listener is already registered by the time the event fires. This avoids the synchronous-dispatch footgun documented under Common Mistakes #16.
+
+```js
+// Express + HTMX server
+res.set('HX-Trigger', JSON.stringify({ 'todo:added': { text: todo.text } }))
+res.render('partials/todo-item', { todo })
+```
+
+```html
+<button
+  fs-assert="todos/add-item"
+  fs-trigger="click"
+  fs-assert-emitted="todo:added">Add</button>
+```
+
+### `fs-assert-oob` is NOT `hx-swap-oob`
+
+Same name, orthogonal concepts:
+
+- **`fs-assert-oob`** (Faultsense): assertion routing. Fires a secondary assertion on a side-effect element when a named parent assertion passes or fails.
+- **`hx-swap-oob`** (HTMX): DOM delivery. Allows a server response to replace multiple DOM targets in one round trip, not just the primary swap target.
+
+You can use one, both, or neither. They don't interact.
+
+### Preserve instrumentation across OOB swaps
+
+Prefer `hx-swap-oob="innerHTML:#target"` over `hx-swap-oob="true"` (which is `outerHTML`). innerHTML replaces only the children, leaving the target element and its `fs-*` attributes intact across swaps. outerHTML replaces the element — any `fs-*` attributes you don't re-render on the server are lost.
+
+```ejs
+<!-- GOOD: #todo-count keeps its fs-* instrumentation across the OOB swap -->
+<span hx-swap-oob="innerHTML:#todo-count"><%= uncompleted %>/<%= todos.length %> remaining</span>
+
+<!-- RISKY: replaces the element, losing fs-assert-oob unless re-rendered -->
+<div id="todo-count" hx-swap-oob="true">...</div>
+```
+
+See `examples/todolist-htmx/` for a complete worked example.

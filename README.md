@@ -243,11 +243,18 @@ The `fs-*` attributes work in any framework that renders to the DOM.
 
 ## Package Info
 
-- **Size**: 8.5 KB gzipped
+- **Size**: 8.6 KB gzipped
 - **Dependencies**: None
 - **Browser Support**: Modern browsers (ES2020+)
 - **Framework**: Any framework that renders HTML
 - **License**: FSL-1.1-ALv2
+
+## Worked Examples
+
+The `examples/` directory contains reference ports you can run locally. The same assertion keys are used in each so you can diff them side-by-side and see how the instrumentation pattern works across rendering paradigms.
+
+- **[todolist-tanstack](examples/todolist-tanstack/)** — React + TanStack Router + TanStack Start (virtual DOM, JSX interpolation for dynamic assertion values).
+- **[todolist-htmx](examples/todolist-htmx/)** — HTMX 2 + Express + EJS (server-rendered fragments, hx-boost SPA nav, server-side interpolation for dynamic assertion values).
 
 ## Links
 - [Documentation](https://www.faultsense.org/docs)

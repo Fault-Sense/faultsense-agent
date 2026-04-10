@@ -349,3 +349,85 @@ Three things asserted:
 - Conditional on the trigger — item removed (success) or error shown (error)
 - OOB on the toast — when `todos/remove-item` passes, checks that a confirmation toast appeared
 - Each is an independent assertion with its own key, no coupling between components
+
+---
+
+## HTMX-specific gotchas
+
+HTMX instrumentation works the same as any other framework (`fs-*` attributes in the template), but a handful of HTMX semantics warrant specific guidance. The `examples/todolist-htmx/` directory is a full worked example.
+
+### 1. Use HX-Location, not HX-Redirect, for SPA navigation
+
+HX-Redirect triggers a hard page reload — the agent re-initializes from scratch and pending assertions are lost. HX-Location does a client-side fetch + pushState, preserving the agent session. For `fs-assert-route`, HX-Location is the only option that lets the route resolver see the pushState and satisfy the pending assertion.
+
+```js
+// GOOD — preserves the agent session
+res.set('HX-Location', '/dashboard').status(204).end()
+
+// BAD — hard reload loses pending fs-assert-route
+res.set('HX-Redirect', '/dashboard').status(204).end()
+```
+
+### 2. Error responses don't swap by default
+
+HTMX drops 4xx/5xx response bodies and fires `htmx:responseError`. If you declare `fs-assert-*-error` on a trigger, the expected `.error-msg` will never appear because the error fragment never enters the DOM.
+
+Three options:
+
+1. **Return 200 with an error fragment** and use `HX-Retarget` / `HX-Reswap` headers to route it to a dedicated error slot. Simplest; no extension required.
+2. **Install the `response-targets` extension** and use `hx-target-error="#error-slot"` or `hx-target-5xx="#error-slot"` on the trigger.
+3. **Reclassify the status** via `htmx.config.responseHandling` so HTMX swaps error statuses by default.
+
+```js
+// Option 1 — server returns 200 + error fragment, retargeted
+res.set('HX-Retarget', '#add-error-slot')
+res.set('HX-Reswap', 'innerHTML')
+res.render('partials/add-todo-error', { error: 'Todo cannot be empty' })
+```
+
+### 3. HX-Trigger header is the async dispatch path for fs-assert-emitted
+
+Synchronous `document.dispatchEvent` inside a click handler fires BEFORE the assertion listener is registered (Common Mistakes #16). In HTMX, use the `HX-Trigger` response header — HTMX dispatches the CustomEvent on `document.body` after `htmx:afterSettle`, giving the assertion listener time to register.
+
+```js
+res.set('HX-Trigger', JSON.stringify({ 'payment:complete': { orderId: '1234' } }))
+```
+
+```html
+<button
+  fs-assert="checkout/payment"
+  fs-trigger="click"
+  fs-assert-emitted="payment:complete[detail-matches=orderId:\d+]">
+  Pay Now
+</button>
+```
+
+### 4. Focus is not automatic on swapped-in inputs
+
+HTMX preserves focus on swapped elements that have a matching `id` pre- and post-swap, but it does NOT focus newly-added inputs by default. Assertions using `[focused=true]` on swapped content need either `autofocus` on the input or an `hx-on::after-settle` handler.
+
+```ejs
+<!-- Option A: autofocus attribute -->
+<input class="edit-input" autofocus
+  fs-assert="todos/edit-item" fs-trigger="click"
+  fs-assert-added=".edit-input[focused=true]">
+
+<!-- Option B: post-swap focus handler -->
+<form hx-on::after-settle="this.querySelector('.edit-input').focus()">
+```
+
+### 5. MPA mode is for hard nav, not hx-boost
+
+`fs-assert-mpa="true"` persists assertions to localStorage and resolves them on the NEXT page load. Under hx-boost there is no next page load — only a virtual nav. The agent now auto-reloads MPA assertions on virtual navs (hx-boost, history.pushState), so they resolve against the new DOM in the same tick. In practice that means MPA mode under hx-boost behaves like a same-page assertion — you don't need MPA mode in pure SPA routing. Use it only when a subset of your app does real page navigation.
+
+### 6. Scope `stable` assertions outside the swap target
+
+`fs-assert-stable="#foo"` fails if any mutation touches `#foo`'s subtree. If `#foo` is inside your `hx-target`, every swap mutates it and stable always fails. Place stability sentinels OUTSIDE the swap target or use OOB with a narrow `innerHTML:#foo` swap that updates only text content.
+
+### 7. Form submit and click both fire under HTMX
+
+HTMX calls `preventDefault()` on the native submit event AFTER listeners have already run. Faultsense's capture-phase listeners see the event first — both `fs-trigger="submit"` on the `<form>` and `fs-trigger="click"` on the submit button work unchanged under HTMX.
+
+### 8. Default `hx-target` is the triggering element itself
+
+`<button hx-post="/x">Submit</button>` without an explicit `hx-target` replaces the button's own innerHTML with the response. If you add `fs-assert-updated` on that button, it will fire — but the button element itself is being mutated, so the assertion target needs care. For most cases, set an explicit `hx-target` (e.g. `hx-target="#result-container"`) and assert against that target.
