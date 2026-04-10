@@ -1,7 +1,7 @@
 ---
 title: Port TanStack todolist example to HTMX + Express + EJS
 type: feat
-status: active
+status: completed
 date: 2026-04-10
 ---
 
