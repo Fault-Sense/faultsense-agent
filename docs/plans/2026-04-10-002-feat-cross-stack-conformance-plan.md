@@ -71,22 +71,28 @@ The new Vue 3 and Hotwire harnesses live under `conformance/vue3/` and `conforma
 
 **Decision: in-page global, registered via Faultsense's existing custom-collector-by-name mechanism.** (see origin: R8)
 
-The repo already supports custom collectors registered on `window.Faultsense.collectors[name]` resolved by the `data-collector-url` attribute on the agent script tag (see `src/index.ts:151-161`). This is the same extension point the panel collector uses. The Layer 2 collector adapter is:
+The repo already supports custom collectors registered on `window.Faultsense.collectors[name]` resolved by the `data-collector-url` attribute on the agent script tag (see `src/index.ts:151-161`). This is the same extension point the panel collector uses.
+
+**Custom collector signature (important correction from first draft).** Custom collectors are invoked ONCE PER SETTLED ASSERTION with a single `ApiPayload` object — _not_ with an array. See `sendToFunction` in `src/assertions/server.ts:37-57`. The payload uses the wire-format snake_case field names (`assertion_key`, `condition_key`, `assertion_type`, `assertion_type_value`, `assertion_type_modifiers`, …), not the agent's internal camelCase. The panel collector at `src/collectors/panel.ts:877` is the canonical reference.
+
+The Layer 2 collector adapter:
 
 ```javascript
 // conformance/shared/collector.js — loaded before the agent script in every harness
-window.__fsAssertions = [];
-window.Faultsense = window.Faultsense || {};
-window.Faultsense.collectors = window.Faultsense.collectors || {};
-window.Faultsense.collectors.conformance = function (assertions /*, config */) {
-  // Structured-clone so later mutations don't corrupt the captured snapshot
-  // (known Vitest/browser mock aliasing trap — see docs/solutions/logic-errors/
-  // assertion-pipeline-extension-ui-conditional-and-invariant-triggers.md)
-  window.__fsAssertions.push(...JSON.parse(JSON.stringify(assertions)));
-};
+(function () {
+  window.__fsAssertions = window.__fsAssertions || [];
+  window.Faultsense = window.Faultsense || {};
+  window.Faultsense.collectors = window.Faultsense.collectors || {};
+  window.Faultsense.collectors.conformance = function (payload /*, config */) {
+    // Defensive JSON clone — the agent mutates assertion objects post-settlement
+    // (invariant auto-retry, sibling dismissal) so a shared reference would
+    // corrupt the captured snapshot. Snake_case keys match ApiPayload.
+    window.__fsAssertions.push(JSON.parse(JSON.stringify(payload)));
+  };
+})();
 ```
 
-Harnesses set `data-collector-url="conformance"` on the agent script tag. Playwright drivers read results via `page.evaluate(() => window.__fsAssertions)` and assert payload shape. No HTTP listener, no Playwright fixtures beyond the standard `test`, no custom RPC. This matches how unit tests assert against `sendToCollector` spy calls (`tests/assertions/*.test.ts`) but in-page instead of via `vi.spyOn`.
+Harnesses set `data-collector-url="conformance"` on the agent script tag. Playwright drivers read results via `page.evaluate(() => window.__fsAssertions)` and filter by `assertion_key` / `status`. No HTTP listener, no Playwright fixtures beyond the standard `test`, no custom RPC. The shared helpers at `conformance/shared/assertions.ts` (`waitForFsAssertion`, `assertPayload`, `readCapturedAssertions`, `resetCapturedAssertions`) wrap the common polling pattern.
 
 ### Q4. Where does the "works-with" matrix live? (R10)
 
@@ -374,6 +380,11 @@ Also test: assertion with `fs-trigger="mount"` on the hydrated element. The moun
 - **Playwright CI install time.** First-run install of Chromium + deps is ~2 min on GitHub Actions. Mitigation: cache `~/.cache/ms-playwright` between runs via a cache key derived from the Playwright version. Document in `conformance/README.md`.
 - **Env-var switch on the existing tanstack app.** Flipping `data-collector-url` based on env var should not affect demo users. Default is `panel`; conformance mode is opt-in. A smoke test run against the demo URL must still show the panel.
 - **Dev server port conflicts.** Each harness must use a distinct port. Configure in `playwright.config.ts` `webServer` entries, not in the harness app's own config.
+
+**Implementation notes (added during execution):**
+- **Collector signature was wrong in the first draft.** Custom collectors receive a single `ApiPayload` per call, not an array. The corrected sample and explanation live in Q3. Phases 4–5 collector wiring inherits the fix.
+- **TanStack Start dev mode double-inits the agent.** In `vite dev` the root layout's `<Scripts />` path runs the agent bootstrap twice — once during initial document parse and once after Vite HMR connects. Both `init()` calls register their own listeners, and if a test click lands between the second init and its observer attaching, the click's payloads never reach the collector. Workaround applied in `conformance/drivers/tanstack.spec.ts`: `page.waitForTimeout(500)` in `beforeEach` after `page.goto` to let both init passes complete before the reset + interaction. Follow-up: run the tanstack harness in production build mode (`rails new`-equivalent: rebuild via `npm run build`, serve the static output) so there is no HMR re-init. Not in scope for this PR.
+- **Vitest/Playwright collection collision.** Vitest's default scan picks up `conformance/drivers/*.spec.ts` and tries to run them as vitest tests, which throws at Playwright's `test.describe`. Fixed by adding `vitest.config.ts` at the repo root with `include: ["tests/**/*.{test,spec}.{js,ts}"]` so vitest only scans `tests/`. The stale `vitest` block in `package.json` was removed — it had never been read by vitest (no config file existed before).
 
 ### Phase 4: Vue 3 harness
 

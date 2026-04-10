@@ -1,0 +1,1 @@
+../../../conformance/shared/collector.js

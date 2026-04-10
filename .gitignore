@@ -27,3 +27,9 @@ examples/*/node_modules
 examples/*/dist
 examples/*/.tanstack
 examples/*/.vinxi
+
+# Layer 2 conformance test output
+conformance/test-results/
+conformance/playwright-report/
+conformance/blob-report/
+conformance/.cache/

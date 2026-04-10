@@ -36,17 +36,12 @@
     "size": "echo \"📦 faultsense-agent.min.js\" && ls -lh dist/faultsense-agent.min.js | awk '{print \"   Raw: \" $5 \"B\"}' && echo \"   Gzipped: $(echo \"scale=1; $(gzip -c dist/faultsense-agent.min.js | wc -c | tr -d ' ') / 1024\" | bc)kb\"",
     "build:size": "npm run build:agent && npm run size",
     "prepublishOnly": "npm run build",
-    "test": "vitest"
-  },
-  "vitest": {
-    "test": {
-      "environment": "jsdom",
-      "setupFiles": [
-        "./setupTests.ts"
-      ]
-    }
+    "test": "vitest",
+    "conformance": "playwright test --config=conformance/playwright.config.ts",
+    "conformance:install": "playwright install --with-deps chromium"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "@types/node": "^22.12.0",
     "esbuild": "^0.25.11",
     "jsdom": "^25.0.0",
