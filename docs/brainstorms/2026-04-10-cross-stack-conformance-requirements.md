@@ -42,7 +42,7 @@ The goal of this work is to establish a **two-layer conformance strategy** that 
   - **React + TanStack Router** — already instrumented via `todolist-tanstack`. Reuse as-is (not ported to the `conformance/` layout) or extract the minimal subset. Primary value: exercises React 18 StrictMode and reconciliation.
   - **HTMX** — already instrumented via `todolist-htmx`. Same reuse question.
   - **Vue 3** — new harness. Exercises `nextTick` microtask batching and fine-grained reactivity.
-  - **Hotwire (Turbo + Stimulus)** — new harness. Exercises Turbo frame/stream swaps, Turbo Drive fetches, and Turbo 8 morphing. Also exercises a Rails-ecosystem pattern the HTMX harness doesn't.
+  - **Hotwire (Turbo + Stimulus)** — new harness. Exercises Turbo frame/stream swaps, Turbo Drive fetches, and Turbo 8 morphing. Hotwire is tightly coupled to Rails — the harness **must** run on Rails (not an Express hand-roll) so that the Turbo mutation shapes come from real `turbo_stream.*` helpers, not our guess at what they emit. Also exercises a Rails-ecosystem pattern the HTMX harness doesn't.
 - **R10.** Each harness run produces a pass/fail result per assertion in the catalog, and the results are summarized in a "works-with" matrix the README and docs site can reference.
 
 ### Cross-Cutting
@@ -74,6 +74,7 @@ The goal of this work is to establish a **two-layer conformance strategy** that 
 - **Frameworks are picked for pattern diversity, not popularity.** Vue 3 and Hotwire were chosen because they exercise microtask batching and Turbo swap patterns that React and HTMX don't. The selection criterion is "what unique mutation pattern does this framework exercise?" not "what's trending on Hacker News."
 - **Harness apps live in a new top-level directory, separate from `examples/`.** `examples/` teaches developers how to instrument their apps (audience: humans). `conformance/` proves the agent is correct against real browsers (audience: CI + the maintainer). Conflating them creates pressure to keep examples pretty, which conflicts with keeping conformance harnesses minimal.
 - **The pattern catalog grows organically.** Seeding it with ten entries is enough to prove the model. The real value accrues over time as every new framework bug becomes a permanent entry — future framework support gets cheaper, not more expensive.
+- **Each framework harness uses that framework's natural backend.** HTMX is language-agnostic, so the HTMX harness uses Node + Express. Hotwire is not — Turbo is Rails-first — so the Hotwire harness uses Rails. The same rule applies to future additions: Livewire → Laravel/PHP, LiveView → Phoenix/Elixir. A hand-rolled Node host for a language-coupled framework is fiction, and Layer 2 exists precisely to catch real-framework surprises that synthetic hosts would miss. CI installs the native toolchain via `ruby/setup-ruby`, `setup-php`, `setup-elixir`; contributors without the toolchain can still run Layer 1 plus the Node-only harnesses and skip the polyglot ones locally. _(Decision added mid-execution; see plan Q6.)_
 
 ## Dependencies / Assumptions
 

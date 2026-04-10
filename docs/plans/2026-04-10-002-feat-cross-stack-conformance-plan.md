@@ -104,6 +104,23 @@ File evidence: the agent creates a single `MutationObserver` rooted at `document
 
 `PAT-10` is therefore a confirmed gap. The plan writes a test that drives a shadow-rooted target and expects the assertion to NOT resolve (the current correct behavior given the gap). When shadow DOM support ships in a future plan, flipping the expectation is a one-line change. This marks the gap explicitly without blocking the plan.
 
+### Q6. Natural backend per framework — Rails for Hotwire, and the policy for future polyglot harnesses. (late addition, resolved mid-execution)
+
+**Decision: each Layer 2 harness uses that framework's natural backend. Hotwire → Rails. Future Livewire → Laravel, future LiveView → Phoenix.** (raised mid-execution, not in the original brainstorm)
+
+The original plan specified Express + EJS for the Hotwire harness because the existing HTMX example uses that stack. That was the wrong call. HTMX is language-agnostic — its mutation shapes are the same regardless of backend — so Express + EJS is a fine minimal host. **Hotwire is not.** Turbo was built for Rails; nearly every Turbo mutation shape observed in the wild is produced by `turbo_stream.replace`, `turbo_frame_tag`, or Turbo 8 morphing (`refresh="morph"`), all rendered by Rails helpers that write specific attribute combinations. A hand-rolled Express app emitting Turbo-shaped HTML tests what we _think_ Turbo produces, not what it actually produces. That defeats Layer 2's purpose — catching real-framework surprises that Layer 1 cannot predict.
+
+The same logic extends to future framework additions: Livewire is PHP/Laravel-only by design, and LiveView is Elixir/Phoenix-only. A minimal JS host for either would be fiction.
+
+**Tradeoffs:**
+
+- **CI:** `ruby/setup-ruby`, `setup-php`, `setup-elixir` are all solid GitHub Actions and each add ~30–60s to CI setup, running in parallel with the Node jobs. Cached toolchain installs make repeat runs cheap.
+- **Local contributor friction:** someone adding a new `PAT-NN` test from a Rails-exposed bug likely already has Ruby installed. A contributor without Ruby can still run Layer 1 + the Node harnesses (tanstack, htmx, vue3) and skip `npm run conformance -- --project=hotwire`. Document the skip path in `conformance/README.md`.
+- **Maintenance burden:** kept minimal — `rails new --minimal --skip-*` produces ~5 files plus a Gemfile, and the harness uses Turbo via CDN or importmap with no asset pipeline cruft. Rails/Bundler updates follow normal dependabot cadence.
+- **Docker escape hatch (optional, later):** a per-harness `Dockerfile` plus a wrapper script (`npm run conformance:docker`) would let contributors run polyglot harnesses without installing the native toolchain. Out of scope for this plan; noted as a follow-up if friction becomes real.
+
+**Convention for future plans:** the rule is "each framework harness uses that framework's natural backend." When a new framework is added, default to its idiomatic host unless the framework is explicitly language-agnostic.
+
 ## Research Summary
 
 Distilled from the repo-research-analyst and learnings-researcher agents. Full reports in conversation context at plan-creation time.
@@ -397,45 +414,82 @@ Also test: assertion with `fs-trigger="mount"` on the hydrated element. The moun
 - **`<Suspense>` fallback rendering.** Not used in the harness by default. If included, it exercises a pattern close to PAT-02 (delayed-commit). Out of scope for Phase 4; add as a new pattern if a bug surfaces.
 - **Vue 3 + TypeScript friction.** Keep `App.vue` in plain JS with type assertions only where needed. The harness is not a TypeScript showcase; simplicity beats strict types.
 
-### Phase 5: Hotwire harness
+### Phase 5: Hotwire harness (Rails-native)
 
-**Goal:** minimal Express + Turbo + Stimulus single-page app under `conformance/hotwire/` that exercises Turbo frame/stream swaps and Stimulus controllers, plus a Playwright driver at `conformance/drivers/hotwire.spec.ts`.
+**Goal:** minimal Rails + Turbo + Stimulus app under `conformance/hotwire/` that exercises Turbo frame/stream swaps and Stimulus controllers against a real Rails backend, plus a Playwright driver at `conformance/drivers/hotwire.spec.ts`.
+
+**Why Rails and not Express:** see Q6 in Deferred-from-Brainstorm Decisions. Hotwire is language-coupled to Rails — every Turbo mutation shape observed in the wild is produced by a Rails helper (`turbo_stream.replace`, `turbo_frame_tag`, `refresh="morph"`). An Express + EJS hand-rolling of Turbo-shaped HTML would be testing what we _think_ Turbo produces, not what it actually produces.
 
 **Tasks:**
 
-1. Scaffold `conformance/hotwire/` as a tiny Express + EJS app — same shape as `examples/todolist-htmx/` but without the CRUD app.
+1. Scaffold `conformance/hotwire/` as a minimal Rails app. Use the most aggressive `rails new` skip flags to keep the footprint small:
+   ```bash
+   rails new conformance/hotwire \
+     --minimal \
+     --skip-active-record \
+     --skip-active-storage \
+     --skip-action-mailer \
+     --skip-action-mailbox \
+     --skip-action-text \
+     --skip-action-cable \
+     --skip-jbuilder \
+     --skip-test \
+     --skip-system-test \
+     --skip-javascript
+   ```
+   Then layer in Turbo and Stimulus via importmap (or CDN `<script>` tags — whichever is simpler for a harness of this size). In-memory state (`Rails.application.config.todos ||= []`) — no database. Target layout:
    ```
    conformance/hotwire/
-   ├── package.json       # express, ejs
-   ├── server.js          # Express app, ~50 lines
-   ├── views/
-   │   └── index.ejs      # single page with all 20 assertion scenarios
+   ├── Gemfile            # rails, importmap-rails, turbo-rails, stimulus-rails
+   ├── config.ru
+   ├── config/
+   │   ├── application.rb # minimal Rails::Application
+   │   ├── routes.rb      # resources :todos + session/auth stubs
+   │   └── environments/development.rb
+   ├── app/
+   │   ├── controllers/todos_controller.rb  # CRUD via turbo_stream responses
+   │   ├── views/todos/index.html.erb       # single page with all 20 assertion scenarios
+   │   ├── views/todos/_item.html.erb       # the partial Turbo Stream renders
+   │   └── javascript/controllers/          # Stimulus controllers (minimal)
    └── public/
-       ├── turbo.min.js   # Turbo 8.x
-       ├── stimulus.js    # Stimulus
-       ├── collector.js   # symlink to conformance/shared/collector.js
+       ├── collector.js             # symlink to conformance/shared/collector.js
        └── faultsense-agent.min.js  # symlink to dist/
    ```
-2. Use Turbo Drive, Turbo Frames, and Turbo Streams intentionally across the 20 scenarios so the harness exercises distinct Turbo mutation shapes. Suggested split: CRUD operations via Turbo Streams (`append`, `remove`, `replace`), sub-page navigation via Turbo Frames, main navigation via Turbo Drive. Turbo 8 morphing (`turbo-frame` with `refresh="morph"`) for the toggle assertion — exercises PAT-04.
-3. One Stimulus controller for any interactive behavior not covered by Turbo. Minimize Stimulus usage — Hotwire harness is primarily about Turbo; Stimulus is a bonus.
-4. Panel collector NOT used. Only the conformance collector, registered in a `<script>` tag in the `<head>` before the agent loads. No `hx-preserve` concerns — Turbo's `data-turbo-permanent` is the equivalent and we do not need it because the single-page harness uses Drive's incremental navigation minimally.
-5. Add `conformance/hotwire/` as a `webServer` in `conformance/playwright.config.ts`.
+2. Use Turbo Drive, Turbo Frames, and Turbo Streams intentionally across the 20 scenarios so the harness exercises distinct Turbo mutation shapes. Suggested split:
+   - CRUD via `turbo_stream.append`, `turbo_stream.remove`, `turbo_stream.replace`
+   - Sub-page navigation via `turbo_frame_tag` with lazy-load (`src:`)
+   - Main navigation via Turbo Drive
+   - Toggle assertion via Turbo 8 morph (`<%= turbo_frame_tag "item", refresh: "morph" %>`) — exercises PAT-04 against a real morphing implementation
+3. One Stimulus controller for any interactive behavior not covered by Turbo. Minimize Stimulus usage — the harness is primarily about Turbo; Stimulus is a bonus.
+4. Panel collector NOT used. Register the conformance collector in the layout's `<head>` via `<script src="<%= asset_path 'collector.js' %>">` before the agent script tag. Use `<%= content_tag :script, "", id: "fs-agent", src: "...", "data-collector-url": "conformance" %>`.
+5. Add `conformance/hotwire/` as a `webServer` in `conformance/playwright.config.ts`. The `command` runs `bin/rails server -p 4568 -e development` (pick a port that does not collide with the Vite/Vue harnesses). `reuseExistingServer: !process.env.CI`.
 6. Implement `conformance/drivers/hotwire.spec.ts` — one test per assertion scenario. Reuse `conformance/shared/assertions.ts`.
 
+**Prerequisites (one-time, documented in `conformance/README.md`):**
+
+- Ruby 3.x via `rbenv` / `asdf` / `mise` / system install.
+- `bundle install` from `conformance/hotwire/`.
+- Contributors who do not have Ruby installed can run Layer 1 plus the Node-only harnesses and skip `--project=hotwire` locally. CI installs Ruby via `ruby/setup-ruby`.
+
 **Files touched:**
-- `conformance/hotwire/` (new, full app)
+- `conformance/hotwire/` (new, full Rails app)
 - `conformance/drivers/hotwire.spec.ts` (new)
 - `conformance/playwright.config.ts` (add project)
+- `conformance/README.md` (Rails prerequisite instructions)
+- `.github/workflows/conformance.yml` (add `ruby/setup-ruby` step if the workflows directory exists — Phase 6 scope)
 
 **Acceptance criteria:**
-- [ ] `conformance/hotwire/` is under 250 LoC total (slight buffer over Vue for the Express glue).
+- [ ] `conformance/hotwire/` exists as a runnable Rails app that boots via `bin/rails server`.
+- [ ] The harness is kept minimal — application code (controllers + views + Stimulus controllers, excluding generated Rails scaffolding) stays under 300 LoC.
 - [ ] `npm run conformance -- --project=hotwire` runs all 20 scenarios successfully.
-- [ ] Harness exercises at minimum: Turbo Stream `append`, `remove`, `replace`, Turbo Frame lazy-load + swap, Turbo Drive navigation for login/logout, Turbo 8 morph for toggle, plus the same Stimulus-wired triggers where needed.
+- [ ] Harness exercises at minimum: `turbo_stream.append`, `turbo_stream.remove`, `turbo_stream.replace`, `turbo_frame_tag` lazy-load + swap, Turbo Drive navigation for login/logout, Turbo 8 morph for toggle.
 - [ ] Turbo 8 morph mutation shape is verified to match PAT-04 expectations — if not, lock in the discrepancy as a new PAT-NN in Layer 1 before shipping.
 
 **Risks:**
+- **Ruby toolchain friction on contributor machines.** Mitigated by documenting the skip path in `conformance/README.md` and by the fact that CI does install Ruby. Docker wrapper is a follow-up if friction becomes real.
+- **Rails boot time.** `rails server` cold-start is 2–4s on an already-configured machine, longer on first run. Playwright's `webServer` config uses `reuseExistingServer: !CI` so local iteration reuses the server across runs.
 - **Turbo Drive full-page swaps destroy observer state.** The agent's `handlePageUnload` fires on real navigations. Harness must use Turbo Drive for intra-app navigation only and never trigger a hard reload between assertions. If one scenario requires a reload, isolate it in its own Playwright test.
-- **Turbo Stream WebSocket mode.** Not used — WS Turbo Streams require ActionCable and are a Rails concept. Harness uses the fetch-response Turbo Stream mode only.
+- **Turbo Stream WebSocket mode.** Not used — we skipped Action Cable in the scaffold flags. Harness uses the fetch-response Turbo Stream mode only.
 - **Stimulus lifecycle edge cases.** Stimulus controllers connect/disconnect on DOM changes. If a controller's `connect()` fires a mutation before the trigger event bubbles, it may race with assertion creation. Mitigation: keep Stimulus usage minimal; if a race surfaces, lock it in as a new PAT-NN.
 
 ### Phase 6: Documentation and works-with matrix
@@ -575,7 +629,7 @@ Five cross-layer scenarios that unit-only testing would not catch:
 - [ ] Layer 1: Phase 1 helper migrated across 3 canonical existing tests.
 - [ ] Layer 2: `conformance/` directory exists with shared collector, Playwright config, and four drivers (tanstack, htmx, vue3, hotwire).
 - [ ] Layer 2: `npm run conformance` passes all drivers in Chromium.
-- [ ] Layer 2: Vue 3 harness ≤200 LoC; Hotwire harness ≤250 LoC.
+- [ ] Layer 2: Vue 3 harness ≤200 LoC. Hotwire harness application code ≤300 LoC (Rails scaffolding excluded).
 - [ ] Matrix: `docs/works-with.md` generated from real test output and committed.
 - [ ] Docs: `docs/mutation-patterns.md` seeded with 10 pattern entries, all file pointers filled.
 - [ ] Docs: CLAUDE.md `gcInterval` reference fixed and conformance section added.
@@ -604,6 +658,7 @@ Five cross-layer scenarios that unit-only testing would not catch:
 | Shadow DOM gap (PAT-10) is not solved by this plan | Accepted as known limitation. | Documented explicitly in `docs/mutation-patterns.md` and marked `gap`. Separate future plan handles shadow DOM support; this plan just ensures the gap is visible. |
 | Vitest mock aliasing corrupts Layer 1 assertion snapshots | Low. Already documented. | Phase 1 helper captures spy arguments via `JSON.parse(JSON.stringify(arg))` before returning. Layer 2 in-page collector does the same. |
 | Hotwire harness exposes a class of bug that requires agent changes | Low-medium. Scope creep. | Follow the discovery → lock-in workflow: extract the pattern as a new PAT, lock it in Layer 1, then fix the agent in a follow-up PR. Do not inline agent fixes into the harness phase. |
+| Ruby toolchain required for the Hotwire harness | Medium. Contributors without Ruby cannot run `--project=hotwire` locally. | Document the skip path in `conformance/README.md` — Layer 1 and the Node-only harnesses are fully runnable without Ruby. CI installs Ruby via `ruby/setup-ruby`. Docker wrapper is a follow-up if friction persists. Same policy applies to future Livewire (PHP) and LiveView (Elixir) harnesses. |
 | "Works-with" matrix drifts from reality between CI runs | Low. Misleading claims. | Matrix is generated fresh from `npm run conformance` output. README snapshot is updated via script, not hand-edited. CI can be extended to fail if the committed matrix does not match the current run. |
 
 ## Sources and References
