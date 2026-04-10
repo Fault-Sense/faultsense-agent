@@ -1,50 +1,22 @@
 // @vitest-environment jsdom
 
 import { describe, it, expect, afterEach, beforeEach, vi } from "vitest";
-import { init } from "../../../src/index";
-import * as resolveModule from "../../../src/assertions/server";
+import { setupAgent } from "../../helpers/assertions";
 
 describe("Faultsense Agent - Conditional Assertion Resolution", () => {
-  let consoleErrorMock: ReturnType<typeof vi.spyOn>;
-  let sendToServerMock: ReturnType<typeof vi.spyOn>;
-  let cleanupFn: ReturnType<typeof init>;
-  let fixedDateNow = 1230000000000;
-  let config = {
-    apiKey: "TEST_API_KEY",
-    releaseLabel: "0.0.0",
-    gcInterval: 30000, unloadGracePeriod: 2000,
-    collectorURL: "http://localhost:9000",
-  };
+  let ctx: ReturnType<typeof setupAgent>;
+  // Local aliases so existing test bodies remain unchanged.
+  let sendToServerMock: ReturnType<typeof setupAgent>["sendToCollectorSpy"];
+  let config: ReturnType<typeof setupAgent>["config"];
 
   beforeEach(() => {
-    vi.useFakeTimers();
-    vi.spyOn(Date, "now").mockImplementation(() => fixedDateNow);
-
-    sendToServerMock = vi
-      .spyOn(resolveModule, "sendToCollector")
-      .mockImplementation(() => {});
-
-    consoleErrorMock = vi.spyOn(console, "error").mockImplementation(() => {});
-
-    vi.mock("../../../src/utils/elements", async () => ({ ...await vi.importActual("../../../src/utils/elements") as any,
-      isVisible: vi.fn().mockImplementation((element: HTMLElement) => {
-        return (
-          element.style.display !== "none" &&
-          element.style.visibility !== "hidden"
-        );
-      }),
-    }));
-
-    cleanupFn = init(config);
+    ctx = setupAgent({ config: { gcInterval: 30000 } });
+    sendToServerMock = ctx.sendToCollectorSpy;
+    config = ctx.config;
   });
 
   afterEach(() => {
-    cleanupFn();
-    vi.clearAllTimers();
-    vi.useRealTimers();
-    consoleErrorMock.mockRestore();
-    sendToServerMock.mockRestore();
-    vi.spyOn(Date, "now").mockRestore();
+    ctx.cleanup();
   });
 
   it("pre-existing element matching success selector does NOT false-pass at trigger time", async () => {
@@ -60,7 +32,8 @@ describe("Faultsense Agent - Conditional Assertion Resolution", () => {
     // Re-init after seeding the DOM so the MutationObserver attaches AFTER
     // the pre-existing elements exist — matching the real-world flow where
     // Faultsense init runs after server-rendered HTML is present.
-    cleanupFn();
+    // Re-init after seeding so the observer attaches after the pre-existing
+    // elements are present.
     document.body.innerHTML = `
       <div class="todo-item">Pre-existing todo</div>
       <button
@@ -70,7 +43,7 @@ describe("Faultsense Agent - Conditional Assertion Resolution", () => {
         fs-assert-added-success=".todo-item"
         fs-assert-added-error=".demo-error">Add</button>
     `;
-    cleanupFn = init(config);
+    ctx.init();
 
     const button = document.querySelector("button") as HTMLButtonElement;
     button.addEventListener("click", () => {
@@ -186,8 +159,7 @@ describe("Faultsense Agent - Conditional Assertion Resolution", () => {
 
     button.click();
 
-    fixedDateNow += 1001;
-    vi.advanceTimersByTime(1000);
+    ctx.advanceTime(1001);
 
     await vi.waitFor(() =>
       expect(sendToServerMock).toHaveBeenCalledWith(
@@ -219,8 +191,7 @@ describe("Faultsense Agent - Conditional Assertion Resolution", () => {
     button.click();
 
     // Advance past timeout
-    fixedDateNow += 1001;
-    vi.advanceTimersByTime(1000);
+    ctx.advanceTime(1001);
 
     await vi.waitFor(() =>
       expect(sendToServerMock).toHaveBeenCalledWith(
@@ -373,8 +344,7 @@ describe("Faultsense Agent - Conditional Assertion Resolution", () => {
     // Click but don't remove .item or add .error-msg — both should timeout
     button.click();
 
-    fixedDateNow += 2001;
-    vi.advanceTimersByTime(2000);
+    ctx.advanceTime(2001);
 
     await vi.waitFor(() =>
       expect(sendToServerMock).toHaveBeenCalled()
@@ -407,8 +377,7 @@ describe("Faultsense Agent - Conditional Assertion Resolution", () => {
     button.click();
 
     // Timeout fires — group fails
-    fixedDateNow += 2001;
-    vi.advanceTimersByTime(2000);
+    ctx.advanceTime(2001);
 
     await vi.waitFor(() =>
       expect(sendToServerMock).toHaveBeenCalled()
@@ -420,8 +389,7 @@ describe("Faultsense Agent - Conditional Assertion Resolution", () => {
     document.querySelector(".item")!.remove();
 
     // Wait for any mutations to process
-    fixedDateNow += 100;
-    vi.advanceTimersByTime(100);
+    ctx.advanceTime(100);
 
     await vi.waitFor(() => {
       // No additional calls should have been made
@@ -463,8 +431,7 @@ describe("Faultsense Agent - Conditional Assertion Resolution", () => {
     );
 
     // added-error times out independently (not dismissed)
-    fixedDateNow += 2001;
-    vi.advanceTimersByTime(2000);
+    ctx.advanceTime(2001);
 
     await vi.waitFor(() =>
       expect(sendToServerMock).toHaveBeenCalledTimes(2)

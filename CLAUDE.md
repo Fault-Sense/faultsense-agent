@@ -68,6 +68,14 @@ Assertions resolve naturally when the DOM changes. No default per-assertion time
 - **Page unload** — assertions older than `config.unloadGracePeriod` (default 2s) are failed on page close. Fresh assertions are silently dropped (user navigated, not a failure). Uses `sendBeacon` for reliable delivery.
 - **Re-trigger tracking** — when a trigger fires on a pending assertion, the timestamp is recorded in an `attempts[]` array on the assertion. Included in the collector payload for rage-click analysis.
 
+## Conformance strategy
+
+Stack coverage is enforced through two layers. Layer 1 is an exhaustive jsdom suite that locks in how the agent resolves raw DOM mutation patterns; Layer 2 (Phases 3–5 of the cross-stack plan) runs real browsers against framework harnesses and feeds newly-discovered patterns back into Layer 1.
+
+- **Layer 1 — DOM mutation pattern suite.** `tests/conformance/pat-NN-*.test.ts` files, one per named pattern class. Each file uses the shared helper at [`tests/helpers/assertions.ts`](tests/helpers/assertions.ts) and locks in the agent's behavior for that class of mutation shape (outerHTML swap, morphdom patch, microtask batching, etc.). The catalog lives at [`docs/mutation-patterns.md`](docs/mutation-patterns.md).
+- **Discovery → lock-in loop.** When a real framework or a Layer 2 harness exposes a new bug, the workflow is: (1) diagnose the root cause, (2) name the mutation pattern class, (3) add a new `PAT-NN` entry to the catalog and a regression test under `tests/conformance/`, (4) fix the agent, (5) verify both layers green. The catalog is append-only — existing IDs are stable references.
+- **When you add a new framework harness:** the default posture is Layer 1 should already cover it. If the harness exposes a novel mutation shape, _extract the pattern first_ and lock it in via a new `PAT-NN` — do not inline the fix into the harness phase.
+
 ## Error Context
 
 JS errors do not instantly fail assertions. When an uncaught exception occurs, all pending assertions are tagged with `errorContext` (first error wins — subsequent errors do not overwrite). The assertion continues resolving normally via DOM observation, timeout, or GC.
