@@ -1,0 +1,13 @@
+<div id="activity-log-container" class="activity-log" style="display:none">
+  <div class="log-header">Activity Log</div>
+  <!-- activity/log-updated: when todo:added CustomEvent fires on document,
+       verify a .log-entry appeared. Custom event trigger. -->
+
+  <div
+    id="activity-log"
+    class="entries"
+    fs-assert="activity/log-updated"
+    fs-trigger="event:todo:added"
+    fs-assert-visible=".log-entry"
+  ></div>
+</div>

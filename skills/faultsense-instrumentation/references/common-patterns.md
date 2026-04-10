@@ -349,3 +349,177 @@ Three things asserted:
 - Conditional on the trigger — item removed (success) or error shown (error)
 - OOB on the toast — when `todos/remove-item` passes, checks that a confirmation toast appeared
 - Each is an independent assertion with its own key, no coupling between components
+
+---
+
+## HTMX-specific gotchas
+
+HTMX instrumentation works the same as any other framework (`fs-*` attributes in the template), but a handful of HTMX semantics warrant specific guidance. The `examples/todolist-htmx/` directory is a full worked example.
+
+### 1. Use HX-Location, not HX-Redirect, for SPA navigation
+
+HX-Redirect triggers a hard page reload — the agent re-initializes from scratch and pending assertions are lost. HX-Location does a client-side fetch + pushState, preserving the agent session. For `fs-assert-route`, HX-Location is the only option that lets the route resolver see the pushState and satisfy the pending assertion.
+
+```js
+// GOOD — preserves the agent session
+res.set('HX-Location', '/dashboard').status(204).end()
+
+// BAD — hard reload loses pending fs-assert-route
+res.set('HX-Redirect', '/dashboard').status(204).end()
+```
+
+### 2. Error responses don't swap by default
+
+HTMX drops 4xx/5xx response bodies and fires `htmx:responseError`. If you declare `fs-assert-*-error` on a trigger, the expected `.error-msg` will never appear because the error fragment never enters the DOM.
+
+Three options:
+
+1. **Return 200 with an error fragment** and use `HX-Retarget` / `HX-Reswap` headers to route it to a dedicated error slot. Simplest; no extension required.
+2. **Install the `response-targets` extension** and use `hx-target-error="#error-slot"` or `hx-target-5xx="#error-slot"` on the trigger.
+3. **Reclassify the status** via `htmx.config.responseHandling` so HTMX swaps error statuses by default.
+
+```js
+// Option 1 — server returns 200 + error fragment, retargeted
+res.set('HX-Retarget', '#add-error-slot')
+res.set('HX-Reswap', 'innerHTML')
+res.render('partials/add-todo-error', { error: 'Todo cannot be empty' })
+```
+
+### 3. HX-Trigger header is the async dispatch path for fs-assert-emitted
+
+Synchronous `document.dispatchEvent` inside a click handler fires BEFORE the assertion listener is registered (Common Mistakes #16). In HTMX, use the `HX-Trigger` response header — HTMX dispatches the CustomEvent on `document.body` after `htmx:afterSettle`, giving the assertion listener time to register.
+
+```js
+res.set('HX-Trigger', JSON.stringify({ 'payment:complete': { orderId: '1234' } }))
+```
+
+```html
+<button
+  fs-assert="checkout/payment"
+  fs-trigger="click"
+  fs-assert-emitted="payment:complete[detail-matches=orderId:\d+]">
+  Pay Now
+</button>
+```
+
+### 4. Focus is not reliable on swapped-in inputs — call `.focus()` explicitly
+
+HTMX preserves focus on swapped elements that have a matching `id` pre- and post-swap, but it does NOT consistently focus newly-added inputs. `autofocus` works in some browsers on dynamic insertion and not others. Assertions using `[focused=true]` on swapped content need an explicit `.focus()` call.
+
+The cleanest pattern: ship a small inline `<script>` in the swap partial itself. HTMX executes inline scripts in swapped content **synchronously during the swap**, which runs *before* the MutationObserver callback microtask fires — so by the time `elementResolver` evaluates `focused=true`, `document.activeElement === input` is already true.
+
+```ejs
+<!-- In your edit partial -->
+<div id="todo-<%= todo.id %>" class="todo-item" data-status="editing">
+  <input class="todo-edit-input" autofocus ... />
+  ...
+</div>
+<script>
+  ;(function () {
+    var el = document.getElementById('todo-<%= todo.id %>')
+    var input = el && el.querySelector('.todo-edit-input')
+    if (input) {
+      input.focus()
+      if (input.select) input.select()
+    }
+  })()
+</script>
+```
+
+The leading `;` on the IIFE defends against ASI if another script tag precedes this one in the swap pipeline. The `autofocus` attribute is a belt-and-suspenders fallback for browsers that honor it on dynamic insertion.
+
+Alternatively, use `hx-on::after-settle` on the button that triggers the swap — but an inline script in the partial keeps the focus logic co-located with the element that needs it.
+
+### 5. MPA mode is for hard nav only
+
+`fs-assert-mpa="true"` is an opt-in signal that means "persist this assertion across a real page navigation." The agent writes it to `localStorage` on `pagehide` and reloads it on the next init (the next real `DOMContentLoaded`).
+
+**Do not use `fs-assert-mpa="true"` on hx-boosted routes.** hx-boost never fires a real unload, so MPA assertions created under boost are written to storage but never reloaded — they're orphaned. Under hx-boost the agent session is long-lived, so you don't need MPA mode: a regular DOM assertion can wait for the new view to render and resolve naturally.
+
+MPA is only appropriate when a subset of your app does actual hard navigation (e.g., a legacy flow wrapped inside an otherwise SPA app, or a form that POSTs to a different origin).
+
+### 6. Scope `stable` assertions outside the swap target
+
+`fs-assert-stable="#foo"` fails if any mutation touches `#foo`'s subtree. If `#foo` is inside your `hx-target`, every swap mutates it and stable always fails. Place stability sentinels OUTSIDE the swap target or use OOB with a narrow `innerHTML:#foo` swap that updates only text content.
+
+### 7. Form submit and click both fire under HTMX
+
+HTMX calls `preventDefault()` on the native submit event AFTER listeners have already run. Faultsense's capture-phase listeners see the event first — both `fs-trigger="submit"` on the `<form>` and `fs-trigger="click"` on the submit button work unchanged under HTMX.
+
+### 8. Default `hx-target` is the triggering element itself
+
+`<button hx-post="/x">Submit</button>` without an explicit `hx-target` replaces the button's own innerHTML with the response. If you add `fs-assert-updated` on that button, it will fire — but the button element itself is being mutated, so the assertion target needs care. For most cases, set an explicit `hx-target` (e.g. `hx-target="#result-container"`) and assert against that target.
+
+### 9. `hx-swap="outerHTML"` = `added`, not `updated`
+
+This is the most load-bearing rule for HTMX instrumentation: **when HTMX replaces an element via `outerHTML` swap, the agent sees an `added` event, not an `updated` event.** Matching the React convention of `fs-assert-updated` for in-place mutations will silently fail.
+
+Why: `elementResolver` uses a type-based switch (`src/resolvers/dom.ts:200-217`) to decide which mutation list to check. For `updated`, it looks at `updatedElements` — which under a `childList` mutation (the DOM shape an outerHTML swap produces) contains the *parent* of the swapped element, not the element itself. The new element lands in `addedElements`, which is only consulted for `added` (and, separately, for `visible`/`hidden`).
+
+React can use `updated` for list-item class changes because React mutates `className` in place, which fires an `attributes` mutation where `mutation.target` IS the todo item. HTMX replaces the whole element, so the mutation shape is different.
+
+```ejs
+<!-- WRONG under outerHTML swap: never resolves -->
+<input type="checkbox"
+  hx-patch="/todos/<%= todo.id %>/toggle"
+  hx-target="closest .todo-item"
+  hx-swap="outerHTML"
+  fs-assert="todos/toggle"
+  fs-trigger="change"
+  fs-assert-updated=".todo-item[classlist=completed:<%= !todo.completed %>]">
+
+<!-- RIGHT: outerHTML replaces the item, so the new .todo-item is an added node -->
+<input type="checkbox"
+  hx-patch="/todos/<%= todo.id %>/toggle"
+  hx-target="closest .todo-item"
+  hx-swap="outerHTML"
+  fs-assert="todos/toggle"
+  fs-trigger="change"
+  fs-assert-added=".todo-item[classlist=completed:<%= !todo.completed %>]">
+```
+
+If you're using `innerHTML` swap to update text content without replacing the wrapper (e.g. `hx-swap-oob="innerHTML:#todo-count"` changing just the text inside), `updated` IS correct — the wrapper stays and only its subtree mutates. The rule is specifically about `outerHTML`, `delete`, or any swap that *replaces* the matched element.
+
+### 10. Don't put multiple IIFEs in one inline `<script>` — use an external file
+
+Classic JavaScript ASI trap:
+
+```html
+<script>
+  (function () { /* A */ })()
+  (function () { /* B */ })()   // ← parsed as A()(B())() — throws
+</script>
+```
+
+The parser does not insert a semicolon between `})()` and the next `(`, so the second IIFE becomes an argument to a call on the first one's return value. Under initial page load this is already fragile; under hx-boost swap it's guaranteed to crash because the script is re-evaluated as a unit every time the boost re-runs inline scripts.
+
+Two fixes:
+
+1. **Preferred:** move the JS to an external file in `public/` and load it once from the layout's `<head>`. The `<head>` is outside the swap target under `<body hx-boost="true">`, so it's evaluated exactly once per real page load and survives every virtual nav.
+2. **Fallback:** if the script must be inline, wrap everything in a single IIFE, or prefix each inner IIFE with a leading `;`.
+
+```js
+// public/todos.js — loaded once from layout <head>
+(function () {
+  // feature A
+  window.addEventListener('online', render)
+
+  // feature B
+  document.addEventListener('todo:added', handler)
+
+  // feature C — body-delegated so it survives hx-boost body swaps
+  document.addEventListener('click', delegated)
+})()
+```
+
+```html
+<!-- layout.ejs -->
+<head>
+  <script src="/faultsense-panel.min.js" defer></script>
+  <script src="/faultsense-agent.min.js" defer ...></script>
+  <script src="/htmx.min.js" defer></script>
+  <script src="/todos.js" defer></script>
+</head>
+```
+
+The same rule applies to event listeners that need to survive boost: delegate from `document` (or `document.body`, which persists across body innerHTML swaps) rather than from a specific element that will get replaced on the next swap.

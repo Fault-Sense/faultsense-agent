@@ -1,0 +1,69 @@
+<div
+  id="todo-<%= todo.id %>"
+  class="todo-item<%= todo.completed ? ' completed' : '' %>"
+  data-status="<%= todo.completed ? 'completed' : 'active' %>"
+>
+  <!-- todos/toggle-complete: under hx-boost's outerHTML swap, the
+       .todo-item is REPLACED (removed + added), not mutated in place.
+       `updated` misses it — elementResolver only checks `updatedElements`
+       for `updated` type, and a childList swap puts the parent
+       (#todo-list) there, not the new item. Use `added`: the new item
+       lands in `addedElements`.
+
+       The selector targets `#todo-<id>` (the specific item being toggled)
+       instead of `.todo-item` so the modifier check only considers the
+       one item that actually changed. Using `.todo-item` makes the
+       resolver iterate every added .todo-item in the mutation batch,
+       which can fail if another item is re-rendered in a way that
+       doesn't match the expected classlist for THIS toggle.
+
+       (React uses `updated` because React mutates className in place,
+       firing an `attributes` mutation where target IS the todo-item.) -->
+  <input
+    type="checkbox"
+    class="checkbox"
+    <%= todo.completed ? 'checked' : '' %>
+    data-offline-disable
+    hx-patch="/todos/<%= todo.id %>/toggle"
+    hx-target="closest .todo-item"
+    hx-swap="outerHTML"
+    fs-assert="todos/toggle-complete"
+    fs-trigger="change"
+    fs-assert-updated="#todo-<%= todo.id %>[classlist=completed:<%= !todo.completed %>][data-status=active|completed]"
+    fs-assert-visible="#edit-btn-<%= todo.id %>[disabled=<%= !todo.completed %>]"
+  />
+  <span class="text"><%= todo.text %></span>
+  <div class="actions">
+    <!-- todos/edit-item: clicking edit swaps the row into edit mode. The
+         swapped-in partial has autofocus on .todo-edit-input, so the
+         focused=true modifier resolves. -->
+    <button
+      id="edit-btn-<%= todo.id %>"
+      class="action-btn"
+      <%= todo.completed ? 'disabled' : '' %>
+      data-offline-disable
+      hx-get="/todos/<%= todo.id %>/edit"
+      hx-target="closest .todo-item"
+      hx-swap="outerHTML"
+      fs-assert="todos/edit-item"
+      fs-trigger="click"
+      fs-assert-added=".todo-edit-input[focused=true]"
+    >Edit</button>
+    <!-- todos/remove-item: delete removes the row on success, or shows
+         .error-msg on failure (FAIL todos). mutex="each" links the two
+         conditional types as mutually exclusive outcomes. -->
+    <button
+      class="action-btn delete-btn"
+      data-offline-disable
+      hx-delete="/todos/<%= todo.id %>"
+      hx-target="closest .todo-item"
+      hx-swap="outerHTML"
+      fs-assert="todos/remove-item"
+      fs-trigger="click"
+      fs-assert-mutex="each"
+      fs-assert-removed-success=".todo-item"
+      fs-assert-added-error=".error-msg"
+      fs-assert-timeout="5000"
+    >Delete</button>
+  </div>
+</div>

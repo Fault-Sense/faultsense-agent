@@ -123,6 +123,19 @@ export function getAssertionModifierFns(
 }
 
 /**
+ * Check if an element satisfies all of the assertion's modifier functions.
+ */
+function passesAllModifiers(
+  el: HTMLElement,
+  modifierFns: Array<(el: HTMLElement) => boolean>
+): boolean {
+  for (const fn of modifierFns) {
+    if (!fn(el)) return false;
+  }
+  return true;
+}
+
+/**
  * Pre-check count modifiers against querySelectorAll result count.
  * Returns false on failure, null if count passes or no count modifiers.
  */
@@ -144,10 +157,19 @@ function checkCountModifiers(assertion: Assertion): false | null {
 
 /**
  * Finds matching elements for the assertion and runs modifier checks.
- * Iterates ALL matching elements — passes if ANY satisfies all modifiers.
- * This handles framework list re-renders where multiple elements match
- * the selector but only one satisfies the modifier (e.g., classlist check
- * after toggling a single item in a list).
+ *
+ * Wait-for-pass semantics: if no matching element satisfies the assertion,
+ * return null so the assertion stays pending and re-evaluates on the next
+ * mutation. Failure is delivered by explicit `fs-assert-timeout`, the GC
+ * sweep, or page unload — never by a mid-flight negative check. This makes
+ * the resolver robust to transient DOM states (HTMX swap classes, enter/
+ * leave transitions, concurrent rendering, CSS animation classes, etc.).
+ *
+ * Exceptions — these commit on negative results:
+ *   - invertResolution types (`stable`): "should not have been mutated"
+ *     is defined by first observation, so any mutation is a failure.
+ *   - invariants: "should always hold" commits immediately on violation,
+ *     and also commits on pass to handle recovery (failed → passed).
  */
 function handleAssertion(
   elements: HTMLElement[],
@@ -155,12 +177,24 @@ function handleAssertion(
   matchFn: (el: HTMLElement) => boolean
 ): CompletedAssertion | null {
   const matchingElements = elements.filter(matchFn);
+
+  // Inverted-resolution types (stable): any matching mutation is a fail.
+  // This path bypasses modifier checks — the mere fact that a mutation
+  // landed on the target subtree is the failure signal.
+  if (assertion.invertResolution) {
+    if (matchingElements.length === 0) return null;
+    return completeAssertion(assertion, true); // completeAssertion inverts
+  }
+
   if (matchingElements.length === 0) return null;
 
-  // Pre-check selector-level count modifiers before per-element iteration
-  const countResult = checkCountModifiers(assertion);
-  if (countResult !== null) {
-    return completeAssertion(assertion, false);
+  // Pre-check selector-level count modifiers before per-element iteration.
+  // Count mismatch stays pending (wait-for-pass) — the DOM may still settle.
+  // Invariants commit immediately on count violation.
+  if (checkCountModifiers(assertion) === false) {
+    return assertion.trigger === "invariant"
+      ? completeAssertion(assertion, false)
+      : null;
   }
 
   const modifierFns = getAssertionModifierFns(assertion);
@@ -170,18 +204,18 @@ function handleAssertion(
     return completeAssertion(assertion, true);
   }
 
-  // Check each matching element — pass if any satisfies all modifiers
+  // Pass if any matching element satisfies all modifiers.
   for (const el of matchingElements) {
-    let allPassed = true;
-    for (const fn of modifierFns) {
-      if (!fn(el)) { allPassed = false; break; }
-    }
-    if (allPassed) {
+    if (passesAllModifiers(el, modifierFns)) {
       return completeAssertion(assertion, true);
     }
   }
 
-  return completeAssertion(assertion, false);
+  // Invariants commit on violation so the failure propagates; everything
+  // else stays pending until pass, timeout, or GC sweep.
+  return assertion.trigger === "invariant"
+    ? completeAssertion(assertion, false)
+    : null;
 }
 
 export const elementResolver: ElementResolver = (
@@ -216,7 +250,7 @@ export const elementResolver: ElementResolver = (
         break;
     }
 
-    let matcher = (
+    const matcher = (
       assertionTypeMatchers[assertion.type] || assertionTypeMatchers._default
     )(assertion);
 
@@ -230,88 +264,53 @@ export const elementResolver: ElementResolver = (
   }, []);
 };
 
+/**
+ * Document-state resolver used for immediate checks (just after a trigger
+ * fires) and periodic sweeps of pending assertions. Unlike `elementResolver`,
+ * which observes mutation deltas, this queries the document directly.
+ *
+ * Wait-for-pass: only a positive result settles the assertion. Negative
+ * results leave it pending. `removed` passes when the target no longer
+ * exists, so it has no element to run modifiers against — modifiers are
+ * skipped for the null-element case.
+ */
+function resolveFromDocument(
+  assertions: Assertion[]
+): CompletedAssertion[] {
+  return assertions.reduce((acc: CompletedAssertion[], assertion) => {
+    if (!domAssertions.includes(assertion.type)) return acc;
 
+    const matchingElement = document.querySelector(
+      assertion.typeValue
+    ) as HTMLElement | null;
+
+    // `removed` passes when the element is gone; no modifier checks apply.
+    if (assertion.type === "removed") {
+      if (matchingElement) return acc;
+      const completed = completeAssertion(assertion, true);
+      if (completed) acc.push(completed);
+      return acc;
+    }
+
+    if (!matchingElement) return acc;
+
+    // Selector-level count modifiers (run once, on the document).
+    if (checkCountModifiers(assertion) === false) return acc;
+
+    if (passesAllModifiers(matchingElement, getAssertionModifierFns(assertion))) {
+      const completed = completeAssertion(assertion, true);
+      if (completed) acc.push(completed);
+    }
+    return acc;
+  }, []);
+}
 
 export const immediateResolver: AssertionCollectionResolver = (
   assertions: Assertion[],
   _config
-): CompletedAssertion[] => {
-  // Define match functions based on the assertion type
-  const assertionMatchers: Record<string, (el: HTMLElement) => boolean> = {
-    _default: (el) => !!el,
-    removed: (el) => !el,
-  };
-
-  // Reduce over the assertions and apply the handlers
-  return assertions.reduce((acc: CompletedAssertion[], assertion) => {
-    if (!domAssertions.includes(assertion.type)) return acc;
-
-    let matcher =
-      assertionMatchers[assertion.type] || assertionMatchers._default;
-
-    const matchingElement = document.querySelector(
-      assertion.typeValue
-    ) as HTMLElement;
-
-    if (matcher(matchingElement)) {
-      let hasPassed = true;
-      for (const fn of getAssertionModifierFns(assertion)) {
-        if (!fn(matchingElement)) {
-          hasPassed = false;
-          break;
-        }
-      }
-
-      if (hasPassed) { // ignore failures in this resolver
-        const completed = completeAssertion(assertion, hasPassed);
-
-        if (completed) {
-          acc.push(completed);
-        }
-      }
-    }
-
-    return acc;
-  }, []);
-};
+): CompletedAssertion[] => resolveFromDocument(assertions);
 
 export const documentResolver: AssertionCollectionResolver = (
   assertions: Assertion[],
   _config
-): CompletedAssertion[] => {
-  // Define match functions based on the assertion type
-  const assertionMatchers: Record<string, (el: HTMLElement) => boolean> = {
-    _default: (el) => !!el,
-    removed: (el) => !el,
-  };
-
-  // Reduce over the assertions and apply the handlers
-  return assertions.reduce((acc: CompletedAssertion[], assertion) => {
-    if (!domAssertions.includes(assertion.type)) return acc;
-
-    let matcher =
-      assertionMatchers[assertion.type] || assertionMatchers._default;
-
-    const matchingElement = document.querySelector(
-      assertion.typeValue
-    ) as HTMLElement;
-
-    if (matcher(matchingElement)) {
-      let hasPassed = true;
-      for (const fn of getAssertionModifierFns(assertion)) {
-        if (!fn(matchingElement)) {
-          hasPassed = false;
-          break;
-        }
-      }
-
-      const completed = completeAssertion(assertion, hasPassed);
-
-      if (completed) {
-        acc.push(completed);
-      }
-    }
-
-    return acc;
-  }, []);
-};
+): CompletedAssertion[] => resolveFromDocument(assertions);

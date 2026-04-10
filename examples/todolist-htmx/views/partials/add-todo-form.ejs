@@ -1,0 +1,54 @@
+<div>
+  <form id="add-todo-form" class="add-form"
+        hx-post="/todos"
+        hx-target="#todo-list"
+        hx-swap="outerHTML">
+    <!-- todos/char-count-updated: on each keystroke, verify the counter
+         updates to "N/100". The oninput handler updates #char-count, and
+         the assertion re-evaluates visible on every input event. -->
+
+    <input
+      id="add-todo-input"
+      type="text"
+      name="text"
+      placeholder="What needs to be done?"
+      class="add-input"
+      autofocus
+      maxlength="100"
+      data-offline-disable
+      fs-assert="todos/char-count-updated"
+      fs-trigger="input"
+      fs-assert-visible='#char-count[text-matches=\d+/100]'
+      oninput="
+        const cc = document.getElementById('char-count');
+        if (cc) {
+          cc.textContent = this.value.length + '/100';
+          cc.classList.toggle('warn', this.value.length >= 90);
+        }
+        const err = document.getElementById('add-error-slot');
+        if (err) err.innerHTML = '';
+      "
+    />
+    <!-- todos/add-item: on success, a new .todo-item is added AND todo:added
+         CustomEvent fires via HX-Trigger-After-Settle. On error, .add-error
+         appears in the error slot. mutex="conditions" — if error wins,
+         both success assertions dismissed. If success wins, both success
+         assertions resolve independently. -->
+
+    <button
+      id="add-todo-button"
+      type="submit"
+      class="add-btn"
+      data-offline-disable
+      fs-assert="todos/add-item"
+      fs-trigger="click"
+      fs-assert-mutex="conditions"
+      fs-assert-added-success=".todo-item[count=<%= todos.length + 1 %>]"
+      fs-assert-emitted-success="todo:added"
+      fs-assert-added-error=".add-error"
+      fs-assert-timeout="500"
+    >Add</button>
+  </form>
+  <span id="char-count" class="char-count">0/100</span>
+  <div id="add-error-slot"></div>
+</div>

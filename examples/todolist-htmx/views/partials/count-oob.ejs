@@ -1,0 +1,5 @@
+<%
+  const uncompleted = todos.filter(t => !t.completed).length
+  const text = todos.length > 0 ? (uncompleted + '/' + todos.length + ' remaining') : ''
+%>
+<span hx-swap-oob="innerHTML:#todo-count"><%= text %></span>

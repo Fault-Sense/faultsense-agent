@@ -120,7 +120,8 @@ describe("Faultsense Agent - Conditional Assertion Resolution", () => {
         fs-trigger="click"
         fs-assert="form/submit"
         fs-assert-added-success=".result[text-matches=Success]"
-        fs-assert-added-error=".error">Click</button>
+        fs-assert-added-error=".error"
+        fs-assert-timeout="1000">Click</button>
     `;
 
     const button = document.querySelector("button") as HTMLButtonElement;
@@ -133,12 +134,14 @@ describe("Faultsense Agent - Conditional Assertion Resolution", () => {
 
     button.click();
 
+    fixedDateNow += 1001;
+    vi.advanceTimersByTime(1000);
+
     await vi.waitFor(() =>
       expect(sendToServerMock).toHaveBeenCalledWith(
         [
           expect.objectContaining({
             status: "failed",
-            conditionKey: "success",
           }),
         ],
         config

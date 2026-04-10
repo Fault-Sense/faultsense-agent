@@ -286,7 +286,7 @@ describe("Faultsense Agent - Assertion Type: updated", () => {
     document.body.innerHTML = `
       <div class="item" id="item-1"></div>
       <div class="item" id="item-2"></div>
-      <button fs-trigger="click" fs-assert-updated=".item[classlist=active:true]" fs-assert="list/toggle">Click</button>
+      <button fs-trigger="click" fs-assert-updated=".item[classlist=active:true]" fs-assert="list/toggle" fs-assert-timeout="1000">Click</button>
     `;
 
     const button = document.querySelector("button") as HTMLButtonElement;
@@ -297,6 +297,9 @@ describe("Faultsense Agent - Assertion Type: updated", () => {
     });
 
     button.click();
+
+    fixedDateNow += 1001;
+    vi.advanceTimersByTime(1000);
 
     await vi.waitFor(() =>
       expect(sendToServerMock).toHaveBeenCalledWith(

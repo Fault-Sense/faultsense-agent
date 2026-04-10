@@ -1,0 +1,40 @@
+<div class="login-container">
+  <div class="login-card">
+    <h1 class="login-title">Faultsense Todo Demo</h1>
+    <p class="login-subtitle">Sign in to continue</p>
+    <form class="login-form" hx-post="/login" hx-target="#login-error-slot" hx-swap="innerHTML">
+      <input
+        type="text"
+        name="username"
+        placeholder="Username"
+        autocomplete="username"
+        class="login-input"
+      />
+      <input
+        type="password"
+        name="password"
+        placeholder="Password"
+        autocomplete="current-password"
+        class="login-input"
+      />
+      <!-- auth/login: on success, HX-Location navigates to /todos
+           (pushState). On error, .login-error swaps into #login-error-slot.
+           mutex="each" — success is a route assertion, error is a DOM
+           assertion. They need cross-type mutual exclusion. -->
+
+      <button
+        type="submit"
+        class="login-button"
+        fs-assert="auth/login"
+        fs-trigger="click"
+        fs-assert-mutex="each"
+        fs-assert-route-success="/todos"
+        fs-assert-added-error=".login-error"
+      >Sign In</button>
+    </form>
+    <div id="login-error-slot"></div>
+    <p class="login-hint">
+      Use <strong>demo</strong> / <strong>demo</strong>
+    </p>
+  </div>
+</div>

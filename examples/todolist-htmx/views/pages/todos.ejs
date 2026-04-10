@@ -1,0 +1,109 @@
+<%
+  const uncompleted = todos.filter(t => !t.completed).length
+%>
+<div class="container">
+  <!-- network/offline-banner-shown: on disconnect, banner appears. -->
+  <div
+    style="display:none"
+    fs-assert="network/offline-banner-shown"
+    fs-trigger="offline"
+    fs-assert-added="#offline-banner"
+  ></div>
+  <!-- network/offline-banner-hidden: on reconnect, banner removed. -->
+  <div
+    style="display:none"
+    fs-assert="network/offline-banner-hidden"
+    fs-trigger="online"
+    fs-assert-removed="#offline-banner"
+  ></div>
+  <div id="offline-banner-slot"></div>
+  <header class="header">
+    <div class="title-row">
+      <!-- layout/title-visible: invariant — the title should always be
+           visible. Clicking it hides the element to demo violations. -->
+      <h1
+        id="app-title"
+        class="title"
+        onclick="this.style.display='none'"
+        fs-assert="layout/title-visible"
+        fs-trigger="invariant"
+        fs-assert-visible="#app-title"
+      >
+        Faultsense Todo Demo
+      </h1>
+      <!-- auth/logout: clicking logout should navigate to /login. -->
+      <button
+        class="logout-btn"
+        hx-post="/logout"
+        data-offline-disable
+        fs-assert="auth/logout"
+        fs-trigger="click"
+        fs-assert-route="/login"
+      >
+        Logout
+      </button>
+    </div>
+    <p class="subtitle">
+      Every interaction is monitored by Faultsense assertions.
+      <br />
+      Watch the panel in the bottom-right corner.
+      <br />
+      <em>Try clicking the title above to trigger an invariant violation.</em>
+    </p>
+  </header>
+  <main class="main">
+    <%- include('../partials/getting-started') %>
+    <%- include('../partials/add-todo-form', { todos }) %>
+    <div class="demo-row">
+      <span class="demo-label">Demos:</span>
+      <!-- demo/gc-timeout: asserts on a selector that will never match; GC cleans up. -->
+      <button
+        class="demo-btn"
+        fs-assert="demo/gc-timeout"
+        fs-trigger="click"
+        fs-assert-added=".never-exists"
+      >GC Demo (no SLA)</button>
+      <span class="demo-hint">Add "SLOW" todo for SLA demo (500ms timeout, 2s server delay)</span>
+    </div>
+    <!-- todos/count-updated: OOB; when any parent assertion passes, verify
+         count text matches "N/M remaining". The count element is always
+         present (empty when 0 todos) so OOB has a target. -->
+    <div
+      id="todo-count"
+      class="count<%= todos.length === 0 ? ' empty' : '' %>"
+      fs-assert="todos/count-updated"
+      fs-assert-oob="todos/toggle-complete,todos/add-item,todos/remove-item"
+      fs-assert-visible='[text-matches=\d+/\d+ remaining]'
+    >
+      <%= todos.length > 0 ? (uncompleted + '/' + todos.length + ' remaining') : '' %>
+    </div>
+    <!-- todos/item-count-correct: OOB; after add/remove, verify the actual
+         number of .todo-item elements matches the expected total. The
+         sentinel is re-rendered via mutation-oob on every change so the
+         count attribute stays fresh. -->
+    <div
+      id="item-count-sentinel"
+      style="display:none"
+      fs-assert="todos/item-count-correct"
+      fs-assert-oob="todos/add-item,todos/remove-item"
+      fs-assert-visible=".todo-item[count=<%= todos.length %>]"
+    ></div>
+    <!-- todos/count-stable-after-toggle: OOB; after toggle resolves,
+         verify #todo-count is NOT mutated during the 500ms stability
+         window (catches double-render bugs). -->
+    <div
+      id="count-stable-sentinel"
+      style="display:none"
+      fs-assert="todos/count-stable-after-toggle"
+      fs-assert-oob="todos/toggle-complete"
+      fs-assert-stable="#todo-count"
+      fs-assert-timeout="500"
+    ></div>
+    <%- include('../partials/todo-list', { todos }) %>
+    <%- include('../partials/activity-log') %>
+  </main>
+</div>
+
+<!-- Client-side JS lives in /public/todos.js — loaded once from the layout,
+     survives hx-boost swaps because the script element is in <head> which
+     never gets replaced. -->

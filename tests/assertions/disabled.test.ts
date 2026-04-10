@@ -94,7 +94,8 @@ describe("Faultsense Agent - Modifier: disabled", () => {
       <div id="target" aria-disabled="true">Action</div>
       <button fs-trigger="click"
         fs-assert-updated='#target[disabled=true]'
-        fs-assert="aria/disabled-check">Click</button>
+        fs-assert="aria/disabled-check"
+        fs-assert-timeout="1000">Click</button>
     `;
 
     const button = document.querySelector("button") as HTMLButtonElement;
@@ -103,6 +104,9 @@ describe("Faultsense Agent - Modifier: disabled", () => {
     });
 
     button.click();
+
+    fixedDateNow += 1001;
+    vi.advanceTimersByTime(1000);
 
     await vi.waitFor(() =>
       expect(sendToServerMock).toHaveBeenCalledWith(

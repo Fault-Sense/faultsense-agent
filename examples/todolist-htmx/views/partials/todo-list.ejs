@@ -1,0 +1,20 @@
+<% if (todos.length === 0) { %>
+  <!-- todos/empty-state: mount trigger — validates the empty state renders
+       correctly (page load or final delete). -->
+
+  <div
+    id="todo-list"
+    class="todo-list-empty empty-state-message"
+    fs-assert="todos/empty-state"
+    fs-trigger="mount"
+    fs-assert-visible=".empty-state-message"
+  >
+    No todos yet. Add one above!
+  </div>
+<% } else { %>
+  <div id="todo-list" class="todo-list">
+    <% todos.forEach((todo) => { %>
+      <%- include('todo-item', { todo }) %>
+    <% }) %>
+  </div>
+<% } %>

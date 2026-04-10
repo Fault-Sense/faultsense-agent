@@ -69,7 +69,8 @@ describe("Faultsense Agent - Modifier: value-matches", () => {
       <input id="search" type="text" value="" />
       <button fs-trigger="click"
         fs-assert-updated='#search[value-matches=^\\d+$]'
-        fs-assert="search/value-check">Click</button>
+        fs-assert="search/value-check"
+        fs-assert-timeout="1000">Click</button>
     `;
 
     const button = document.querySelector("button") as HTMLButtonElement;
@@ -80,6 +81,9 @@ describe("Faultsense Agent - Modifier: value-matches", () => {
     });
 
     button.click();
+
+    fixedDateNow += 1001;
+    vi.advanceTimersByTime(1000);
 
     await vi.waitFor(() =>
       expect(sendToServerMock).toHaveBeenCalledWith(
@@ -94,7 +98,8 @@ describe("Faultsense Agent - Modifier: value-matches", () => {
       <div id="target">some text</div>
       <button fs-trigger="click"
         fs-assert-updated='#target[value-matches=hello]'
-        fs-assert="div/value-check">Click</button>
+        fs-assert="div/value-check"
+        fs-assert-timeout="1000">Click</button>
     `;
 
     const button = document.querySelector("button") as HTMLButtonElement;
@@ -103,6 +108,9 @@ describe("Faultsense Agent - Modifier: value-matches", () => {
     });
 
     button.click();
+
+    fixedDateNow += 1001;
+    vi.advanceTimersByTime(1000);
 
     await vi.waitFor(() =>
       expect(sendToServerMock).toHaveBeenCalledWith(

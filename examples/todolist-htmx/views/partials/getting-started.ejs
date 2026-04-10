@@ -1,0 +1,69 @@
+<div id="getting-started" class="getting-started">
+  <div class="gs-header">
+    <span class="gs-title">Getting Started</span>
+    <button class="gs-dismiss" data-gs-dismiss>×</button>
+  </div>
+  <div class="gs-steps">
+    <!-- guide/step-1: mount trigger — visible on page load. Matches the
+         React version's step 1 which asserts on mount. -->
+
+    <div
+      data-gs-step="1"
+      class="getting-started-step"
+      fs-assert="guide/step-1"
+      fs-trigger="mount"
+      fs-assert-visible=".getting-started-step"
+    >
+      <div class="step-header">
+        <span class="step-number">1</span>
+        <span class="step-title">Add a todo</span>
+      </div>
+      <div class="step-body" data-gs-body>
+        <p class="step-desc">Type something in the input above and click Add.</p>
+        <p class="step-hint">Try adding "SLOW" to see the SLA timeout demo (500ms timeout, 2s delay).</p>
+        <button class="done-btn" data-gs-done="1">Done</button>
+      </div>
+    </div>
+    <div data-gs-step="2" class="getting-started-step locked">
+      <div class="step-header">
+        <span class="step-number">2</span>
+        <span class="step-title">Mark it complete</span>
+      </div>
+      <div class="step-body" data-gs-body style="display:none">
+        <p class="step-desc">Click the checkbox to toggle completion.</p>
+        <p class="step-hint">The edit button disables when a todo is completed.</p>
+        <!-- guide/step-2: clicking Done marks this step complete. Requires
+             step-1 to have already passed (fs-assert-after). -->
+
+        <button
+          class="done-btn"
+          data-gs-done="2"
+          fs-assert="guide/step-2"
+          fs-trigger="click"
+          fs-assert-after="guide/step-1"
+          fs-assert-updated=".getting-started-step.complete[count=2]"
+        >Done</button>
+      </div>
+    </div>
+    <div data-gs-step="3" class="getting-started-step locked">
+      <div class="step-header">
+        <span class="step-number">3</span>
+        <span class="step-title">Delete a todo</span>
+      </div>
+      <div class="step-body" data-gs-body style="display:none">
+        <p class="step-desc">Click Delete to remove it.</p>
+        <p class="step-hint">Add "FAIL" to see the conditional error assertion.</p>
+        <!-- guide/step-3: requires step-2 to have already passed. -->
+        <button
+          class="done-btn"
+          data-gs-done="3"
+          fs-assert="guide/step-3"
+          fs-trigger="click"
+          fs-assert-after="guide/step-2"
+          fs-assert-updated=".getting-started-step.complete[count=3]"
+        >Done</button>
+      </div>
+    </div>
+  </div>
+  <div class="all-done" style="display:none">All done! You've completed the getting started guide.</div>
+</div>

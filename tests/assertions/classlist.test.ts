@@ -120,6 +120,7 @@ describe("Faultsense Agent - Assertion Type modifer: classlist", () => {
       <button fs-trigger="click"
       fs-assert-updated='#logo[classlist=foo:true,test:false,bar:false]'
       fs-assert="img-src-update"
+      fs-assert-timeout="1000"
      >Click</button>
     `;
 
@@ -128,6 +129,9 @@ describe("Faultsense Agent - Assertion Type modifer: classlist", () => {
       document.getElementById("logo")?.classList.add("test");
     });
     button.click();
+
+    fixedDateNow += 1001;
+    vi.advanceTimersByTime(1000);
 
     await vi.waitFor(() =>
       expect(sendToServerMock).toHaveBeenNthCalledWith(

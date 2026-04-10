@@ -87,12 +87,15 @@ describe("Faultsense Agent - Assertion Type: visible", () => {
 
   it("visible should not pass if the element exists but is not visible", async () => {
     document.body.innerHTML = `
-     <button fs-trigger="click" fs-assert-visible="#panel" fs-assert="btn-click">Click</button>
+     <button fs-trigger="click" fs-assert-visible="#panel" fs-assert="btn-click" fs-assert-timeout="1000">Click</button>
      <div id="panel" style="display: none;"></div>
    `;
 
     const button = document.querySelector("button") as HTMLButtonElement;
     button.click();
+
+    fixedDateNow += 1001;
+    vi.advanceTimersByTime(1000);
 
     await vi.waitFor(() =>
       expect(sendToServerMock).toHaveBeenCalledWith(

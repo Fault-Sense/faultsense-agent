@@ -75,7 +75,8 @@ describe("Faultsense Agent - Modifier: count", () => {
       </ul>
       <button fs-trigger="click"
         fs-assert-added='.item[count=3]'
-        fs-assert="list/count-check">Add Item</button>
+        fs-assert="list/count-check"
+        fs-assert-timeout="1000">Add Item</button>
     `;
 
     const button = document.querySelector("button") as HTMLButtonElement;
@@ -87,6 +88,9 @@ describe("Faultsense Agent - Modifier: count", () => {
     });
 
     button.click();
+
+    fixedDateNow += 1001;
+    vi.advanceTimersByTime(1000);
 
     await vi.waitFor(() =>
       expect(sendToServerMock).toHaveBeenCalledWith(
@@ -132,7 +136,8 @@ describe("Faultsense Agent - Modifier: count", () => {
       <ul id="list"></ul>
       <button fs-trigger="click"
         fs-assert-added='.item[count-min=3]'
-        fs-assert="list/min-check">Add Item</button>
+        fs-assert="list/min-check"
+        fs-assert-timeout="1000">Add Item</button>
     `;
 
     const button = document.querySelector("button") as HTMLButtonElement;
@@ -144,6 +149,9 @@ describe("Faultsense Agent - Modifier: count", () => {
     });
 
     button.click();
+
+    fixedDateNow += 1001;
+    vi.advanceTimersByTime(1000);
 
     await vi.waitFor(() =>
       expect(sendToServerMock).toHaveBeenCalledWith(
