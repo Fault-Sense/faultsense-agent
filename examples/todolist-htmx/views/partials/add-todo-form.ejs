@@ -1,0 +1,29 @@
+<div>
+  <form class="add-form"
+        hx-post="/todos"
+        hx-target="#todo-list"
+        hx-swap="outerHTML">
+    <input
+      id="add-todo-input"
+      type="text"
+      name="text"
+      placeholder="What needs to be done?"
+      class="add-input"
+      autofocus
+      maxlength="100"
+      data-offline-disable
+      oninput="
+        const cc = document.getElementById('char-count');
+        if (cc) {
+          cc.textContent = this.value.length + '/100';
+          cc.classList.toggle('warn', this.value.length >= 90);
+        }
+        const err = document.getElementById('add-error-slot');
+        if (err) err.innerHTML = '';
+      "
+    />
+    <button type="submit" class="add-btn" data-offline-disable>Add</button>
+  </form>
+  <span id="char-count" class="char-count">0/100</span>
+  <div id="add-error-slot"></div>
+</div>

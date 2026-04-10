@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Faultsense Todo Demo (HTMX)</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <!--
+      Panel collector must load before agent so it registers on
+      window.Faultsense.collectors.panel before auto-init resolves it.
+      defer ensures execution order matches document order.
+    -->
+    <script src="/faultsense-panel.min.js" defer></script>
+    <script
+      src="/faultsense-agent.min.js"
+      defer
+      id="fs-agent"
+      data-release-label="1.0.0"
+      data-collector-url="panel"
+      data-gc-interval="10000"
+      data-debug="true"
+    ></script>
+    <script src="/htmx.min.js" defer></script>
+  </head>
+  <body hx-boost="true">
+    <%- body %>
+  </body>
+</html>

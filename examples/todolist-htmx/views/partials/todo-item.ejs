@@ -1,0 +1,34 @@
+<div
+  id="todo-<%= todo.id %>"
+  class="todo-item<%= todo.completed ? ' completed' : '' %>"
+  data-status="<%= todo.completed ? 'completed' : 'active' %>"
+>
+  <input
+    type="checkbox"
+    class="checkbox"
+    <%= todo.completed ? 'checked' : '' %>
+    data-offline-disable
+    hx-patch="/todos/<%= todo.id %>/toggle"
+    hx-target="closest .todo-item"
+    hx-swap="outerHTML"
+  />
+  <span class="text"><%= todo.text %></span>
+  <div class="actions">
+    <button
+      id="edit-btn-<%= todo.id %>"
+      class="action-btn"
+      <%= todo.completed ? 'disabled' : '' %>
+      data-offline-disable
+      hx-get="/todos/<%= todo.id %>/edit"
+      hx-target="closest .todo-item"
+      hx-swap="outerHTML"
+    >Edit</button>
+    <button
+      class="action-btn delete-btn"
+      data-offline-disable
+      hx-delete="/todos/<%= todo.id %>"
+      hx-target="closest .todo-item"
+      hx-swap="outerHTML"
+    >Delete</button>
+  </div>
+</div>

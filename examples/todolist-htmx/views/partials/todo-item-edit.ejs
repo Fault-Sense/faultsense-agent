@@ -1,0 +1,45 @@
+<div
+  id="todo-<%= todo.id %>"
+  class="todo-item"
+  data-status="editing"
+>
+  <input type="checkbox" class="checkbox" disabled />
+  <div class="edit-row">
+    <input
+      class="edit-input todo-edit-input"
+      type="text"
+      name="text"
+      value="<%= todo.text %>"
+      autofocus
+      hx-post="/todos/<%= todo.id %>"
+      hx-trigger="blur, keyup[key=='Enter']"
+      hx-target="closest .todo-item"
+      hx-swap="outerHTML"
+    />
+    <button
+      class="save-btn"
+      hx-post="/todos/<%= todo.id %>"
+      hx-include="closest .todo-item"
+      hx-target="closest .todo-item"
+      hx-swap="outerHTML"
+    >Save</button>
+  </div>
+</div>
+<script>
+  // Escape key cancels edit by re-fetching the view partial
+  (function () {
+    const el = document.getElementById('todo-<%= todo.id %>')
+    if (!el) return
+    const input = el.querySelector('.edit-input')
+    if (!input) return
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        htmx.ajax('GET', '/todos/<%= todo.id %>/cancel-edit', {
+          target: '#todo-<%= todo.id %>',
+          swap: 'outerHTML',
+        })
+      }
+    })
+  })()
+</script>

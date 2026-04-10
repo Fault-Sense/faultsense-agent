@@ -1,0 +1,11 @@
+<% if (todos.length === 0) { %>
+  <div id="todo-list" class="todo-list-empty empty-state-message">
+    No todos yet. Add one above!
+  </div>
+<% } else { %>
+  <div id="todo-list" class="todo-list">
+    <% todos.forEach((todo) => { %>
+      <%- include('todo-item', { todo }) %>
+    <% }) %>
+  </div>
+<% } %>
