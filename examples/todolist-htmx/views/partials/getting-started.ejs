@@ -4,7 +4,16 @@
     <button class="gs-dismiss" data-gs-dismiss>×</button>
   </div>
   <div class="gs-steps">
-    <div data-gs-step="1" class="getting-started-step">
+    <!-- guide/step-1: mount trigger — visible on page load. Matches the
+         React version's step 1 which asserts on mount. -->
+
+    <div
+      data-gs-step="1"
+      class="getting-started-step"
+      fs-assert="guide/step-1"
+      fs-trigger="mount"
+      fs-assert-visible=".getting-started-step"
+    >
       <div class="step-header">
         <span class="step-number">1</span>
         <span class="step-title">Add a todo</span>
@@ -23,7 +32,17 @@
       <div class="step-body" data-gs-body style="display:none">
         <p class="step-desc">Click the checkbox to toggle completion.</p>
         <p class="step-hint">The edit button disables when a todo is completed.</p>
-        <button class="done-btn" data-gs-done="2">Done</button>
+        <!-- guide/step-2: clicking Done marks this step complete. Requires
+             step-1 to have already passed (fs-assert-after). -->
+
+        <button
+          class="done-btn"
+          data-gs-done="2"
+          fs-assert="guide/step-2"
+          fs-trigger="click"
+          fs-assert-after="guide/step-1"
+          fs-assert-added=".getting-started-step.complete[count=2]"
+        >Done</button>
       </div>
     </div>
     <div data-gs-step="3" class="getting-started-step locked">
@@ -34,7 +53,15 @@
       <div class="step-body" data-gs-body style="display:none">
         <p class="step-desc">Click Delete to remove it.</p>
         <p class="step-hint">Add "FAIL" to see the conditional error assertion.</p>
-        <button class="done-btn" data-gs-done="3">Done</button>
+        <!-- guide/step-3: requires step-2 to have already passed. -->
+        <button
+          class="done-btn"
+          data-gs-done="3"
+          fs-assert="guide/step-3"
+          fs-trigger="click"
+          fs-assert-after="guide/step-2"
+          fs-assert-added=".getting-started-step.complete[count=3]"
+        >Done</button>
       </div>
     </div>
   </div>

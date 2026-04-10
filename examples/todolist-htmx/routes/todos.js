@@ -11,6 +11,20 @@ import {
 
 export const todosRouter = Router()
 
+/**
+ * Render the main swap body and the mutation-oob bundle together.
+ * Used by endpoints that mutate the todo list — add, delete.
+ */
+function renderWithMutationOob(res, view, locals) {
+  res.render(view, locals, (err, main) => {
+    if (err) return res.status(500).send(err.message)
+    res.render('partials/mutation-oob', { todos: getTodos() }, (err2, oob) => {
+      if (err2) return res.status(500).send(err2.message)
+      res.send(main + oob)
+    })
+  })
+}
+
 todosRouter.get('/todos', (req, res) => {
   renderPage(res, 'pages/todos', { todos: getTodos() })
 })
@@ -25,26 +39,22 @@ todosRouter.post('/todos', async (req, res) => {
     return
   }
   // Async dispatch so fs-assert-emitted's listener is already registered.
-  res.set('HX-Trigger-After-Settle', JSON.stringify({ 'todo:added': { text: result.todo.text } }))
-  // Re-render the full list (simple + correct for count-based assertions).
-  // The count display is updated via an OOB span.
-  const todos = getTodos()
-  res.render('partials/todo-list', { todos }, (err, list) => {
-    if (err) return res.status(500).send(err.message)
-    res.render('partials/count-oob', { todos }, (err2, oob) => {
-      if (err2) return res.status(500).send(err2.message)
-      res.send(list + oob)
-    })
-  })
+  // HX-Trigger-After-Settle fires the CustomEvent on body after the swap settles.
+  res.set(
+    'HX-Trigger-After-Settle',
+    JSON.stringify({ 'todo:added': { text: result.todo.text } })
+  )
+  renderWithMutationOob(res, 'partials/todo-list', { todos: getTodos() })
 })
 
 todosRouter.patch('/todos/:id/toggle', (req, res) => {
   const todo = toggleTodo(req.params.id)
   if (!todo) return res.status(404).send('not found')
-  const todos = getTodos()
   res.render('partials/todo-item', { todo }, (err, item) => {
     if (err) return res.status(500).send(err.message)
-    res.render('partials/count-oob', { todos }, (err2, oob) => {
+    // Toggle doesn't change todos.length, only uncompleted count.
+    // Ship just the count OOB span.
+    res.render('partials/count-oob', { todos: getTodos() }, (err2, oob) => {
       if (err2) return res.status(500).send(err2.message)
       res.send(item + oob)
     })
@@ -56,16 +66,18 @@ todosRouter.delete('/todos/:id', (req, res) => {
   if (!todo) return res.status(404).send('not found')
   const result = deleteTodo(req.params.id)
   if (result.error) {
-    // Return the row re-rendered with an inline error. Outer swap replaces
+    // Re-render the row with an inline .error-msg. outerHTML swap replaces
     // the row with this error-bearing row. fs-assert-added-error matches
     // the .error-msg inside.
-    renderFragment(res, 'partials/todo-item-with-error', { todo, error: result.error })
+    renderFragment(res, 'partials/todo-item-with-error', {
+      todo,
+      error: result.error,
+    })
     return
   }
-  // Successful delete: return empty content (outerHTML swap removes the row),
-  // plus OOB count update.
-  const todos = getTodos()
-  res.render('partials/count-oob', { todos }, (err, oob) => {
+  // Successful delete: outer swap with empty main content removes the row,
+  // plus OOB bundle updates count + add button + item-count sentinel.
+  res.render('partials/mutation-oob', { todos: getTodos() }, (err, oob) => {
     if (err) return res.status(500).send(err.message)
     res.send(oob)
   })

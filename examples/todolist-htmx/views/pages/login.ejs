@@ -17,7 +17,20 @@
         autocomplete="current-password"
         class="login-input"
       />
-      <button type="submit" class="login-button">Sign In</button>
+      <!-- auth/login: on success, HX-Location navigates to /todos
+           (pushState). On error, .login-error swaps into #login-error-slot.
+           mutex="each" — success is a route assertion, error is a DOM
+           assertion. They need cross-type mutual exclusion. -->
+
+      <button
+        type="submit"
+        class="login-button"
+        fs-assert="auth/login"
+        fs-trigger="click"
+        fs-assert-mutex="each"
+        fs-assert-route-success="/todos"
+        fs-assert-added-error=".login-error"
+      >Sign In</button>
     </form>
     <div id="login-error-slot"></div>
     <p class="login-hint">

@@ -11,6 +11,10 @@
     hx-patch="/todos/<%= todo.id %>/toggle"
     hx-target="closest .todo-item"
     hx-swap="outerHTML"
+    fs-assert="todos/toggle-complete"
+    fs-trigger="change"
+    fs-assert-updated=".todo-item[classlist=completed:<%= !todo.completed %>][data-status=active|completed]"
+    fs-assert-visible="#edit-btn-<%= todo.id %>[disabled=<%= !todo.completed %>]"
   />
   <span class="text"><%= todo.text %></span>
   <div class="actions">
@@ -22,6 +26,9 @@
       hx-get="/todos/<%= todo.id %>/edit"
       hx-target="closest .todo-item"
       hx-swap="outerHTML"
+      fs-assert="todos/edit-item"
+      fs-trigger="click"
+      fs-assert-added=".todo-edit-input[focused=true]"
     >Edit</button>
     <button
       class="action-btn delete-btn"
@@ -29,6 +36,12 @@
       hx-delete="/todos/<%= todo.id %>"
       hx-target="closest .todo-item"
       hx-swap="outerHTML"
+      fs-assert="todos/remove-item"
+      fs-trigger="click"
+      fs-assert-mutex="each"
+      fs-assert-removed-success=".todo-item"
+      fs-assert-added-error=".error-msg"
+      fs-assert-timeout="5000"
     >Delete</button>
   </div>
   <div class="error-msg"><%= error %></div>

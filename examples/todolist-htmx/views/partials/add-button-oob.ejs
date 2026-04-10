@@ -1,0 +1,19 @@
+<!-- OOB swap of the add button. The fs-assert-added-success assertion
+     embeds the expected post-add count (todos.length + 1), which goes
+     stale after every add/delete. This partial is returned as an OOB
+     swap with every mutation response so the attribute stays fresh. -->
+<button
+  id="add-todo-button"
+  type="submit"
+  form="add-todo-form"
+  class="add-btn"
+  data-offline-disable
+  hx-swap-oob="outerHTML:#add-todo-button"
+  fs-assert="todos/add-item"
+  fs-trigger="click"
+  fs-assert-mutex="conditions"
+  fs-assert-added-success=".todo-item[count=<%= todos.length + 1 %>]"
+  fs-assert-emitted-success="todo:added"
+  fs-assert-added-error=".add-error"
+  fs-assert-timeout="500"
+>Add</button>

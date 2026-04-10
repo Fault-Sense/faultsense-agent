@@ -3,6 +3,9 @@
   class="todo-item<%= todo.completed ? ' completed' : '' %>"
   data-status="<%= todo.completed ? 'completed' : 'active' %>"
 >
+  <!-- todos/toggle-complete: dynamic assertion checks the EXPECTED next
+       state. classlist verifies the CSS class flipped. data-status
+       verifies the status attribute lands in a valid state. -->
   <input
     type="checkbox"
     class="checkbox"
@@ -11,9 +14,16 @@
     hx-patch="/todos/<%= todo.id %>/toggle"
     hx-target="closest .todo-item"
     hx-swap="outerHTML"
+    fs-assert="todos/toggle-complete"
+    fs-trigger="change"
+    fs-assert-updated=".todo-item[classlist=completed:<%= !todo.completed %>][data-status=active|completed]"
+    fs-assert-visible="#edit-btn-<%= todo.id %>[disabled=<%= !todo.completed %>]"
   />
   <span class="text"><%= todo.text %></span>
   <div class="actions">
+    <!-- todos/edit-item: clicking edit swaps the row into edit mode. The
+         swapped-in partial has autofocus on .todo-edit-input, so the
+         focused=true modifier resolves. -->
     <button
       id="edit-btn-<%= todo.id %>"
       class="action-btn"
@@ -22,13 +32,25 @@
       hx-get="/todos/<%= todo.id %>/edit"
       hx-target="closest .todo-item"
       hx-swap="outerHTML"
+      fs-assert="todos/edit-item"
+      fs-trigger="click"
+      fs-assert-added=".todo-edit-input[focused=true]"
     >Edit</button>
+    <!-- todos/remove-item: delete removes the row on success, or shows
+         .error-msg on failure (FAIL todos). mutex="each" links the two
+         conditional types as mutually exclusive outcomes. -->
     <button
       class="action-btn delete-btn"
       data-offline-disable
       hx-delete="/todos/<%= todo.id %>"
       hx-target="closest .todo-item"
       hx-swap="outerHTML"
+      fs-assert="todos/remove-item"
+      fs-trigger="click"
+      fs-assert-mutex="each"
+      fs-assert-removed-success=".todo-item"
+      fs-assert-added-error=".error-msg"
+      fs-assert-timeout="5000"
     >Delete</button>
   </div>
 </div>

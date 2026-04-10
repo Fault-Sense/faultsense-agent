@@ -1,0 +1,20 @@
+<%
+  // Bundle of OOB fragments returned with every mutation response.
+  // Every fs-* assertion whose value depends on the current count needs
+  // to be re-rendered so its attribute reflects the new state. In React,
+  // JSX re-renders these attributes on every state change. In server-
+  // rendered HTMX, we ship replacement DOM via hx-swap-oob.
+  const uncompleted = todos.filter(t => !t.completed).length
+  const countText = todos.length > 0 ? (uncompleted + '/' + todos.length + ' remaining') : ''
+%><span hx-swap-oob="innerHTML:#todo-count"><%= countText %></span>
+
+<%- include('add-button-oob', { todos }) %>
+
+<div
+  id="item-count-sentinel"
+  hx-swap-oob="outerHTML:#item-count-sentinel"
+  style="display:none"
+  fs-assert="todos/item-count-correct"
+  fs-assert-oob="todos/add-item,todos/remove-item"
+  fs-assert-visible=".todo-item[count=<%= todos.length %>]"
+></div>

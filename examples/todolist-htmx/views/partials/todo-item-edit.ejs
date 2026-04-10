@@ -5,6 +5,10 @@
 >
   <input type="checkbox" class="checkbox" disabled />
   <div class="edit-row">
+    <!-- todos/cancel-edit: pressing Escape removes the edit input by
+         swapping back to the read-only partial. keydown:Escape filter
+         ensures only Escape creates the assertion. -->
+
     <input
       class="edit-input todo-edit-input"
       type="text"
@@ -15,6 +19,9 @@
       hx-trigger="blur, keyup[key=='Enter']"
       hx-target="closest .todo-item"
       hx-swap="outerHTML"
+      fs-assert="todos/cancel-edit"
+      fs-trigger="keydown:Escape"
+      fs-assert-removed=".todo-edit-input"
     />
     <button
       class="save-btn"
@@ -26,11 +33,11 @@
   </div>
 </div>
 <script>
-  // Escape key cancels edit by re-fetching the view partial
+  // Escape key cancels edit by re-fetching the read-only partial.
   (function () {
     const el = document.getElementById('todo-<%= todo.id %>')
     if (!el) return
-    const input = el.querySelector('.edit-input')
+    const input = el.querySelector('.todo-edit-input')
     if (!input) return
     input.addEventListener('keydown', function (e) {
       if (e.key === 'Escape') {
