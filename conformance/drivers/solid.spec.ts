@@ -1,14 +1,12 @@
 /**
- * Layer 2 driver — Vue 3 + Vite harness.
+ * Layer 2 driver — Solid (solid-js) + Vite harness.
  *
- * Drives conformance/vue3/ (a minimal purpose-built Vue 3 single-page
- * component that exercises Vue's fine-grained reactivity and nextTick
- * microtask batching) through a real Chromium. Each test delegates to
- * the shared runners in `conformance/shared/runners.ts`.
- *
- * Scope: the full 10-scenario SPA set. The 20-scenario parity with
- * examples/todolist-tanstack/ (auth, routing, offline) is out of scope
- * — that full surface lives in the demo app, not here.
+ * Drives conformance/solid/ — a minimal purpose-built Solid 1.9 single-
+ * page component exercising Solid's VDOM-free fine-grained reactivity.
+ * Solid's distinctive shape is direct text-node mutations driven by
+ * signals, which is the cleanest empirical PAT-06 exposure in the
+ * matrix. Each test delegates to the shared runners in
+ * `conformance/shared/runners.ts`.
  */
 
 import { test } from "@playwright/test";
@@ -19,10 +17,10 @@ import {
 } from "../shared/runners";
 
 const config: HarnessConfig = {
-  name: "vue3",
+  name: "solid",
 };
 
-test.describe("vue3 harness", () => {
+test.describe("solid harness", () => {
   test.beforeEach(async ({ page, request }) => {
     await standardBeforeEach(page, request, config);
   });
@@ -34,10 +32,10 @@ test.describe("vue3 harness", () => {
   test("todos/toggle-complete — updated with classlist flip", ({ page }) =>
     runners["todos/toggle-complete"](page, config));
 
-  test("todos/remove-item — removed from v-for list", ({ page }) =>
+  test("todos/remove-item — removed from keyed <For>", ({ page }) =>
     runners["todos/remove-item"](page, config));
 
-  test("todos/edit-item — added with focused modifier (v-if render)", ({
+  test("todos/edit-item — added with focused modifier (<Show> swap)", ({
     page,
   }) => runners["todos/edit-item"](page, config));
 

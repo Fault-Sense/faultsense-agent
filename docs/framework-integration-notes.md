@@ -255,6 +255,72 @@ Convention for new entries:
 
 ---
 
+## Astro 6 (static output + React island)
+
+**Harness:** `conformance/astro/`.
+**Driver:** `conformance/drivers/astro.spec.ts`.
+
+### `is:inline` is required on the agent/collector script tags
+
+- **Finding.** Astro 6 processes every `<script>` tag in a page by default — inlining them, bundling them through Vite, and rewriting their `src` attributes. That pipeline fights the fs-agent's `data-*` config (the processed copy has a different element reference) and can move the tag out of `<head>` entirely.
+- **Fix / recommendation.** Add `is:inline` to both the collector and agent script tags inside the Astro page's `<head>`. `is:inline` tells Astro to ship the tag to the browser verbatim, preserving load order, `src`, and `data-*` attributes exactly as written.
+- **Source.** `conformance/astro/src/pages/index.astro:22-33`.
+
+### Agent sees SSR DOM before the island hydrates — mount triggers fire once
+
+- **Finding.** Astro islands hydrate after the document parses, so the agent's `DOMContentLoaded` init scan runs *before* React's `hydrateRoot` touches the island. Mount triggers inside the island fire once against the SSR-rendered DOM, then React's reconciliation walks the existing nodes to attach event listeners without disturbing them. The agent's MutationObserver sees the normal post-hydration updates but does not re-fire mount for elements that already emitted.
+- **Why it could have broken.** If React hydration had replaced nodes instead of reusing them, the agent would have treated the new nodes as fresh insertions and re-triggered mount. The `hydration/island-mount` scenario locks this in by counting exactly-one payload for a mount-triggered marker inside the island.
+- **Fix / recommendation.** No agent change required. The pattern works today; the scenario exists as a regression lock.
+- **Source.** `conformance/astro/src/components/TodoApp.tsx:118-130` + `conformance/drivers/astro.spec.ts`.
+
+### Hydration is racy — block on a post-hydration marker, don't guess a timeout
+
+- **Finding.** A fixed `settleMs: 500` in the Astro beforeEach looked fine on my dev machine but surfaced as a flake on slower runners: if `click()` in the first test lands before React's island has finished hydrating, the onClick handler isn't attached yet, the reducer never dispatches, `.todo-item` never appears, and the assertion times out. The symptom is "todos/add-item passes locally but fails intermittently in CI".
+- **Why.** Astro's `client:load` kicks off hydration during the browser's idle time, which is not bounded by any selector-based wait. There's no visible DOM change between "SSR rendered" and "React hydrated and listening" — every element is already in the DOM from SSR.
+- **Fix / recommendation.** Don't guess a timeout. Set a deterministic post-hydration marker from a top-level `useEffect` in the island root: `useEffect(() => { window.__faultsenseIslandHydrated = true }, [])`. Then teach the driver's beforeEach to block on it via `page.waitForFunction(() => window.__faultsenseIslandHydrated === true)`. The `HarnessConfig.waitForReady` hook in `conformance/shared/runners.ts` exists specifically for this — other harnesses leave it unset and fall back to `settleMs`.
+- **Source.** `conformance/astro/src/components/TodoApp.tsx:18-32` (marker), `conformance/drivers/astro.spec.ts:30-42` (waitForReady hook), `conformance/shared/runners.ts` (HarnessConfig.waitForReady + standardBeforeEach integration).
+
+---
+
+## Alpine.js 3
+
+**Harness:** `conformance/alpine/`.
+**Driver:** `conformance/drivers/alpine.spec.ts`.
+
+### `:fs-assert-updated` attribute binding via `x-bind` shorthand
+
+- **Finding.** Alpine evaluates attribute-binding expressions at render time, so dynamic assertion modifiers like `.todo-item[data-id='${todo.id}'][classlist=completed:${!todo.completed}]` have to be prefixed with `:` (Alpine's `x-bind` shorthand) to interpolate the expected-next-state value. Plain `fs-assert-updated="..."` would be treated as a literal string.
+- **Fix / recommendation.** Always use `:fs-assert-updated="..."` (and equivalents for other modifier attributes) inside an `x-for` block when the modifier depends on loop variables. The static attributes (`fs-assert`, `fs-trigger`, `fs-assert-mutex`) stay plain because they don't interpolate.
+- **Source.** `conformance/alpine/index.html:122-130` — the toggle checkbox uses `:fs-assert-updated` with backtick string interpolation. Regression: `conformance/drivers/alpine.spec.ts`.
+
+### Alpine loads from CDN with `defer`, add a ~400 ms settle wait
+
+- **Finding.** Alpine boots on `DOMContentLoaded` and runs its first `x-init` hooks in a microtask, which lags behind Vite-backed SPAs by a few tens of milliseconds. Without a settle wait, the `beforeEach` can reset the captured-assertion buffer *after* the agent's init-time mount trigger has already fired for `layout/empty-state-shown`, causing the subsequent wait to time out.
+- **Fix / recommendation.** `settleMs: 400` in the harness config. Matches the Hotwire/Rails wait, for the same reason: non-Vite boot latency.
+- **Source.** `conformance/drivers/alpine.spec.ts:22-25`.
+
+---
+
+## Solid (solid-js 1.9)
+
+**Harness:** `conformance/solid/`.
+**Driver:** `conformance/drivers/solid.spec.ts`.
+
+### `<For>` keyed lists require `createStore`, not `createSignal` + `.map()`
+
+- **Finding.** A naive `setTodos((prev) => prev.map((t) => t.id === id ? { ...t, completed: !t.completed } : t))` pattern silently breaks `fs-assert-updated` on the toggled row. The assertion times out even though the class flip is visible on screen.
+- **Why.** Solid's `<For>` keys by *reference identity* of array items, not by a user-supplied key. Replacing an item with a new object (`{ ...t, ... }`) makes `<For>` unmount the old `<li>` and mount a fresh one — the DOM node's identity is lost. `fs-assert-updated` requires the mutation to land on the same element it was registered against, so a detach + re-attach disqualifies the match.
+- **Fix / recommendation.** Use `createStore` for collections that need in-place mutation plus stable element identity. `setTodos((t) => t.id === id, "completed", (c) => !c)` mutates the existing item's property without replacing its reference; `<For>` preserves the row, the `class` binding updates in place, and `fs-assert-updated` resolves normally. `produce()` from `solid-js/store` is the equivalent for bulk mutations (e.g., push/splice).
+- **Source.** `conformance/solid/src/App.tsx:60-108` — the store-based pattern; `conformance/drivers/solid.spec.ts` regression.
+
+### Controlled checkboxes + `fs-trigger="click"` (same timing as React)
+
+- **Finding.** Same issue as React: with `fs-trigger="change"` on a `<input type="checkbox" checked={...} onChange={...}>` under Solid, the agent's change-event capture listener reads the post-update `fs-assert-updated` attribute because Solid's signal update inside the handler flushes synchronously.
+- **Fix / recommendation.** Use `fs-trigger="click"`. Click fires before the native checkbox toggles and before the handler runs, so the agent captures the pre-state expected-next-state snapshot.
+- **Source.** `conformance/solid/src/App.tsx:224-240` documents the switch inline.
+
+---
+
 ## Cross-cutting patterns
 
 These apply to every framework, not just one.

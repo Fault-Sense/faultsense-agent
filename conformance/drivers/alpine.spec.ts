@@ -1,14 +1,13 @@
 /**
- * Layer 2 driver — Vue 3 + Vite harness.
+ * Layer 2 driver — Alpine.js 3 + static Express harness.
  *
- * Drives conformance/vue3/ (a minimal purpose-built Vue 3 single-page
- * component that exercises Vue's fine-grained reactivity and nextTick
- * microtask batching) through a real Chromium. Each test delegates to
- * the shared runners in `conformance/shared/runners.ts`.
- *
- * Scope: the full 10-scenario SPA set. The 20-scenario parity with
- * examples/todolist-tanstack/ (auth, routing, offline) is out of scope
- * — that full surface lives in the demo app, not here.
+ * Drives conformance/alpine/ — a purely client-side Alpine harness
+ * (no backend logic, just static file serving) that exercises
+ * Alpine's x-data + x-for + x-show directives. Alpine's reactivity
+ * model is one of the smallest in the matrix, so this harness acts as
+ * a sanity floor: if it works on Alpine, it works on anything
+ * directive-based. Each test delegates to the shared runners in
+ * `conformance/shared/runners.ts`.
  */
 
 import { test } from "@playwright/test";
@@ -19,10 +18,14 @@ import {
 } from "../shared/runners";
 
 const config: HarnessConfig = {
-  name: "vue3",
+  // Alpine loads from CDN with `defer` and runs its first mount at
+  // DOMContentLoaded, which can lag behind Vite-backed SPAs. Bump the
+  // settle wait so the agent's init-time scan sees the rendered DOM.
+  name: "alpine",
+  settleMs: 400,
 };
 
-test.describe("vue3 harness", () => {
+test.describe("alpine harness", () => {
   test.beforeEach(async ({ page, request }) => {
     await standardBeforeEach(page, request, config);
   });
@@ -34,10 +37,10 @@ test.describe("vue3 harness", () => {
   test("todos/toggle-complete — updated with classlist flip", ({ page }) =>
     runners["todos/toggle-complete"](page, config));
 
-  test("todos/remove-item — removed from v-for list", ({ page }) =>
+  test("todos/remove-item — removed from x-for block", ({ page }) =>
     runners["todos/remove-item"](page, config));
 
-  test("todos/edit-item — added with focused modifier (v-if render)", ({
+  test("todos/edit-item — added with focused modifier (x-show branch)", ({
     page,
   }) => runners["todos/edit-item"](page, config));
 
