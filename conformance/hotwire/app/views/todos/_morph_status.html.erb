@@ -1,0 +1,9 @@
+<%# Scenario: morph/status-flip — Turbo 8 idiomorph target (PAT-04 empirical).
+    The activate action responds with turbo_stream.replace method: :morph,
+    so idiomorph patches this element's `class` attribute AND its text content
+    in place without swapping the node itself. DOM identity is preserved,
+    which is the PAT-04 signal: the mutation records are `attributes` and
+    `characterData` on the same node, not a `childList` swap on the parent. %>
+<div id="morph-status" class="<%= active ? "active" : "idle" %>">
+  Active: <%= active %>
+</div>

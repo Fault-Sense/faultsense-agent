@@ -12,9 +12,13 @@ class TodosController < ApplicationController
   class Store
     @@todos = []
     @@next_id = 1
+    @@active = false
     @@mutex = Mutex.new
 
     def self.all = @@mutex.synchronize { @@todos.dup }
+
+    def self.active? = @@mutex.synchronize { @@active }
+    def self.set_active(val) = @@mutex.synchronize { @@active = val }
 
     def self.add(text)
       @@mutex.synchronize do
@@ -45,12 +49,14 @@ class TodosController < ApplicationController
       @@mutex.synchronize do
         @@todos = []
         @@next_id = 1
+        @@active = false
       end
     end
   end
 
   def index
     @todos = Store.all
+    @active = Store.active?
   end
 
   def create
@@ -102,5 +108,20 @@ class TodosController < ApplicationController
   def reset
     Store.reset!
     head :no_content
+  end
+
+  # Scenario morph/status-flip — Turbo 8 idiomorph (PAT-04 empirical).
+  # turbo_stream.replace with method: :morph patches the target node's
+  # attributes and text in place instead of the default childList swap.
+  # Always sets the state to active=true so the morph is idempotent and
+  # the assertion's expected-next-state is deterministic across retries.
+  def activate
+    Store.set_active(true)
+    render turbo_stream: turbo_stream.replace(
+      "morph-status",
+      partial: "todos/morph_status",
+      locals: { active: true },
+      method: :morph
+    )
   end
 end

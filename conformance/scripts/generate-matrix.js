@@ -98,6 +98,7 @@ const SCENARIO_TO_PAT = {
   "guide/advance-after-add": [], // sequence trigger, no mutation-pattern PAT
   "actions/log-updated": ["PAT-07"], // custom event + added
   "layout/title-visible": [], // invariant, no mutation-pattern PAT
+  "morph/status-flip": ["PAT-04"], // Turbo 8 idiomorph preserved-identity
 };
 
 /** Build the PAT → frameworks-that-cover-it inverse map. */

@@ -14,6 +14,8 @@ Rails.application.routes.draw do
       # Rails.env.development? because this container only runs in
       # development.
       post :reset
+      # Scenario morph/status-flip — Turbo 8 idiomorph target endpoint.
+      post :activate
     end
   end
 end

@@ -16,6 +16,7 @@
  *   5. layout/empty-state-shown   — mount trigger + visible
  *   6. todos/count-updated        — OOB triggered by add/toggle/remove
  *   7. layout/title-visible       — invariant (violation path)
+ *   8. morph/status-flip          — Turbo 8 idiomorph (PAT-04 empirical)
  */
 
 import { test, expect } from "@playwright/test";
@@ -141,6 +142,25 @@ test.describe("hotwire harness", () => {
     });
     expect(payload.assertion_trigger).toBe("oob");
     expect(payload.assertion_type).toBe("visible");
+  });
+
+  test("morph/status-flip — Turbo 8 idiomorph patches #morph-status in place (PAT-04 empirical)", async ({
+    page,
+  }) => {
+    // The reset endpoint sets @@active back to false, so after page.goto the
+    // target element starts with class="idle". Submitting the morph form
+    // POSTs to /todos/activate which responds with turbo_stream.replace
+    // method: :morph. Idiomorph should patch the class attribute AND the
+    // inner text in place without swapping the node.
+    await page.locator(".morph-submit").click();
+
+    const payload = await waitForFsAssertion(page, "morph/status-flip", {
+      match: (a) => a.status === "passed",
+    });
+    // The PAT-04 signal: `updated` resolves ONLY when the mutation lands on
+    // updatedElements — i.e., the target kept its DOM identity. If Turbo had
+    // fallen back to outerHTML swap (PAT-03), `updated` would stay pending.
+    expect(payload.assertion_type).toBe("updated");
   });
 
   test("layout/title-visible — invariant reports failure if the title is hidden", async ({
