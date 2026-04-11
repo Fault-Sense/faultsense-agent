@@ -11,9 +11,20 @@ See [`docs/mutation-patterns.md`](../docs/mutation-patterns.md) for the pattern 
 npm run conformance:install
 
 # One-time per Node harness: install its own devDeps.
-(cd conformance/react && npm install)
-(cd conformance/vue3  && npm install)
-(cd conformance/htmx  && npm install)
+(cd conformance/react  && npm install)
+(cd conformance/vue3   && npm install)
+(cd conformance/svelte && npm install)
+(cd conformance/solid  && npm install)
+(cd conformance/alpine && npm install)
+(cd conformance/astro  && npm install)
+(cd conformance/htmx   && npm install)
+
+# One-time per Docker harness: build the image. Playwright will also
+# auto-build on first run, but doing this upfront keeps the first
+# `npm run conformance` from blocking on several minutes of image build.
+docker compose -f conformance/hotwire/docker-compose.yml  build
+docker compose -f conformance/livewire/docker-compose.yml build
+docker compose -f conformance/liveview/docker-compose.yml build
 
 # One-time for the Rails harness: build the Docker image. Playwright
 # will also auto-build on first run, but doing it upfront keeps the
@@ -26,23 +37,35 @@ npm run conformance
 # Run a single framework.
 npm run conformance -- --project=react
 npm run conformance -- --project=vue3
+npm run conformance -- --project=svelte
+npm run conformance -- --project=solid
+npm run conformance -- --project=alpine
+npm run conformance -- --project=astro
 npm run conformance -- --project=hotwire
 npm run conformance -- --project=htmx
+npm run conformance -- --project=livewire
+npm run conformance -- --project=liveview
 ```
 
 ### Port map
 
 | Harness  | Port | Runtime | Backend |
 |----------|------|---------|---------|
-| react    | 3100 | vite dev | Node (Vite + React 19 + StrictMode) |
-| vue3     | 3200 | vite dev | Node (Vite + Vue 3 Composition API) |
-| hotwire  | 3300 | docker compose | Rails 8 + Turbo 8 in `ruby:3.3-slim` |
-| htmx     | 3400 | node   | Express + EJS + HTMX 2 from CDN |
+| react    | 3100 | vite dev       | Node (Vite + React 19 + StrictMode)                      |
+| vue3     | 3200 | vite dev       | Node (Vite + Vue 3 Composition API)                      |
+| hotwire  | 3300 | docker compose | Rails 8 + Turbo 8 in `ruby:3.3-slim`                     |
+| htmx     | 3400 | node           | Express + EJS + HTMX 2 from CDN                          |
+| svelte   | 3500 | vite dev       | Node (Vite + Svelte 5 runes mode)                        |
+| solid    | 3600 | vite dev       | Node (Vite + solid-js 1.9 + stores)                      |
+| alpine   | 3700 | node           | Express static + Alpine.js 3 from CDN                    |
+| astro    | 3800 | astro dev      | Node (Astro 6 SSR shell + React 19 island `client:load`) |
+| livewire | 3900 | docker compose | Laravel 11 + Livewire 3 on `php:8.3-cli-bookworm`        |
+| liveview | 4000 | docker compose | Phoenix 1.7 + LiveView 1.0 on Elixir 1.17 / OTP 27       |
 
 ### Prerequisites
 
-- **Node.js** for `react`, `vue3`, and `htmx`. No additional setup beyond `npm install` in each harness directory.
-- **Docker + Docker Compose** for `hotwire`. No native Ruby or Rails install on the host — everything runs inside `ruby:3.3-slim`. Contributors without Docker can skip the Rails harness with `--project=react --project=vue3 --project=htmx`.
+- **Node.js** for every JavaScript harness (`react`, `vue3`, `svelte`, `solid`, `alpine`, `astro`, `htmx`). No additional setup beyond `npm install` in each harness directory.
+- **Docker + Docker Compose** for the polyglot harnesses (`hotwire`, `livewire`, `liveview`). No native Ruby/PHP/Elixir install on the host — everything runs inside its own language's slim base image. Contributors without Docker can skip them with `--project=react --project=vue3 --project=svelte --project=solid --project=alpine --project=astro --project=htmx`.
 
 ### Suggested CI workflow
 
@@ -114,19 +137,37 @@ When you want to know "how do I instrument a real Vue 3 app?", read `conformance
 conformance/
 ├── README.md             # this file
 ├── playwright.config.ts  # one project per framework, with its own webServer
+├── tsconfig.json         # TypeScript config for shared/ + drivers/
 ├── shared/
 │   ├── collector.js      # in-page collector — pushes assertions onto window.__fsAssertions
-│   └── assertions.ts     # Playwright helpers: waitForFsAssertion, assertPayload, etc.
+│   ├── assertions.ts     # Playwright helpers: waitForFsAssertion, assertPayload, etc.
+│   ├── scenarios.js      # canonical scenario registry (keys + PAT ids), shared
+│   │                     # between TS drivers and the Node matrix generator
+│   ├── scenarios.d.ts    # sidecar types for scenarios.js
+│   └── runners.ts        # per-scenario Playwright runners parameterized by HarnessConfig
 ├── drivers/
-│   ├── tanstack.spec.ts  # driver for examples/todolist-tanstack
-│   ├── htmx.spec.ts      # Phase 3.x — driver for examples/todolist-htmx
-│   ├── vue3.spec.ts      # Phase 4 — driver for conformance/vue3/
-│   └── hotwire.spec.ts   # Phase 5 — driver for conformance/hotwire/ (Rails)
-├── vue3/                 # Phase 4 — minimal Vue 3 harness app
-├── hotwire/              # Phase 5 — minimal Rails + Turbo + Stimulus harness app
+│   ├── react.spec.ts     # React 19 + Vite + StrictMode
+│   ├── vue3.spec.ts      # Vue 3 + Vite + Composition API
+│   ├── svelte.spec.ts    # Svelte 5 runes + Vite
+│   ├── solid.spec.ts     # solid-js 1.9 + Vite (createStore for in-place mutation)
+│   ├── alpine.spec.ts    # Alpine.js 3 from CDN + minimal static Express
+│   ├── astro.spec.ts     # Astro 6 SSR + React island (PAT-09 empirical)
+│   ├── hotwire.spec.ts   # Rails 8 + Turbo 8 in Docker
+│   ├── htmx.spec.ts      # HTMX 2 + Express + EJS
+│   ├── livewire.spec.ts  # Laravel 11 + Livewire 3 in Docker (PAT-04 empirical)
+│   └── liveview.spec.ts  # Phoenix 1.7 + LiveView 1.0 in Docker (PAT-04 empirical)
+├── react/ vue3/ svelte/ solid/ alpine/ astro/ hotwire/ htmx/ livewire/ liveview/
+│                         # purpose-built minimal harness apps — one per driver
 └── scripts/
-    └── generate-matrix.js  # Phase 6 — post-test works-with matrix generator
+    └── generate-matrix.js  # post-test works-with matrix generator,
+                            # reads scenarios.js + Playwright JSON
 ```
+
+### Shared scenario runners
+
+Every driver is a thin wrapper around `conformance/shared/runners.ts`. Each driver declares a `HarnessConfig` (name, settle wait, toggle selector/action, expected assertion types, backend reset hook) and registers one `test()` per supported scenario that delegates the body to `runners[scenarioKey](page, config)`. Framework-specific variance — Hotwire's `.toggle-btn` vs React's checkbox, HTMX's `"updated"` toggle assertion type vs Hotwire's `"added"` — lives in the config, not duplicated across drivers.
+
+`conformance/shared/scenarios.js` is the single source of truth for scenario keys and their PAT-NN mappings. Both the Node matrix generator and the TypeScript drivers import it. Adding a new scenario is a one-file change to that registry; the drift guards in the matrix generator fail loudly if a driver runs a scenario key that isn't registered.
 
 ## How the in-page collector works
 
@@ -149,10 +190,12 @@ The tanstack and htmx harnesses reuse `examples/todolist-*` in place. The only c
 
 ## Skipping polyglot harnesses locally
 
-Contributors without Ruby / PHP / Elixir can still run Layer 1 and the Node-only harnesses. Skip polyglot projects explicitly:
+Contributors without Docker can still run Layer 1 and every Node-only harness. Skip the three Docker-backed harnesses (hotwire, livewire, liveview) explicitly:
 
 ```bash
-npm run conformance -- --project=tanstack --project=htmx --project=vue3
+npm run conformance -- \
+  --project=react --project=vue3 --project=svelte --project=solid \
+  --project=alpine --project=astro --project=htmx
 ```
 
-CI installs each toolchain on demand so the full matrix always runs there.
+CI installs Docker on demand and boots each polyglot container there, so the full matrix always runs on the main branch.

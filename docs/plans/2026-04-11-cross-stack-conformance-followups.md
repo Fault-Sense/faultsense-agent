@@ -60,7 +60,12 @@ These are the framework harnesses and mutation patterns that Phase 6 called out 
 - **Effort.** ~45 min. Biggest unknowns: Turbo 8 morph API docs, whether `method: :morph` is on the `turbo_stream` helper or elsewhere, and whether morphdom's mutation records match what PAT-04 expects (if not, that's a new Layer 1 PAT-NN, not a bug).
 - **Reference.** Turbo 8 morph docs: https://turbo.hotwired.dev/reference/attributes#turbo-frame-attributes
 
-### 2.2 PAT-09 hydration empirical coverage — SSR harness
+### ~~2.2 PAT-09 hydration empirical coverage — SSR harness~~
+
+**✓ Done 2026-04-11 (batch 2).** Landed option (b) equivalent: `conformance/astro/` — Astro 6 static output with a React 19 island hydrated under `client:load`. 11 scenarios (full SPA set + `hydration/island-mount`), all passing. The new scenario asserts a mount trigger on an SSR-rendered marker inside the hydrating island fires exactly once across hydration; the count check catches any future agent regression that would double-fire or drop the payload. Framework notes captured under "Astro 6" in `docs/framework-integration-notes.md` (`is:inline` script tags, single-fire guarantee on hydration, `settleMs: 500`). Works-with matrix now shows PAT-09 empirically covered (✓ astro, ○ everywhere else).
+
+<details>
+<summary>Original entry</summary>
 
 - **Why.** PAT-09 (hydration upgrade) is locked in at Layer 1 via `tests/conformance/pat-09-hydration-upgrade.test.ts`, but no Layer 2 harness is server-rendered. The tanstack example (which IS SSR) was decoupled from conformance in commit `d1ca1fb`; the current `conformance/react/` is CSR-only.
 - **Options.**
@@ -70,6 +75,8 @@ These are the framework harnesses and mutation patterns that Phase 6 called out 
 - **Recommendation.** Start with (a) tanstack-start since the plumbing (React 19 + Vite + the tanstack example) is already familiar from Phase 3. Astro is a good second harness once the pattern is proven.
 - **Known quirk to test for.** The original Phase 3 tanstack harness hit a dev-mode agent double-init (see `docs/framework-integration-notes.md` under "TanStack Start"). A new SSR harness will likely hit the same issue and need the 500 ms settle wait in `beforeEach`. The root-cause fix is in §3.1 below.
 - **Effort.** (a) ~90 min, (b) ~2 hours (Astro is less familiar), (c) ~3 hours.
+
+</details>
 
 ### 2.3 PAT-10 shadow-DOM traversal — agent feature, not just a harness
 
@@ -89,12 +96,12 @@ These are the framework harnesses and mutation patterns that Phase 6 called out 
 
 Listed roughly in order of pattern-diversity value, not popularity:
 
-- **Svelte 5** — runes-based fine-grained reactivity. Similar to Vue 3 but different compilation model. Good PAT-06/PAT-07 exposure. `conformance/svelte/` with Vite. ~1 hour.
-- **Solid** — fine-grained reactivity without a VDOM. Most distinctive PAT-06 exposure (direct text node updates). `conformance/solid/` with Vite. ~1 hour.
+- ~~**Svelte 5**~~ — **✓ shipped (PR #22, 2026-04-11).** runes-based fine-grained reactivity.
+- ~~**Solid**~~ — **✓ shipped 2026-04-11 (batch 2).** VDOM-free fine-grained reactivity, 10/10 scenarios passing. Captured a framework note: `<For>` requires `createStore` (or equivalent in-place mutation) for `fs-assert-updated` to hold — a `.map()` that replaces items with new object references re-mounts the row and breaks element identity.
 - **Lit** — depends on §2.3 landing first. Web components + shadow DOM. ~1–2 hours once the agent supports shadow.
-- **Livewire** (Laravel + PHP) — follows the Hotwire pattern from Q6 (natural backend required). Uses morphdom for DOM patching, so this ALSO contributes to PAT-04 empirical coverage. Bigger setup: needs PHP + composer toolchain in CI. ~4 hours.
-- **Phoenix LiveView** (Elixir) — same Q6 category. Uses morphdom. `ruby/setup-ruby`-equivalent is `erlef/setup-beam`. ~4 hours.
-- **Alpine.js** — small and class-directive based. Less unique pattern coverage than the above but easy to add. ~30 min.
+- ~~**Livewire**~~ — **✓ shipped 2026-04-11 (batch 3).** Laravel 11 + Livewire 3 in Docker (`php:8.3-cli-bookworm`), 8/8 scenarios passing. Empirical PAT-04 coverage via `todos/toggle-complete` (Livewire's `@alpinejs/morph` patches classlist in place on every re-render) plus `morph/status-flip` as an explicit probe. Framework notes captured: `wire:key` required for morph to preserve row identity inside `@foreach`, `APP_KEY` must be exactly 32 bytes, `artisan serve` spawns short-lived processes so static state has to persist via `/tmp`, CSRF disabled globally.
+- ~~**Phoenix LiveView**~~ — **✓ shipped 2026-04-11 (batch 3).** Phoenix 1.7 + LiveView 1.0 in Docker (`hexpm/elixir:1.17.3-erlang-27.3.4.10-debian-bullseye`), 8/8 scenarios passing. LiveView uses morphdom for *every* re-render, so empirical PAT-04 coverage comes from both `todos/toggle-complete` and `morph/status-flip`. Framework notes captured: don't pass `connect_info: [session: ...]` unless you actually mount Plug.Session, don't apply `:root` layout at both the pipeline level and the LiveView level, and serve `phoenix.js` + `phoenix_live_view.js` straight out of `deps/.../priv/static/` (no esbuild required).
+- ~~**Alpine.js**~~ — **✓ shipped 2026-04-11 (batch 2).** Directive-based reactivity, 10/10 scenarios passing. Captured a framework note: attribute bindings that interpolate loop variables (e.g. `fs-assert-updated` inside `x-for`) must use Alpine's `:attr` shorthand so the expression evaluates at render time instead of as a literal.
 - **Angular 19** — bigger framework, distinct change detection, zones. Useful for "does Faultsense work with X" marketing but low pattern-diversity value. ~2 hours.
 
 After each harness, re-run `npm run conformance:matrix` and commit the updated `docs/works-with.md`.
@@ -177,7 +184,12 @@ Items here are behaviors the agent COULD improve, surfaced by Phase 3–5 implem
 
 These are design decisions that don't block anything but are worth thinking about before the conformance surface grows much larger.
 
-### 5.1 Should Layer 2 drivers share scenario definitions?
+### ~~5.1 Should Layer 2 drivers share scenario definitions?~~
+
+**✓ Done 2026-04-11 (batch 2).** Shipped option (a) — `conformance/shared/scenarios.js` is the canonical registry (scenario keys, titles, PAT ids) and both the Node matrix generator and the TypeScript drivers import it. A sidecar `conformance/shared/scenarios.d.ts` gives typed access without forcing a build step. Each driver now declares a `HarnessConfig` and passes it to shared `runners` from `conformance/shared/runners.ts`; framework-specific variance (Hotwire's `.toggle-btn` vs React's checkbox, HTMX's `"updated"` toggle type vs Hotwire's `"added"`, per-harness `settleMs`) lives in the config. Drift guard: the matrix generator fails loudly if Playwright results reference a scenario key that isn't in the registry, and warns on stranded registry entries no driver runs. Drivers shrank from ~180 lines each to ~60. Adding a framework now requires writing the harness app + a ~60-line driver instead of re-implementing 10 test bodies.
+
+<details>
+<summary>Original entry</summary>
 
 - **Current state.** Each driver under `conformance/drivers/*.spec.ts` hand-writes ~10 test blocks with near-identical structure (only the DOM interactions differ). The scenario names are hand-matched across drivers so the works-with matrix rows line up.
 - **Risk.** Rows can drift — if I add `todos/bulk-delete` to the Vue 3 driver and forget to add it to the others, it silently becomes an `○` cell. The matrix looks sparse when it shouldn't.
@@ -187,6 +199,8 @@ These are design decisions that don't block anything but are worth thinking abou
   - (c) **Keep as-is.** Rely on human review during PRs.
 - **Recommendation.** (a) once there are 6+ frameworks. Currently 4 is manageable.
 - **Effort when ready.** ~1 hour.
+
+</details>
 
 ### 5.2 Auto-derive PAT-NN coverage from test annotations
 

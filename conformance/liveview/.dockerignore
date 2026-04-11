@@ -1,0 +1,5 @@
+_build
+deps
+.git
+priv/static/faultsense-agent.min.js
+priv/static/collector.js

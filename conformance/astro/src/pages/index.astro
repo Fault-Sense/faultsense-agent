@@ -1,0 +1,56 @@
+---
+// Faultsense Astro conformance harness — SSR shell with a React island.
+//
+// The page body is rendered on the server (Astro dev server re-runs
+// this frontmatter on every request), then ships the HTML to the
+// client where the React island hydrates under `client:load`. That's
+// the PAT-09 shape: an SSR-rendered DOM that the framework upgrades
+// into a reactive surface after the agent has already scanned it.
+//
+// Agent and collector load from /public via their symlinks, matching
+// every other harness. The script tags live in <head> so they run
+// before the body parses and the agent's DOMContentLoaded handler
+// sees a fully-rendered (SSR) DOM on first scan.
+
+import TodoApp from "../components/TodoApp.tsx";
+---
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Faultsense Astro SSR conformance harness</title>
+    <!-- is:inline keeps Astro's bundler from rewriting the src, so the
+         symlink-served file loads exactly as /collector.js. -->
+    <script is:inline src="/collector.js"></script>
+    <script
+      is:inline
+      id="fs-agent"
+      src="/faultsense-agent.min.js"
+      data-release-label="astro-harness"
+      data-api-key="test"
+      data-collector-url="conformance"
+      data-gc-interval="5000"
+    ></script>
+  </head>
+  <body>
+    <!--
+      Scenarios (mirror to conformance/drivers/astro.spec.ts):
+        1. todos/add-item             - conditional mutex (added + emitted)
+        2. todos/toggle-complete      - updated + classlist flip
+        3. todos/remove-item          - removed
+        4. todos/edit-item            - added + focused
+        5. todos/char-count-updated   - input trigger + text-matches
+        6. layout/empty-state-shown   - mount trigger on SSR DOM (PAT-09)
+        7. todos/count-updated        - OOB
+        8. guide/advance-after-add    - `after` sequence
+        9. actions/log-updated        - custom event
+       10. layout/title-visible       - invariant
+       11. hydration/island-mount     - unique Astro scenario: a mount
+                                        trigger on an SSR-rendered marker
+                                        inside a hydrating island must
+                                        fire exactly once across hydration
+    -->
+    <TodoApp client:load />
+  </body>
+</html>

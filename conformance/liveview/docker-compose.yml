@@ -1,0 +1,33 @@
+# Faultsense LiveView conformance harness — local dev + CI runtime.
+#
+# Boot with:
+#   docker compose -f conformance/liveview/docker-compose.yml up -d --wait
+#
+# Playwright's webServer entry in conformance/playwright.config.ts uses
+# the same command so `npm run conformance` starts this container
+# automatically.
+#
+# The faultsense agent bundle and shared collector are bind-mounted
+# into priv/static/ so agent rebuilds are picked up without rebuilding
+# the Elixir image.
+
+services:
+  liveview:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: faultsense-liveview-harness
+    container_name: faultsense-liveview-harness
+    ports:
+      - "4000:4000"
+    volumes:
+      - ../../dist/faultsense-agent.min.js:/app/priv/static/faultsense-agent.min.js:ro
+      - ../shared/collector.js:/app/priv/static/collector.js:ro
+    environment:
+      MIX_ENV: dev
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:4000/up"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+      start_period: 30s

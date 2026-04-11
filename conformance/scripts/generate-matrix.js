@@ -8,18 +8,25 @@
  *   cells   = ✓ passed · ✗ failed · ○ not exercised by this harness
  *
  * Also emits a per-framework summary ("passing / total"), a last-
- * updated timestamp, and a PAT-NN coverage table derived from a
- * hand-maintained scenario → PAT mapping at the bottom of this file.
+ * updated timestamp, and a PAT-NN coverage table derived from the
+ * scenario → PAT mapping in conformance/shared/scenarios.js (the
+ * single source of truth, also imported by the TypeScript drivers).
  *
  * Run via:
  *   npm run conformance:matrix
  *
  * Reads:  conformance/test-results/results.json
+ *         conformance/shared/scenarios.js
  * Writes: docs/works-with.md
  */
 
 const fs = require("fs");
 const path = require("path");
+const {
+  SCENARIOS,
+  SCENARIO_KEYS,
+  SCENARIO_TO_PAT,
+} = require("../shared/scenarios.js");
 
 const REPO_ROOT = path.resolve(__dirname, "..", "..");
 const RESULTS_PATH = path.join(REPO_ROOT, "conformance", "test-results", "results.json");
@@ -68,6 +75,39 @@ if (results.length === 0) {
 const projects = [...new Set(results.map((r) => r.project))].sort();
 const scenarios = [...new Set(results.map((r) => r.scenario))].sort();
 
+// ---------------------------------------------------------------------------
+// Drift guards — enforced against conformance/shared/scenarios.js, the
+// single source of truth. Two directions:
+//   (1) every scenario observed in Playwright results must be a key in
+//       the registry (catches typos and accidental new scenarios)
+//   (2) every registered scenario must appear in at least one project's
+//       results (catches stranded entries — a scenario nobody runs)
+// Either failure exits non-zero so `npm run conformance:matrix` fails
+// loudly in CI rather than silently producing a broken matrix.
+// ---------------------------------------------------------------------------
+const unknownScenarios = scenarios.filter((s) => !SCENARIO_KEYS.has(s));
+if (unknownScenarios.length > 0) {
+  console.error(
+    `[generate-matrix] Playwright results reference scenarios not in conformance/shared/scenarios.js:\n` +
+      unknownScenarios.map((s) => `  - ${s}`).join("\n") +
+      `\nRegister them in the scenario table or rename the driver's test title.`
+  );
+  process.exit(1);
+}
+
+const exercisedKeys = new Set(scenarios);
+const unusedScenarios = SCENARIOS.filter((s) => !exercisedKeys.has(s.key));
+if (unusedScenarios.length > 0) {
+  // Warn, don't fail. A registered-but-unexercised scenario is useful
+  // during harness bring-up (the scenario exists before any driver
+  // runs it) and the warning is loud enough that stranded entries
+  // won't stay stranded for long.
+  console.warn(
+    `[generate-matrix] Registered scenarios with no driver coverage:\n` +
+      unusedScenarios.map((s) => `  - ${s.key}`).join("\n")
+  );
+}
+
 /** Return ✓ / ✗ / ○ for a given (scenario, project) pair. */
 function cellFor(scenario, project) {
   const r = results.find((x) => x.scenario === scenario && x.project === project);
@@ -78,28 +118,10 @@ function cellFor(scenario, project) {
 }
 
 /**
- * Hand-maintained scenario → PAT-NN mapping. Each scenario can cover
- * zero or more PATs. When a PAT has at least one passing scenario in
- * at least one framework, it's considered empirically covered by
- * Layer 2. (Layer 1 already locks every PAT in synthetically — this
- * table tracks which PATs additionally see real-framework exposure.)
- *
- * Update this table when new scenarios are added or when a new PAT
- * enters the catalog.
+ * SCENARIO_TO_PAT is loaded from conformance/shared/scenarios.js so the
+ * registry stays the single source of truth. Update it there when new
+ * scenarios are added or when a new PAT enters the catalog.
  */
-const SCENARIO_TO_PAT = {
-  "todos/add-item": ["PAT-07", "PAT-08"], // microtask batching + OOB cascade
-  "todos/toggle-complete": ["PAT-02", "PAT-03", "PAT-06"], // delayed-commit, outerHTML swap, text-only via class flip
-  "todos/remove-item": ["PAT-05"], // detach-reattach-ish (detach only)
-  "todos/edit-item": ["PAT-05"], // conditional render swap
-  "todos/char-count-updated": ["PAT-06"], // text-only mutation
-  "layout/empty-state-shown": [], // pure mount trigger, no PAT
-  "todos/count-updated": ["PAT-07", "PAT-08"], // microtask + OOB
-  "guide/advance-after-add": [], // sequence trigger, no mutation-pattern PAT
-  "actions/log-updated": ["PAT-07"], // custom event + added
-  "layout/title-visible": [], // invariant, no mutation-pattern PAT
-  "morph/status-flip": ["PAT-04"], // Turbo 8 idiomorph preserved-identity
-};
 
 /** Build the PAT → frameworks-that-cover-it inverse map. */
 function buildPatCoverage() {
@@ -214,17 +236,17 @@ lines.push("");
 lines.push("## How to add a framework to this matrix");
 lines.push("");
 lines.push(
-  "1. Scaffold a minimal harness under `conformance/<framework>/` following the vue3 / react / htmx / hotwire examples."
+  "1. Scaffold a minimal harness under `conformance/<framework>/` following an existing example (react / vue3 / svelte / solid for CSR SPAs, hotwire / htmx for server-rendered HTML, alpine for directive-only, astro for SSR + hydration)."
 );
 lines.push("2. Add a Playwright project + `webServer` entry in `conformance/playwright.config.ts`.");
 lines.push(
-  "3. Write `conformance/drivers/<framework>.spec.ts` mirroring the scenario names in the other drivers (so the matrix rows line up)."
+  "3. Write `conformance/drivers/<framework>.spec.ts` using the shared runners in `conformance/shared/runners.ts`. Declare a `HarnessConfig`, register one `test()` per supported scenario, and delegate the body to `runners[scenarioKey]`. Framework-specific variance (toggle selector, expected assertion type, settle wait) lives in the config, not in duplicated test bodies."
 );
 lines.push(
   "4. Run `npm run conformance:matrix` — the generator updates this file automatically from the new results."
 );
 lines.push(
-  "5. If your harness exercises a new mutation pattern not in the catalog, add a `PAT-NN` test under `tests/conformance/` first and update the `SCENARIO_TO_PAT` map in `conformance/scripts/generate-matrix.js` so the PAT coverage table reflects it."
+  "5. If your harness exercises a new mutation pattern not in the catalog, add a `PAT-NN` test under `tests/conformance/` first, then register the scenario (with its PAT ids) in `conformance/shared/scenarios.js` — the single source of truth for scenario → PAT mappings, shared by this generator and the TypeScript drivers."
 );
 lines.push("");
 

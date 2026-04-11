@@ -86,6 +86,46 @@ export default defineConfig({
         baseURL: "http://localhost:3500",
       },
     },
+    {
+      name: "solid",
+      testMatch: "solid.spec.ts",
+      use: {
+        ...devices["Desktop Chrome"],
+        baseURL: "http://localhost:3600",
+      },
+    },
+    {
+      name: "alpine",
+      testMatch: "alpine.spec.ts",
+      use: {
+        ...devices["Desktop Chrome"],
+        baseURL: "http://localhost:3700",
+      },
+    },
+    {
+      name: "astro",
+      testMatch: "astro.spec.ts",
+      use: {
+        ...devices["Desktop Chrome"],
+        baseURL: "http://127.0.0.1:3800",
+      },
+    },
+    {
+      name: "livewire",
+      testMatch: "livewire.spec.ts",
+      use: {
+        ...devices["Desktop Chrome"],
+        baseURL: "http://localhost:3900",
+      },
+    },
+    {
+      name: "liveview",
+      testMatch: "liveview.spec.ts",
+      use: {
+        ...devices["Desktop Chrome"],
+        baseURL: "http://localhost:4000",
+      },
+    },
   ],
 
   webServer: [
@@ -141,6 +181,68 @@ export default defineConfig({
       url: "http://localhost:3500",
       reuseExistingServer: !process.env.CI,
       timeout: 60_000,
+      stdout: "ignore",
+      stderr: "pipe",
+    },
+    {
+      // Solid (solid-js 1.9) conformance harness. VDOM-free fine-grained
+      // reactivity — signals drive direct text node updates, which is
+      // the cleanest PAT-06 exposure in the matrix.
+      command: "cd solid && npm run dev",
+      url: "http://localhost:3600",
+      reuseExistingServer: !process.env.CI,
+      timeout: 60_000,
+      stdout: "ignore",
+      stderr: "pipe",
+    },
+    {
+      // Alpine.js 3 harness — static HTML served by a minimal Express
+      // process. Alpine runs from the CDN; no build step, no module
+      // graph. The thinnest possible harness in the matrix, acting as
+      // a floor for directive-based reactivity.
+      command: "cd alpine && npm run dev",
+      url: "http://localhost:3700",
+      reuseExistingServer: !process.env.CI,
+      timeout: 60_000,
+      stdout: "ignore",
+      stderr: "pipe",
+    },
+    {
+      // Astro 6 SSR harness — static output where Astro's dev server
+      // re-runs the page frontmatter on every request and React
+      // hydrates an island under `client:load`. The PAT-09 empirical
+      // probe: the agent must handle SSR HTML + hydration without
+      // double-firing mount triggers or losing pending assertions.
+      command: "cd astro && npm run dev",
+      url: "http://127.0.0.1:3800",
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000,
+      stdout: "ignore",
+      stderr: "pipe",
+    },
+    {
+      // Livewire (Laravel 11 + Livewire 3) harness — runs in a Docker
+      // container because PHP 8.3 + composer aren't assumed to be on
+      // contributor machines. Empirical PAT-04 coverage via
+      // @alpinejs/morph's in-place DOM patching.
+      command:
+        "docker compose -f livewire/docker-compose.yml up -d --wait",
+      url: "http://localhost:3900/up",
+      reuseExistingServer: !process.env.CI,
+      timeout: 300_000, // generous — first run builds the image
+      stdout: "ignore",
+      stderr: "pipe",
+    },
+    {
+      // LiveView (Phoenix 1.7 + LiveView 1.0) harness — runs in a
+      // Docker container because Elixir/OTP isn't assumed to be on
+      // contributor machines. Empirical PAT-04 coverage via
+      // phoenix_live_view's morphdom-based DOM patching.
+      command:
+        "docker compose -f liveview/docker-compose.yml up -d --wait",
+      url: "http://localhost:4000/up",
+      reuseExistingServer: !process.env.CI,
+      timeout: 600_000, // Elixir compile on first run is slow
       stdout: "ignore",
       stderr: "pipe",
     },

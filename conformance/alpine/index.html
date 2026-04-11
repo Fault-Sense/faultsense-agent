@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Faultsense Alpine conformance harness</title>
+    <!--
+      Load order: the conformance collector registers its function on
+      window.Faultsense.collectors.conformance BEFORE the agent script
+      runs, so the agent resolves data-collector-url at init time.
+      Alpine's own runtime is loaded from the CDN with `defer` so it
+      runs after the DOM is parsed and after the agent has set up its
+      document-level observers — that way Alpine's first mount is
+      visible to the agent.
+    -->
+    <script src="/collector.js"></script>
+    <script
+      id="fs-agent"
+      src="/faultsense-agent.min.js"
+      data-release-label="alpine-harness"
+      data-api-key="test"
+      data-collector-url="conformance"
+      data-gc-interval="5000"
+    ></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js" defer></script>
+  </head>
+  <body>
+    <!--
+      Scenarios (mirror to conformance/drivers/alpine.spec.ts):
+        1. todos/add-item             - conditional mutex (added + emitted)
+        2. todos/toggle-complete      - updated + :class flip via x-bind
+        3. todos/remove-item          - removed from x-for block
+        4. todos/edit-item            - added + focused, x-show branch
+        5. todos/char-count-updated   - input trigger + text-matches
+        6. layout/empty-state-shown   - mount trigger + visible
+        7. todos/count-updated        - OOB triggered by add/remove/toggle
+        8. guide/advance-after-add    - `after` sequence trigger
+        9. actions/log-updated        - custom event (event:action-logged)
+       10. layout/title-visible       - invariant
+    -->
+    <main
+      x-data="todoApp()"
+      x-init="$nextTick(() => { /* no-op: keeps x-data eagerly initialized */ })"
+    >
+      <!-- Scenario 10: layout/title-visible — invariant. -->
+      <h1
+        id="app-title"
+        fs-assert="layout/title-visible"
+        fs-trigger="invariant"
+        fs-assert-visible="#app-title"
+      >
+        Faultsense Alpine harness
+      </h1>
+
+      <form @submit.prevent="addTodo">
+        <!-- Scenario 5: todos/char-count-updated — input trigger + text-matches. -->
+        <input
+          id="add-todo-input"
+          type="text"
+          maxlength="100"
+          placeholder="What needs to be done?"
+          x-model="draft"
+          fs-assert="todos/char-count-updated"
+          fs-trigger="input"
+          fs-assert-visible="#char-count[text-matches=\d+/100]"
+        />
+        <!-- Scenario 1: todos/add-item — conditional mutex (added + emitted). -->
+        <button
+          type="submit"
+          fs-assert="todos/add-item"
+          fs-trigger="click"
+          fs-assert-mutex="conditions"
+          fs-assert-added-success=".todo-item"
+          fs-assert-emitted-success="todo:added"
+          fs-assert-added-error=".add-error"
+          fs-assert-timeout="500"
+        >
+          Add
+        </button>
+        <span id="char-count" x-text="draft.length + '/100'">0/100</span>
+        <template x-if="errorMessage">
+          <div class="add-error" x-text="errorMessage"></div>
+        </template>
+      </form>
+
+      <!-- Scenario 6: layout/empty-state-shown — mount trigger + visible. -->
+      <template x-if="todos.length === 0">
+        <div
+          class="empty-state"
+          fs-assert="layout/empty-state-shown"
+          fs-trigger="mount"
+          fs-assert-visible=".empty-state"
+        >
+          No todos yet — add one above.
+        </div>
+      </template>
+
+      <!-- Scenario 7: todos/count-updated — OOB. -->
+      <template x-if="todos.length > 0">
+        <div
+          id="todo-count"
+          fs-assert="todos/count-updated"
+          fs-assert-oob="todos/add-item,todos/remove-item,todos/toggle-complete"
+          fs-assert-visible="[text-matches=\d+/\d+ remaining]"
+          x-text="uncompleted() + '/' + todos.length + ' remaining'"
+        ></div>
+      </template>
+
+      <ul class="todo-list">
+        <template x-for="todo in todos" :key="todo.id">
+          <li
+            class="todo-item"
+            :class="{ completed: todo.completed }"
+            :data-id="todo.id"
+          >
+            <!-- Scenario 2: todos/toggle-complete — updated + classlist flip.
+                 See the Alpine notes in docs/framework-integration-notes.md
+                 for why fs-trigger="click" is required here. -->
+            <input
+              type="checkbox"
+              :checked="todo.completed"
+              @change="toggleTodo(todo.id)"
+              fs-assert="todos/toggle-complete"
+              fs-trigger="click"
+              :fs-assert-updated="`.todo-item[data-id='${todo.id}'][classlist=completed:${!todo.completed}]`"
+            />
+            <template x-if="!todo.editing">
+              <span class="text" x-text="todo.text"></span>
+            </template>
+            <template x-if="todo.editing">
+              <!-- Scenario 4 target. Alpine's x-init runs once when the
+                   element is inserted, so focusing here parallels React's
+                   useEffect / Svelte's focusOnMount action. -->
+              <input
+                type="text"
+                class="edit-input"
+                :value="todo.text"
+                x-init="$el.focus()"
+                @blur="cancelEdit(todo.id)"
+              />
+            </template>
+            <!-- Scenario 3: todos/remove-item — removed. -->
+            <button
+              type="button"
+              class="remove-btn"
+              @click="removeTodo(todo.id)"
+              fs-assert="todos/remove-item"
+              fs-trigger="click"
+              :fs-assert-removed="`.todo-item[data-id='${todo.id}']`"
+            >
+              ✕
+            </button>
+          </li>
+        </template>
+      </ul>
+
+      <!-- Scenario 4 trigger — outside the list so the click handler
+           references todos[0] directly. -->
+      <template x-if="todos.length > 0">
+        <button
+          type="button"
+          class="edit-first"
+          @click="startEdit(todos[0].id)"
+          fs-assert="todos/edit-item"
+          fs-trigger="click"
+          fs-assert-added=".edit-input[focused=true]"
+          fs-assert-timeout="500"
+        >
+          Edit first
+        </button>
+      </template>
+
+      <!-- Scenario 8: guide/advance-after-add — `after` sequence trigger. -->
+      <button
+        type="button"
+        class="advance-btn"
+        fs-assert="guide/advance-after-add"
+        fs-trigger="click"
+        fs-assert-after="todos/add-item"
+      >
+        Next step
+      </button>
+
+      <!-- Scenario 9: actions/log-updated — custom event trigger + added. -->
+      <section
+        id="activity"
+        fs-assert="actions/log-updated"
+        fs-trigger="event:action-logged"
+        fs-assert-added=".log-row"
+        fs-assert-timeout="500"
+      >
+        <h2>Activity</h2>
+        <ul>
+          <template x-for="(line, idx) in log" :key="idx + ':' + line">
+            <li class="log-row" x-text="line"></li>
+          </template>
+        </ul>
+      </section>
+    </main>
+
+    <script>
+      // Alpine component factory. Using a plain function attached to
+      // window (Alpine resolves `x-data="todoApp()"` by looking up the
+      // expression against the global scope) keeps the harness
+      // toolchain-free — no build step, no bundler.
+      function todoApp() {
+        let nextId = 1;
+        return {
+          todos: [],
+          draft: "",
+          errorMessage: null,
+          log: [],
+
+          uncompleted() {
+            return this.todos.filter((t) => !t.completed).length;
+          },
+
+          addTodo() {
+            const text = (this.draft || "").trim();
+            if (!text) {
+              this.errorMessage = "Todo text is required";
+              return;
+            }
+            this.errorMessage = null;
+            this.todos.push({
+              id: nextId++,
+              text,
+              completed: false,
+              editing: false,
+            });
+            this.draft = "";
+            document.dispatchEvent(
+              new CustomEvent("todo:added", { detail: { text } })
+            );
+            this.logAction("add:" + text);
+          },
+
+          toggleTodo(id) {
+            const todo = this.todos.find((t) => t.id === id);
+            if (todo) todo.completed = !todo.completed;
+            this.logAction("toggle:" + id);
+          },
+
+          removeTodo(id) {
+            const idx = this.todos.findIndex((t) => t.id === id);
+            if (idx !== -1) this.todos.splice(idx, 1);
+            this.logAction("remove:" + id);
+          },
+
+          startEdit(id) {
+            const todo = this.todos.find((t) => t.id === id);
+            if (todo) todo.editing = true;
+          },
+
+          cancelEdit(id) {
+            const todo = this.todos.find((t) => t.id === id);
+            if (todo) todo.editing = false;
+          },
+
+          logAction(message) {
+            const line = new Date().toISOString() + " " + message;
+            this.log = [line, ...this.log];
+            document.dispatchEvent(
+              new CustomEvent("action-logged", { detail: { message } })
+            );
+          },
+        };
+      }
+    </script>
+  </body>
+</html>
