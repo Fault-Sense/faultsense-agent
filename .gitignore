@@ -27,3 +27,13 @@ examples/*/node_modules
 examples/*/dist
 examples/*/.tanstack
 examples/*/.vinxi
+
+# Layer 2 conformance test output
+conformance/test-results/
+conformance/playwright-report/
+conformance/blob-report/
+conformance/.cache/
+
+# Layer 2 harness dependencies (each harness has its own node_modules)
+conformance/*/node_modules
+conformance/*/dist

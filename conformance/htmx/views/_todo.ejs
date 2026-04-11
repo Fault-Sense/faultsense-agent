@@ -1,0 +1,56 @@
+<%#
+  Single todo partial rendered in the initial page and in every HTMX
+  response. The wrapping <li> id matches the hx-target on toggle/delete
+  so outerHTML/delete swaps find it.
+%>
+<li id="todo-<%= todo.id %>"
+    class="<%= todo.completed ? 'todo-item completed' : 'todo-item' %>"
+    data-id="<%= todo.id %>">
+  <%# Scenario 2: todos/toggle-complete — hx-patch returns a fresh
+      <li> fragment; hx-swap="outerHTML" replaces this li with it.
+
+      Uses `fs-assert-updated` with an ID selector (#todo-<N>) rather
+      than `fs-assert-added` with a class selector. Under HTMX's
+      default swap pipeline the new element initially carries marker
+      classes (htmx-swapping / htmx-added / htmx-settling) alongside
+      the server-rendered classes, which some modifier checks can
+      trip over on the first mutation batch. The `updated` matcher
+      walks the element found via document.querySelector(selector), so
+      subsequent attribute mutations (when HTMX strips its marker
+      classes in the settle phase) re-evaluate the pending assertion
+      against the SAME ID — wait-for-pass semantics resolve it
+      cleanly on that second batch without any swap-timing tweaks.
+
+      The existing examples/todolist-htmx harness uses the same
+      pattern (see views/partials/todo-item.ejs). %>
+  <button
+    type="button"
+    class="toggle-btn"
+    hx-patch="/todos/<%= todo.id %>/toggle"
+    hx-target="#todo-<%= todo.id %>"
+    hx-swap="outerHTML"
+    fs-assert="todos/toggle-complete"
+    fs-trigger="click"
+    fs-assert-updated="#todo-<%= todo.id %>[classlist=completed:<%= !todo.completed %>]"
+    fs-assert-timeout="1500"
+  >
+    <%= todo.completed ? "☑" : "☐" %>
+  </button>
+
+  <span class="text"><%= todo.text %></span>
+
+  <%# Scenario 3: todos/remove-item — hx-delete with hx-swap="delete"
+      removes the target from the DOM. The `removed` assertion matches
+      the outgoing element. %>
+  <button
+    type="button"
+    class="remove-btn"
+    hx-delete="/todos/<%= todo.id %>"
+    hx-target="#todo-<%= todo.id %>"
+    hx-swap="delete"
+    fs-assert="todos/remove-item"
+    fs-trigger="click"
+    fs-assert-removed=".todo-item[data-id='<%= todo.id %>']"
+    fs-assert-timeout="1500"
+  >✕</button>
+</li>

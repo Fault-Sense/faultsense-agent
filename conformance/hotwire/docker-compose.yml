@@ -1,0 +1,43 @@
+# Faultsense Hotwire conformance harness — local dev + CI runtime.
+#
+# Boot with:
+#   docker compose -f conformance/hotwire/docker-compose.yml up -d
+#
+# Playwright's webServer entry in conformance/playwright.config.ts uses
+# the same command so `npm run conformance` starts this container
+# automatically.
+#
+# The faultsense agent bundle is bind-mounted into public/ so rebuilds
+# of the agent (npm run build:agent in the repo root) are picked up
+# without rebuilding the Ruby image.
+
+services:
+  hotwire:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: faultsense-hotwire-harness
+    container_name: faultsense-hotwire-harness
+    ports:
+      - "3300:3300"
+    volumes:
+      # Hot-swap the agent bundle + collector without image rebuilds.
+      - ../../dist/faultsense-agent.min.js:/app/public/faultsense-agent.min.js:ro
+      - ../shared/collector.js:/app/public/collector.js:ro
+      # Mount the Rails app source so view/controller edits take effect
+      # without rebuilding the image. Rails dev mode auto-reloads on
+      # request. CI can override this via a compose override file if it
+      # wants the baked-in copy instead.
+      - ./app:/app/app
+      - ./config:/app/config
+    environment:
+      RAILS_ENV: development
+      # Quieter dev logs — the harness stdout goes to Playwright which
+      # pipes stderr to its report. Keep it readable.
+      RAILS_LOG_LEVEL: warn
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:3300/up"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 20s

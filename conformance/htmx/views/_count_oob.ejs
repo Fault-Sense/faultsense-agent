@@ -1,0 +1,9 @@
+<%# Standalone OOB count update for delete responses. The deleted li
+    is removed by HTMX via hx-swap="delete" on the remove button, so
+    the response body only needs to carry the count fragment. %>
+<div id="todo-count" hx-swap-oob="outerHTML"
+  fs-assert="todos/count-updated"
+  fs-assert-oob="todos/add-item,todos/remove-item,todos/toggle-complete"
+  fs-assert-visible="#todo-count[text-matches=\d+ / \d+ remaining]">
+  <%= todos.filter(function(t) { return !t.completed }).length %> / <%= todos.length %> remaining
+</div>

@@ -63,10 +63,26 @@ The full API reference is in [`skills/faultsense-instrumentation/SKILL.md`](skil
 
 Assertions resolve naturally when the DOM changes. No default per-assertion timer.
 
-- **GC sweep** (`config.gcInterval`, default 30s) — a background timer cleans up stale assertions that never resolved.
+- **GC sweep** (`config.gcInterval`, default 5s) — a background timer cleans up stale assertions that never resolved. _(Was 30s before PR #20 cut it to 5s alongside the wait-for-pass resolver refactor.)_
 - **SLA timeout** (`fs-assert-timeout="2000"`) — opt-in per-assertion timer for performance contracts.
 - **Page unload** — assertions older than `config.unloadGracePeriod` (default 2s) are failed on page close. Fresh assertions are silently dropped (user navigated, not a failure). Uses `sendBeacon` for reliable delivery.
 - **Re-trigger tracking** — when a trigger fires on a pending assertion, the timestamp is recorded in an `attempts[]` array on the assertion. Included in the collector payload for rage-click analysis.
+
+## Conformance strategy
+
+Stack coverage is enforced through two layers. Layer 1 is an exhaustive jsdom suite that locks in how the agent resolves raw DOM mutation patterns; Layer 2 runs real browsers against framework harnesses and feeds newly-discovered patterns back into Layer 1. The live works-with matrix is at [`docs/works-with.md`](docs/works-with.md); framework-specific integration findings are at [`docs/framework-integration-notes.md`](docs/framework-integration-notes.md).
+
+- **Layer 1 — DOM mutation pattern suite.** `tests/conformance/pat-NN-*.test.ts` files, one per named pattern class. Each file uses the shared helper at [`tests/helpers/assertions.ts`](tests/helpers/assertions.ts) and locks in the agent's behavior for that class of mutation shape (outerHTML swap, morphdom patch, microtask batching, etc.). The catalog lives at [`docs/mutation-patterns.md`](docs/mutation-patterns.md). Run via `npm test`.
+- **Layer 2 — Per-framework harnesses.** Purpose-built minimal apps under `conformance/<framework>/` exercising the same focused scenario set across React, Vue 3, Hotwire (Rails), and HTMX. Drivers under `conformance/drivers/*.spec.ts` run the harnesses through Chromium via Playwright. Run via `npm run conformance`. The works-with matrix regenerates via `npm run conformance:matrix`.
+- **`examples/` vs `conformance/` boundary.** `examples/todolist-tanstack/` and `examples/todolist-htmx/` are polished, human-facing marketing demos with full feature surface (auth, routing, offline, activity log, panel collector overlay). `conformance/` harnesses are minimal, stable, and test-driven. Never couple the demos to the conformance suite — polish them freely.
+- **Discovery → lock-in loop.** When a Layer 2 harness exposes an agent bug, the workflow is: (1) diagnose the root cause, (2) name the mutation pattern class, (3) add a new `PAT-NN` entry to the catalog plus a failing regression test under `tests/conformance/`, (4) fix the agent, (5) verify both layers green. The catalog is append-only — existing IDs are stable references. The canonical example is the quoted-attribute-value bug from Phase 4: Vue 3 template literals emit `[data-id='1']`, the agent's parser preserved the quotes, the match silently failed. Fix: `stripOuterQuotes` in `parseTypeValue` + three unit tests in `tests/assertions/attrs.test.ts`. The Vue 3 harness now keeps the quoted form as a load-bearing regression (see `feat/cross-stack-conformance-layer-1` commit `e3550f9`).
+- **When you add a new framework harness:**
+  1. Scaffold under `conformance/<framework>/` using that framework's natural backend (Rails for Hotwire, Laravel for Livewire, Phoenix for LiveView, Node for anything language-agnostic). Keep the page minimal and mirror the scenario naming used by the other harnesses so the works-with matrix rows line up.
+  2. Add a Playwright project + `webServer` entry in `conformance/playwright.config.ts` on a dedicated port (`3100`/`3200`/`3300`/`3400` are taken).
+  3. Write `conformance/drivers/<framework>.spec.ts` using the shared helpers in `conformance/shared/assertions.ts`.
+  4. Run `npm run conformance:matrix` — the generator updates `docs/works-with.md` automatically from the new results.
+  5. If the harness exposes a new mutation pattern not in the catalog, **extract the pattern first**: add a `PAT-NN` test under `tests/conformance/` and a catalog entry in `docs/mutation-patterns.md`, then update the `SCENARIO_TO_PAT` map in `conformance/scripts/generate-matrix.js`. Do not inline agent fixes into the harness PR — the discovery → lock-in loop exists to keep the layer separation clean.
+  6. If the harness reveals a framework-specific integration gotcha (not an agent bug), capture it in `docs/framework-integration-notes.md` under a new section. Entries use the Finding / Why / Fix / Source structure so they can be promoted to standalone integration guides later.
 
 ## Error Context
 

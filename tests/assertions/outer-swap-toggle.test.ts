@@ -1,8 +1,7 @@
 // @vitest-environment jsdom
 
 import { describe, it, expect, afterEach, beforeEach, vi } from "vitest";
-import { init } from "../../src/index";
-import * as resolveModule from "../../src/assertions/server";
+import { setupAgent } from "../helpers/assertions";
 
 /**
  * Reproduce the HTMX example's toggle-complete bug:
@@ -13,48 +12,26 @@ import * as resolveModule from "../../src/assertions/server";
  * User report: unchecking passes, checking fails.
  */
 describe("Faultsense Agent - outerHTML swap toggle (HTMX pattern)", () => {
-  let consoleErrorMock: ReturnType<typeof vi.spyOn>;
-  let consoleWarnMock: ReturnType<typeof vi.spyOn>;
-  let sendToServerMock: ReturnType<typeof vi.spyOn>;
-  let cleanupFn: ReturnType<typeof init>;
-  const config = {
-    apiKey: "TEST",
-    releaseLabel: "0.0.0",
-    gcInterval: 30000,
-    unloadGracePeriod: 2000,
-    collectorURL: "http://localhost:9000",
-  };
+  let ctx: ReturnType<typeof setupAgent>;
+  // Local aliases keep the test bodies unchanged.
+  let sendToServerMock: ReturnType<typeof setupAgent>["sendToCollectorSpy"];
+  let config: ReturnType<typeof setupAgent>["config"];
 
   beforeEach(() => {
-    vi.useRealTimers();
-    sendToServerMock = vi
-      .spyOn(resolveModule, "sendToCollector")
-      .mockImplementation((assertions: any[]) => {
-        sendToServerMock.mock.calls[sendToServerMock.mock.calls.length - 1][0] =
-          assertions.map((a: any) => ({ ...a }));
-      });
-    consoleErrorMock = vi.spyOn(console, "error").mockImplementation(() => {});
-    consoleWarnMock = vi.spyOn(console, "warn").mockImplementation(() => {});
-
-    // jsdom has no layout, so element.offsetWidth/offsetHeight are always 0
-    // and isVisible would return false. Mock it to match real-browser semantics
-    // (visible unless display:none or visibility:hidden).
-    vi.mock("../../src/utils/elements", async () => ({
-      ...(await vi.importActual("../../src/utils/elements") as any),
-      isVisible: vi.fn().mockImplementation((element: HTMLElement) => {
-        return (
-          element.style.display !== "none" &&
-          element.style.visibility !== "hidden"
-        );
-      }),
-    }));
+    // Real timers: this suite relies on natural microtask interleaving through
+    // the MutationObserver → settle → OOB chain. Use deferInit so each test
+    // can call ctx.init() after seeding the DOM.
+    ctx = setupAgent({
+      fakeTimers: false,
+      deferInit: true,
+      config: { gcInterval: 30000 },
+    });
+    sendToServerMock = ctx.sendToCollectorSpy;
+    config = ctx.config;
   });
 
   afterEach(() => {
-    cleanupFn?.();
-    consoleErrorMock.mockRestore();
-    consoleWarnMock.mockRestore();
-    sendToServerMock.mockRestore();
+    ctx.cleanup();
   });
 
   /** Render a full todo-item partial matching the HTMX example exactly. */
@@ -114,7 +91,7 @@ describe("Faultsense Agent - outerHTML swap toggle (HTMX pattern)", () => {
 
   it("CHECK direction on a single-item list", async () => {
     renderList([{ id: 1, completed: false }])
-    cleanupFn = init(config)
+    ctx.init()
     const cb = document.querySelector("#todo-1 input") as HTMLInputElement
     cb.checked = true
     cb.dispatchEvent(new Event("change", { bubbles: true }))
@@ -124,7 +101,7 @@ describe("Faultsense Agent - outerHTML swap toggle (HTMX pattern)", () => {
 
   it("UNCHECK direction on a single-item list", async () => {
     renderList([{ id: 1, completed: true }])
-    cleanupFn = init(config)
+    ctx.init()
     const cb = document.querySelector("#todo-1 input") as HTMLInputElement
     cb.checked = false
     cb.dispatchEvent(new Event("change", { bubbles: true }))
@@ -140,7 +117,7 @@ describe("Faultsense Agent - outerHTML swap toggle (HTMX pattern)", () => {
       { id: 2, completed: false },
       { id: 3, completed: false },
     ])
-    cleanupFn = init(config)
+    ctx.init()
     const cb = document.querySelector("#todo-1 input") as HTMLInputElement
     cb.checked = true
     cb.dispatchEvent(new Event("change", { bubbles: true }))
@@ -151,7 +128,7 @@ describe("Faultsense Agent - outerHTML swap toggle (HTMX pattern)", () => {
   it("CHECK direction after prior UNCHECK cycle (simulates re-check after retryCompletedAssertion)", async () => {
     // Start: todo-1 is completed. User unchecks, then re-checks.
     renderList([{ id: 1, completed: true }])
-    cleanupFn = init(config)
+    ctx.init()
 
     // 1. Uncheck
     let cb = document.querySelector("#todo-1 input") as HTMLInputElement
@@ -195,7 +172,7 @@ describe("Faultsense Agent - outerHTML swap toggle (HTMX pattern)", () => {
         </div>
       </div>
     `
-    cleanupFn = init(config)
+    ctx.init()
 
     const save = document.querySelector(".save-btn") as HTMLButtonElement
     save.click()

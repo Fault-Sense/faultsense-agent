@@ -45,6 +45,25 @@ export class AssertionError extends Error {
 }
 
 /**
+ * Strip matching outer single or double quotes from a modifier value.
+ * CSS attribute selectors support `[attr='value']` and `[attr="value"]`
+ * (per https://www.w3.org/TR/selectors-4/#attribute-selectors), and
+ * frameworks that build selectors via template literals (Vue, React,
+ * Svelte) naturally emit the quoted form. Without this step the parser
+ * preserves the quotes and every downstream matcher compares against
+ * `'value'` instead of `value`, producing a silent no-match.
+ */
+function stripOuterQuotes(value: string): string {
+  if (value.length < 2) return value;
+  const first = value[0];
+  const last = value[value.length - 1];
+  if ((first === '"' || first === "'") && first === last) {
+    return value.slice(1, -1);
+  }
+  return value;
+}
+
+/**
  * Parse a type attribute value into a selector and inline modifiers.
  * Format: "selector[key=value][key=value]..."
  * Handles nested brackets in values (e.g., regex character classes like [a-z])
@@ -78,7 +97,7 @@ export function parseTypeValue(raw: string): { selector: string; modifiers: Reco
     }
 
     if (depth === 0) {
-      modifiers[key] = raw.slice(eqIndex + 1, j);
+      modifiers[key] = stripOuterQuotes(raw.slice(eqIndex + 1, j));
       i = j + 1;
     } else {
       break;

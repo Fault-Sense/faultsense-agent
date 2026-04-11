@@ -1,0 +1,35 @@
+<%# Partial rendered both in the initial index and in every Turbo Stream
+    response (append for create, replace for toggle). The wrapping <li>'s
+    id matches the turbo_stream target so replace swaps the whole element
+    — an outerHTML swap, which is what PAT-03 exercises. %>
+<li id="todo-<%= todo[:id] %>"
+    class="<%= todo[:completed] ? "todo-item completed" : "todo-item" %>"
+    data-id="<%= todo[:id] %>">
+  <%# Scenario 2: todos/toggle-complete — checkbox change fires a PATCH
+      to /todos/:id/toggle which responds with a turbo_stream.replace.
+      The assertion expects the new <li> with the flipped class. %>
+  <%= button_to toggle_todo_path(todo[:id]), method: :patch,
+      data: { turbo: true }, form_class: "toggle-form" do %>
+    <span class="toggle-btn"
+      fs-assert="todos/toggle-complete"
+      fs-trigger="click"
+      fs-assert-added=".todo-item[data-id=<%= todo[:id] %>][classlist=completed:<%= !todo[:completed] %>]"
+      fs-assert-timeout="1500">
+      <%= todo[:completed] ? "☑" : "☐" %>
+    </span>
+  <% end %>
+
+  <span class="text"><%= todo[:text] %></span>
+
+  <%# Scenario 3: todos/remove-item — DELETE fires a turbo_stream.remove
+      which pulls the <li> out of the DOM. The `removed` assertion
+      matches the old element. %>
+  <%= button_to todo_path(todo[:id]), method: :delete,
+      data: { turbo: true }, form_class: "remove-form" do %>
+    <span class="remove-btn"
+      fs-assert="todos/remove-item"
+      fs-trigger="click"
+      fs-assert-removed=".todo-item[data-id=<%= todo[:id] %>]"
+      fs-assert-timeout="1500">✕</span>
+  <% end %>
+</li>
