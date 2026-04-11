@@ -189,7 +189,7 @@ function logAction(message: string) {
           @change="toggleTodo(todo)"
           fs-assert="todos/toggle-complete"
           fs-trigger="change"
-          :fs-assert-updated="`.todo-item[data-id=${todo.id}][classlist=completed:${!todo.completed}]`"
+          :fs-assert-updated="`.todo-item[data-id='${todo.id}'][classlist=completed:${!todo.completed}]`"
         />
         <span v-if="!todo.editing" class="text" @click="startEdit(todo)">
           {{ todo.text }}
@@ -216,7 +216,7 @@ function logAction(message: string) {
           @click="removeTodo(todo.id)"
           fs-assert="todos/remove-item"
           fs-trigger="click"
-          :fs-assert-removed="`.todo-item[data-id=${todo.id}]`"
+          :fs-assert-removed="`.todo-item[data-id='${todo.id}']`"
         >
           ✕
         </button>

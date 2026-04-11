@@ -239,4 +239,87 @@ describe("Faultsense Agent - Assertion Type modifer: attrs-match", () => {
       )
     );
   });
+
+  // Regression: the Vue 3 conformance harness surfaced a silent
+  // failure mode where attribute values wrapped in single or double
+  // quotes inside the fs-assert-* selector never matched. CSS attribute
+  // selectors allow [attr='value'] and [attr="value"] per spec, and
+  // frameworks that build selectors via template literals (Vue, React,
+  // Svelte) tend to emit the quoted form. The parser now strips outer
+  // matching quotes from modifier values before the match runs.
+  it("Should pass when attribute value is wrapped in single quotes", async () => {
+    document.body.innerHTML = `
+      <div id="card" data-id="42"></div>
+      <button fs-trigger="click"
+        fs-assert-updated="#card[data-id='42']"
+        fs-assert="card/quoted-single"
+      >Click</button>
+    `;
+
+    const button = document.querySelector("button") as HTMLButtonElement;
+    button.addEventListener("click", () => {
+      document.getElementById("card")?.setAttribute("data-id", "42");
+      document.getElementById("card")?.setAttribute("data-touched", "1");
+    });
+
+    button.click();
+
+    await vi.waitFor(() =>
+      expect(sendToServerMock).toHaveBeenCalledWith(
+        [expect.objectContaining({ status: "passed" })],
+        config
+      )
+    );
+  });
+
+  it("Should pass when attribute value is wrapped in double quotes", async () => {
+    document.body.innerHTML = `
+      <div id="card" data-id="42"></div>
+      <button fs-trigger="click"
+        fs-assert-updated='#card[data-id="42"]'
+        fs-assert="card/quoted-double"
+      >Click</button>
+    `;
+
+    const button = document.querySelector("button") as HTMLButtonElement;
+    button.addEventListener("click", () => {
+      document.getElementById("card")?.setAttribute("data-id", "42");
+      document.getElementById("card")?.setAttribute("data-touched", "1");
+    });
+
+    button.click();
+
+    await vi.waitFor(() =>
+      expect(sendToServerMock).toHaveBeenCalledWith(
+        [expect.objectContaining({ status: "passed" })],
+        config
+      )
+    );
+  });
+
+  it("Should pass when classlist modifier sits alongside a quoted attribute modifier", async () => {
+    // Directly mirrors the Vue 3 harness's toggle-complete scenario,
+    // which chains [data-id='N'][classlist=...] in a Vue template literal.
+    document.body.innerHTML = `
+      <div id="card" class="todo-item" data-id="7"></div>
+      <button fs-trigger="click"
+        fs-assert-updated=".todo-item[data-id='7'][classlist=completed:true]"
+        fs-assert="card/quoted-chain"
+      >Click</button>
+    `;
+
+    const button = document.querySelector("button") as HTMLButtonElement;
+    button.addEventListener("click", () => {
+      document.getElementById("card")?.classList.add("completed");
+    });
+
+    button.click();
+
+    await vi.waitFor(() =>
+      expect(sendToServerMock).toHaveBeenCalledWith(
+        [expect.objectContaining({ status: "passed" })],
+        config
+      )
+    );
+  });
 });
