@@ -26,12 +26,9 @@ Self-contained backlog of things discovered or deferred during Phases 1–6 of t
 
 ## 1 · Ship blockers for this branch
 
-### 1.1 Push `feat/cross-stack-conformance-layer-1` and open a PR
+### ~~1.1 Push `feat/cross-stack-conformance-layer-1` and open a PR~~
 
-- **Status.** Waiting on human approval.
-- **Where.** Branch head is `43c4d2d docs(conformance): Phase 6`. 12 commits total since `main`.
-- **How.** `git push -u origin feat/cross-stack-conformance-layer-1` then `gh pr create`. Suggested title: `feat(conformance): cross-stack conformance strategy (Layers 1 + 2, 4 harnesses)`.
-- **PR description should include.** Link to the plan, link to `docs/works-with.md`, link to `docs/framework-integration-notes.md`, and a summary of the 12 commits grouped by phase (the individual commit messages already have good one-liners).
+**✓ Done 2026-04-11.** Merged as [#21](../../pull/21) (commit `dc51cc6`).
 
 ### 1.2 Wire up CI
 
@@ -41,11 +38,9 @@ Self-contained backlog of things discovered or deferred during Phases 1–6 of t
 - **Effort.** ~15 min to create + first green CI run. Docker availability in GitHub Actions is default; no extra config needed for the hotwire harness.
 - **Gotcha.** First CI run will pay the Playwright-browser install cost (~90 MB) and the hotwire `docker build` cost (~2 min). Subsequent runs cache both.
 
-### 1.3 Verify bundle size claim in README after the `stripOuterQuotes` fix
+### ~~1.3 Verify bundle size claim in README after the `stripOuterQuotes` fix~~
 
-- **Why.** The `feedback_bundle_size_docs.md` memory preference says to update README/SKILL.md gzipped size after code changes. I updated README to 8.6 KB after commit `e3550f9` but didn't re-verify after all subsequent commits.
-- **How.** `npm run build:size` → compare to `README.md` line 7 and line 246.
-- **Effort.** 30 seconds. Probably still 8.6 KB.
+**✓ Done 2026-04-11 (batch 1).** Bundle was 8.6 KB gzipped at branch start; grew to 8.7 KB in the same batch after §3.3 landed. README updated in commit `86c88a5`.
 
 ---
 
@@ -116,33 +111,9 @@ After each harness, re-run `npm run conformance:matrix` and commit the updated `
 
 Items here are behaviors the agent COULD improve, surfaced by Phase 3–5 implementation friction. None of them are blocking bugs (all correct today), but each would make real-framework integration smoother.
 
-### 3.1 Agent cleanup on re-init (TanStack Start dev-mode double-init)
+### ~~3.1 Agent cleanup on re-init (TanStack Start dev-mode double-init)~~
 
-- **Why.** In Vite dev mode, the agent's classic `<script>` tag effectively runs twice in TanStack Start — once during initial parse, once after Vite HMR connects. Each run calls `init(config)` and registers its own listeners/observers. The old init's listeners are never removed; its cleanup fn is overwritten on `window.Faultsense.cleanup`. Both agent instances are live, which isn't a correctness bug (event listeners happen to be idempotent for the agent's flow) but IS a resource leak and a subtle source of test flakes.
-- **Where.** `src/index.ts:187-198` — the IIFE's DOMContentLoaded handler. Current shape:
-  ```ts
-  document.addEventListener("DOMContentLoaded", function () {
-    const config = extractConfigFromScriptTag();
-    if (config) {
-      window.Faultsense!.cleanup = init(config);  // ← just overwrites
-      ...
-    }
-  });
-  ```
-- **Fix.** Call the previous cleanup before storing the new one:
-  ```ts
-  document.addEventListener("DOMContentLoaded", function () {
-    const config = extractConfigFromScriptTag();
-    if (config) {
-      window.Faultsense!.cleanup?.();  // ← add this
-      window.Faultsense!.cleanup = init(config);
-      ...
-    }
-  });
-  ```
-- **Test.** Unit test in `tests/index.test.ts` (create if needed) that fires DOMContentLoaded twice and verifies only ONE set of document listeners is active. OR: a new `PAT-NN` entry "dev-mode double-init resilience" under `tests/conformance/`.
-- **Effort.** ~20 min plus the test.
-- **Priority.** Low — the current behavior works, just not optimally.
+**✓ Done 2026-04-11 (batch 1).** DOMContentLoaded handler now calls `window.Faultsense!.cleanup?.()` before re-initializing. Regression locked in by `tests/index.test.ts` which dispatches DOMContentLoaded twice and asserts the first cleanup is invoked before it is overwritten. Commit `86c88a5`.
 
 ### 3.2 Audit other modifier-value sites for quote handling
 
@@ -154,13 +125,9 @@ Items here are behaviors the agent COULD improve, surfaced by Phase 3–5 implem
 - **Effort.** ~30 min audit + ~15 min per regression test.
 - **Priority.** Low unless someone hits it.
 
-### 3.3 Agent warning for silent no-match modifier failures
+### ~~3.3 Agent warning for silent no-match modifier failures~~
 
-- **Why.** The quoted-attribute bug was silent — the assertion stayed pending forever with no warning. A user encountering this would see a timeout failure and wonder why. Better: when an assertion's modifier check produces zero matches across ALL elements in the target bucket, and the element count is non-zero, log a debug warning in debug mode.
-- **Where.** `src/resolvers/dom.ts:178` — `handleAssertion`. Add a conditional warn when `matchingElements.length > 0` but `passesAllModifiers` returns false for all of them. Gate on `config.debug`.
-- **Trade-off.** Noisy in debug mode. Useful in dev, annoying in production (but production doesn't enable debug).
-- **Effort.** ~20 min.
-- **Priority.** Medium. This would have shaved hours off the Vue 3 debug session.
+**✓ Done 2026-04-11 (batch 1).** `handleAssertion` in `src/resolvers/dom.ts` emits a `console.warn` naming the assertion key, type, typeValue, and match count when matching elements fail every modifier. Gated via a module-level logger set by `init()` and cleared in the cleanup closure — no threading through the `ElementResolver` type. Two-case coverage in `tests/resolvers/dom-debug-warning.test.ts` (debug=true emits, debug=false silent). Commit `86c88a5`.
 
 ### 3.4 `added` type re-check on subsequent attribute mutations
 
@@ -250,23 +217,25 @@ These are design decisions that don't block anything but are worth thinking abou
 - **Effort.** ~5 min per file × 25 = ~2 hours. Can be done in parallel with other work.
 - **Priority.** Low. The old pattern isn't broken; the new helper just reduces friction for new tests. Opportunistic migration (touch a file for another reason, migrate it too) is sufficient.
 
-### 6.2 Verify `docs/mutation-patterns.md` test pointers are accurate
+### ~~6.2 Verify `docs/mutation-patterns.md` test pointers are accurate~~
 
-- **Why.** Phase 1 populated `docs/mutation-patterns.md` with file pointers to each PAT test. These were written at catalog creation time and may have drifted if tests were renamed/moved.
-- **How.** Spot-check each PAT entry's "Test" column — click through and verify the file exists and contains the right test.
-- **Effort.** ~10 min.
+**✓ Done 2026-04-11 (batch 1).** All 10 `tests/conformance/pat-NN-*.test.ts` files exist exactly as referenced. Spot-checks on `src/assertions/manager.ts:56-104` (PAT-01) and `src/resolvers/dom.ts:158-219` (PAT-02) line pointers confirm they land on the right code.
 
-### 6.3 Clean up any stray debug artifacts
+### ~~6.3 Clean up any stray debug artifacts~~
 
-- **Why.** Multiple debug iterations during Phase 4–5 added temporary `console.log` statements and test dumps. I cleaned them up before each commit, but there may be stragglers.
-- **How.** `grep -rn "console.log\|FS_DEBUG\|\\[FS\\]" src/ conformance/` should return only intentional logs (the agent's own debug-mode logger, the collector's error-case fallback, and the generator script's status line).
-- **Effort.** 2 min.
+**✓ Done 2026-04-11 (batch 1).** `grep` across `src/` and `conformance/` returns only intentional logs: the debug-gated init line in `src/index.ts`, the console collector's explicit output, the `Logger` class implementation, the matrix generator's status lines, and the HTMX harness's Express startup log. No stragglers.
 
-### 6.4 Drop `test-results/` from git history if it leaked
+### ~~6.4 Drop `test-results/` from git history if it leaked~~
 
-- **Why.** `.gitignore` excludes `conformance/test-results/` but earlier I saw a `test-results/` at the repo root after one of the failed Playwright runs. I `rm -rf`'d it at the time but it's worth double-checking nothing got committed.
-- **How.** `git log --all --full-history -- test-results/ conformance/test-results/` — should return nothing.
-- **Effort.** 30 seconds.
+**✓ Done 2026-04-11 (batch 1).** `git log --all --full-history -- test-results/ conformance/test-results/` returns empty. Never committed.
+
+### 6.5 Delete or fix `src/resolvers/http.ts` (surfaced batch 1)
+
+- **Why.** `npx tsc --noEmit` reports `src/resolvers/http.ts(227,1): error TS1005: '}' expected.` The file header says "NOT CURRENTLY USED" — it's a parking lot from the network-conditional assertion system that was replaced by UI-conditional assertions. Only a type-only import (`import type { HttpErrorHandler, HttpResponseHandler }`) survives in `src/interceptors/network.ts:11`. esbuild's bundler tolerates the syntax error because the actual runtime code is never imported; `tsc --noEmit` does not.
+- **Options.** (a) Delete `src/resolvers/http.ts` entirely and remove the `import type` in `network.ts` (and verify nothing else expects those types). (b) Fix the trailing brace so tsc is clean, keep as a parking lot.
+- **Recommendation.** (a). The file has been dead since UI-conditional assertions shipped; keeping it around just to preserve two unused type names is clutter.
+- **Effort.** ~10 min to delete + verify.
+- **Priority.** Low but genuine — blocks a clean `tsc --noEmit` which is a nice signal to preserve.
 
 ---
 
