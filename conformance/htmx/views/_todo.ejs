@@ -1,0 +1,50 @@
+<%#
+  Single todo partial rendered in the initial page and in every HTMX
+  response. The wrapping <li> id matches the hx-target on toggle/delete
+  so outerHTML/delete swaps find it.
+%>
+<li id="todo-<%= todo.id %>"
+    class="<%= todo.completed ? 'todo-item completed' : 'todo-item' %>"
+    data-id="<%= todo.id %>">
+  <%# Scenario 2: todos/toggle-complete — hx-patch returns a fresh
+      <li> fragment; hx-swap="outerHTML" replaces this li with it.
+      Assertion targets the NEW element via `added` (PAT-03 pattern).
+
+      swap:0ms settle:0ms disables HTMX's default 20ms transition
+      phase, during which the new element temporarily carries the
+      htmx-swapping / htmx-added / htmx-settling marker classes
+      instead of the server-rendered class list. Without these
+      timings, the agent sees the transient state and the classlist
+      modifier never matches. Documented in
+      docs/framework-integration-notes.md. %>
+  <button
+    type="button"
+    class="toggle-btn"
+    hx-patch="/todos/<%= todo.id %>/toggle"
+    hx-target="#todo-<%= todo.id %>"
+    hx-swap="outerHTML swap:0ms settle:0ms"
+    fs-assert="todos/toggle-complete"
+    fs-trigger="click"
+    fs-assert-added=".todo-item[data-id='<%= todo.id %>'][classlist=completed:<%= !todo.completed %>]"
+    fs-assert-timeout="1500"
+  >
+    <%= todo.completed ? "☑" : "☐" %>
+  </button>
+
+  <span class="text"><%= todo.text %></span>
+
+  <%# Scenario 3: todos/remove-item — hx-delete with hx-swap="delete"
+      removes the target from the DOM. The `removed` assertion matches
+      the outgoing element. %>
+  <button
+    type="button"
+    class="remove-btn"
+    hx-delete="/todos/<%= todo.id %>"
+    hx-target="#todo-<%= todo.id %>"
+    hx-swap="delete"
+    fs-assert="todos/remove-item"
+    fs-trigger="click"
+    fs-assert-removed=".todo-item[data-id='<%= todo.id %>']"
+    fs-assert-timeout="1500"
+  >✕</button>
+</li>

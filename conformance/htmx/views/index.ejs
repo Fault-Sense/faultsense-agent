@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Faultsense HTMX conformance harness</title>
+  <!--
+    Load order: conformance collector → Faultsense agent → HTMX client.
+    The agent needs to be ready before HTMX's first swap lands, and the
+    collector needs to register on window.Faultsense.collectors before
+    the agent resolves data-collector-url.
+  -->
+  <script src="/collector.js"></script>
+  <script
+    id="fs-agent"
+    src="/faultsense-agent.min.js"
+    data-release-label="htmx-harness"
+    data-api-key="test"
+    data-collector-url="conformance"
+    data-gc-interval="5000"
+  ></script>
+  <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
+</head>
+<body>
+  <main>
+    <%#
+      Scenarios (mirror to conformance/drivers/htmx.spec.ts):
+        1. todos/add-item             hx-post + swap-oob count
+        2. todos/toggle-complete      hx-patch + outerHTML (PAT-03)
+        3. todos/remove-item          hx-delete + hx-swap="delete"
+        4. todos/char-count-updated   input trigger + text-matches
+        5. layout/empty-state-shown   mount trigger + visible
+        6. todos/count-updated        OOB from all CRUD actions
+        7. layout/title-visible       invariant
+    %>
+
+    <%# Scenario 7: layout/title-visible — invariant. %>
+    <h1
+      id="app-title"
+      fs-assert="layout/title-visible"
+      fs-trigger="invariant"
+      fs-assert-visible="#app-title"
+    >
+      Faultsense HTMX harness
+    </h1>
+
+    <%# Scenario 1: todos/add-item — HTMX form post. hx-swap="beforeend"
+        appends the new <li> to #todo-list; hx-target="#todo-list"
+        directs the main swap; hx-swap-oob in the response updates
+        the count label. Error responses target add-error-slot via
+        the hx-target-422 header (set by a 422 status). %>
+    <form
+      hx-post="/todos"
+      hx-target="#todo-list"
+      hx-swap="beforeend"
+      hx-target-422="#add-error-slot"
+      hx-swap-422="innerHTML"
+    >
+      <%# Scenario 4: todos/char-count-updated — input + text-matches. %>
+      <input
+        id="add-todo-input"
+        name="text"
+        type="text"
+        maxlength="100"
+        placeholder="What needs to be done?"
+        fs-assert="todos/char-count-updated"
+        fs-trigger="input"
+        fs-assert-visible="#char-count[text-matches=\d+/100]"
+      >
+      <button
+        type="submit"
+        fs-assert="todos/add-item"
+        fs-trigger="click"
+        fs-assert-mutex="conditions"
+        fs-assert-added-success=".todo-item"
+        fs-assert-added-error=".add-error"
+        fs-assert-timeout="1500"
+      >
+        Add
+      </button>
+      <span id="char-count">0/100</span>
+    </form>
+
+    <%# Error slot for the add-item conditional mutex. HTMX replaces
+        its inner HTML with the _error fragment on 422 responses. %>
+    <div id="add-error-slot"></div>
+
+    <%# Scenario 5: layout/empty-state-shown — mount trigger + visible. %>
+    <% if (todos.length === 0) { %>
+      <section
+        class="empty-state"
+        fs-assert="layout/empty-state-shown"
+        fs-trigger="mount"
+        fs-assert-visible=".empty-state"
+      >
+        No todos yet — add one above.
+      </section>
+    <% } %>
+
+    <%# Scenario 6: todos/count-updated — OOB triggered by all CRUD.
+        The count fragment is re-rendered on the server for every
+        response and swapped in via hx-swap-oob="outerHTML". %>
+    <%- include("_count", { todos }) %>
+
+    <ul id="todo-list">
+      <% todos.forEach(function(todo) { %>
+        <%- include("_todo", { todo }) %>
+      <% }) %>
+    </ul>
+  </main>
+</body>
+</html>

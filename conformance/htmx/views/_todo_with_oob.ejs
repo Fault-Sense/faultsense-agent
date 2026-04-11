@@ -1,0 +1,10 @@
+<%# Combined fragment: the new/replaced <li> for the main swap target,
+    plus an hx-swap-oob="outerHTML:#todo-count" copy of the count so
+    one HTMX response can update multiple DOM regions. %>
+<%- include("_todo", { todo }) %>
+<div id="todo-count" hx-swap-oob="outerHTML"
+  fs-assert="todos/count-updated"
+  fs-assert-oob="todos/add-item,todos/remove-item,todos/toggle-complete"
+  fs-assert-visible="#todo-count[text-matches=\d+ / \d+ remaining]">
+  <%= todos.filter(function(t) { return !t.completed }).length %> / <%= todos.length %> remaining
+</div>

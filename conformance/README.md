@@ -11,8 +11,9 @@ See [`docs/mutation-patterns.md`](../docs/mutation-patterns.md) for the pattern 
 npm run conformance:install
 
 # One-time per Node harness: install its own devDeps.
-(cd conformance/vue3 && npm install)
-# examples/todolist-tanstack is already installed if you've run the demo.
+(cd conformance/react && npm install)
+(cd conformance/vue3  && npm install)
+(cd conformance/htmx  && npm install)
 
 # One-time for the Rails harness: build the Docker image. Playwright
 # will also auto-build on first run, but doing it upfront keeps the
@@ -23,24 +24,33 @@ docker compose -f conformance/hotwire/docker-compose.yml build
 npm run conformance
 
 # Run a single framework.
-npm run conformance -- --project=tanstack
+npm run conformance -- --project=react
 npm run conformance -- --project=vue3
 npm run conformance -- --project=hotwire
+npm run conformance -- --project=htmx
 ```
 
 ### Port map
 
-| Harness  | Port | Runtime |
-|----------|------|---------|
-| tanstack | 3100 | vite dev (examples/todolist-tanstack) |
-| vue3     | 3200 | vite dev (conformance/vue3) |
-| hotwire  | 3300 | docker compose (Rails 8 + Turbo 8) |
+| Harness  | Port | Runtime | Backend |
+|----------|------|---------|---------|
+| react    | 3100 | vite dev | Node (Vite + React 19 + StrictMode) |
+| vue3     | 3200 | vite dev | Node (Vite + Vue 3 Composition API) |
+| hotwire  | 3300 | docker compose | Rails 8 + Turbo 8 in `ruby:3.3-slim` |
+| htmx     | 3400 | node   | Express + EJS + HTMX 2 from CDN |
 
 ### Prerequisites
 
-- Node.js for `tanstack` and `vue3` (Layer 1 + these two Playwright drivers run in pure Node).
-- Docker + Docker Compose for `hotwire`. No native Ruby or Rails install on the host — everything runs in `ruby:3.3-slim`.
-- Contributors without Docker can still run Layer 1 and the Node-only harnesses. Skip the Rails driver with `--project=tanstack --project=vue3`.
+- **Node.js** for `react`, `vue3`, and `htmx`. No additional setup beyond `npm install` in each harness directory.
+- **Docker + Docker Compose** for `hotwire`. No native Ruby or Rails install on the host — everything runs inside `ruby:3.3-slim`. Contributors without Docker can skip the Rails harness with `--project=react --project=vue3 --project=htmx`.
+
+### `conformance/` vs `examples/` — who owns what
+
+`conformance/` is where Layer 2 lives. Every harness is purpose-built minimal: one page, one driver, 8–10 focused scenarios, one webServer entry in `playwright.config.ts`. Harnesses are regression infrastructure — they stay stable so the matrix stays meaningful.
+
+`examples/` is where the human-facing demos live. `examples/todolist-tanstack/` is a full TanStack Start + React 19 app with auth, routing, offline banner, activity log, and the panel collector overlay. `examples/todolist-htmx/` is an Express + EJS + HTMX 2 app of similar scope. These exist for marketing, onboarding, and manual exploration. **They are not driven by the conformance suite** — polish them freely, animate them, restyle them; the conformance tests will not break.
+
+When you want to know "how do I instrument a real Vue 3 app?", read `conformance/vue3/src/App.vue` for the minimal form and `docs/framework-integration-notes.md` for the gotchas. When you want to show a prospect what Faultsense looks like in a polished app, point them at `examples/todolist-tanstack/`.
 
 `npm run conformance` is NOT wired into `npm test`. Layer 1 (jsdom) stays fast; Layer 2 boots real dev servers and takes longer. CI runs both as parallel jobs.
 

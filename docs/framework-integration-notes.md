@@ -14,30 +14,66 @@ Convention for new entries:
 
 ---
 
-## TanStack Start (React 19 + Vite + TanStack Router)
+## React 19 (Vite + hooks + StrictMode)
 
-**Harness:** `examples/todolist-tanstack/` (reused via `VITE_FS_COLLECTOR=conformance` env-var switch).
-**Driver:** `conformance/drivers/tanstack.spec.ts`.
+**Harness:** `conformance/react/`.
+**Driver:** `conformance/drivers/react.spec.ts`.
+
+> The TanStack Start section below was preserved from earlier work when `examples/todolist-tanstack/` was temporarily wired into the conformance suite via a `VITE_FS_COLLECTOR` env-var switch. That approach was reverted in favor of a purpose-built minimal harness, and the tanstack example is now demo-only. The TanStack Start findings still apply to anyone running the full-stack example or building a similar SSR app.
+
+### Controlled checkboxes + `fs-trigger="change"` (agent-blind timing)
+
+- **Finding.** A React controlled checkbox (`<input type="checkbox" checked={state} onChange={...}>`) with `fs-trigger="change"` and an expected-next-state modifier (`classlist=completed:${!state}`) silently times out. The agent never sees the "old" attribute value — by the time its capture-phase listener reads `fs-assert-updated`, React has already flipped state, re-rendered, and updated the attribute to the NEW expected-next.
+- **Why.** React 18+ re-renders controlled inputs synchronously (or near-synchronously) during the native event dispatch. The attribute is recomputed from the new state before the document-level capture listener runs. Vue 3 doesn't have this issue because its reactive updates defer to the next microtask via `nextTick`.
+- **Fix / recommendation.** **Use `fs-trigger="click"` instead of `"change"` on React controlled checkboxes.** Click fires before React processes the input event, so the agent reads the attribute with the correct expected-next snapshot. The assertion still resolves on the mutation observer's class change.
+- **Source.** `conformance/react/src/App.tsx:244-261` documents the switch inline; `conformance/drivers/react.spec.ts:58-74` is the regression.
+
+### StrictMode is safe, but expect `nextId` side effects to double-fire
+
+- **Finding.** React 19 StrictMode double-invokes effects AND reducer functions in dev. If your reducer increments a module-level `nextId`, the second invocation runs it again and the first new item ends up with id `2` instead of `1`.
+- **Why.** StrictMode intentionally double-invokes to surface impure side effects. A module-level mutable `nextId` IS an impure side effect. The fix is to scope the counter inside component state or move ID generation server-side.
+- **Fix / recommendation.** For harness-level ID counters, this is a nuisance, not a bug. Assertion selectors should use `[data-id=${id}]` with the actual rendered id, not hardcoded values. Don't assume IDs start at 1 in StrictMode-enabled builds.
+- **Source.** `conformance/react/src/App.tsx:29` — `let nextId = 1` at module level, observed producing `data-id="2"` for the first todo in StrictMode dev.
+
+### JSX types for `fs-*` custom attributes
+
+- **Finding.** React 19's `@types/react` doesn't know about the `fs-*` attribute namespace, so JSX files get type errors on `fs-assert`, `fs-trigger`, etc.
+- **Fix / recommendation.** Augment `HTMLAttributes<T>` with a template-literal index signature that accepts any `fs-${string}` key:
+  ```ts
+  // src/faultsense.d.ts
+  import "react";
+  declare module "react" {
+    interface HTMLAttributes<T> {
+      [key: `fs-${string}`]: string | undefined;
+    }
+  }
+  ```
+  One 8-line file, no per-attribute boilerplate. Include the file path in your `tsconfig.json` `include` array (or put it under `src/` if that's already included).
+- **Source.** `conformance/react/src/faultsense.d.ts`.
+
+### Dynamic `fs-*` bindings via JSX interpolation
+
+- **Finding.** JSX template literals in `fs-assert-updated={\`.todo-item[data-id='${id}'][classlist=completed:${!completed}]\`}` work correctly. React renders the result as a plain HTML attribute, and the agent's parser accepts quoted attribute values (after the e3550f9 fix).
+- **Fix / recommendation.** Use template literals for per-item selectors inside `.map()` loops. Both quoted (`[data-id='${id}']`) and unquoted (`[data-id=${id}]`) forms work.
+- **Source.** `conformance/react/src/App.tsx:258`.
+
+---
+
+## TanStack Start (React 19 + Vite + TanStack Router, SSR)
+
+**Status:** out-of-scope for conformance. The full-stack example at `examples/todolist-tanstack/` is a marketing/manual demo and no longer driven by the conformance suite — `conformance/react/` handles React coverage. These findings are preserved for anyone instrumenting a real TanStack Start app.
 
 ### Agent double-init in Vite dev mode
 
-- **Finding.** In `vite dev`, the agent's IIFE runs twice: once during initial document parse, once after Vite HMR connects. Both inits call `init(config)` and register their own listeners/observers.
-- **Why.** TanStack Start's `<Scripts />` component path plus Vite's module graph re-execution during HMR means the classic `<script>` tag effectively runs twice. Each run has its own DOMContentLoaded listener, and both fire.
-- **Fix / recommendation.** Non-issue in production builds. For tests: a 300–500 ms settle wait in `beforeEach` lets both inits complete before the driver interacts. For real apps: if you're paranoid about dangling listeners in dev, call `window.Faultsense.cleanup?.()` before re-running init, but this isn't a correctness issue.
-- **Source.** `conformance/drivers/tanstack.spec.ts:23-34` documents the settle wait inline.
-
-### Switching between panel and conformance collectors
-
-- **Finding.** One example app needs to serve two audiences: humans (panel overlay) and CI (conformance payloads on `window.__fsAssertions`).
-- **Why.** Extracting a second minimal "conformance page" duplicates maintenance — every new assertion type has to land in both copies.
-- **Fix / recommendation.** Use a Vite env var (`VITE_FS_COLLECTOR`) to switch the collector script tag and the `data-collector-url` attribute at build/dev time. Default = `panel` (demo UX), override = `conformance` (test harness). Playwright's `webServer` entry sets the env var when spawning the dev server.
-- **Source.** `examples/todolist-tanstack/src/routes/__root.tsx:8-41`.
+- **Finding.** In `vite dev`, the agent's IIFE effectively runs twice: once during initial document parse, once after Vite HMR connects. Both inits call `init(config)` and register their own listeners/observers.
+- **Why.** TanStack Start's `<Scripts />` component path plus Vite's module graph re-execution during HMR means the classic `<script>` tag runs twice. Each run has its own DOMContentLoaded listener, and both fire.
+- **Fix / recommendation.** Non-issue in production builds. For tests against a dev server: a 300–500 ms settle wait in `beforeEach` lets both inits complete before the driver interacts. For real apps: if you're paranoid about dangling listeners in dev, call `window.Faultsense.cleanup?.()` before re-running init, but this isn't a correctness issue.
 
 ### Script loading order with `head.scripts`
 
-- **Finding.** TanStack Start's `createRootRoute.head.scripts` array renders the tags in array order inside `<head>`. This is correct and robust — no surprises.
+- **Finding.** TanStack Start's `createRootRoute.head.scripts` array renders the tags in array order inside `<head>`. Correct and robust — no surprises.
 - **Fix / recommendation.** Put the collector script BEFORE the agent script in the array so the collector registers on `window.Faultsense.collectors[name]` before the agent's DOMContentLoaded handler resolves `data-collector-url`.
-- **Source.** Works correctly across 18 conformance runs; no quirks.
+- **Source.** `examples/todolist-tanstack/src/routes/__root.tsx`.
 
 ---
 
@@ -80,6 +116,44 @@ Convention for new entries:
 - **Why.** Vue batches reactive updates via a microtask. The synchronous `dispatchEvent` fires BEFORE the batch flushes, so the agent's assertion is created first and the DOM mutation that resolves it arrives in a later mutation batch.
 - **Fix / recommendation.** Dispatch your domain custom event after the state mutation. Don't wait for `nextTick` — the agent handles the ordering correctly.
 - **Source.** `conformance/vue3/src/App.vue:88-95` (logAction function) + Scenario 9 in the driver.
+
+---
+
+## HTMX 2 (Express + EJS)
+
+**Harness:** `conformance/htmx/`.
+**Driver:** `conformance/drivers/htmx.spec.ts`.
+
+### HTMX swap-transition classes shadow the final state
+
+- **Finding.** With the default `hx-swap` timing, a new element inserted via `hx-swap="outerHTML"` temporarily carries `htmx-swapping`, `htmx-added`, and `htmx-settling` classes INSTEAD OF (or in addition to) the server-rendered class list. When the agent's `added` assertion checks the element immediately on insertion, the classlist modifier fails because the final classes haven't been applied yet. HTMX removes the transient classes ~20-40 ms later, but by then the element is in `updatedElements`, and the `added` assertion type only checks `addedElements`. The assertion stays pending forever and times out.
+- **Why.** HTMX's default settle pipeline animates swaps via a 20 ms swap phase + 20 ms settle phase, and applies marker classes during each phase. The agent sees the transient state first, the final state never.
+- **Fix / recommendation.** **Disable HTMX's swap transition on any element that carries a Faultsense assertion with classlist/attribute modifiers:**
+  ```erb
+  <button hx-patch="/todos/1/toggle"
+          hx-target="#todo-1"
+          hx-swap="outerHTML swap:0ms settle:0ms"
+          fs-assert-added=".todo-item[classlist=completed:true]">…</button>
+  ```
+  `swap:0ms settle:0ms` skips both phases. The new element lands in the DOM with its final class list and the `added` assertion resolves on the initial mutation.
+- **Source.** `conformance/htmx/views/_todo.ejs:12-22`. This is the most significant HTMX-specific finding from Layer 2 — every HTMX app using `fs-assert-added` with classlist modifiers will hit it unless the swap timing is disabled.
+
+### `hx-swap-oob` for multi-region updates pairs naturally with `fs-assert-oob`
+
+- **Finding.** HTMX's `hx-swap-oob` attribute lets one server response update multiple DOM regions (e.g., the new todo + the refreshed count label). Faultsense's `fs-assert-oob` watches for cross-region assertions triggered by primary assertions. The two work together: the server emits a combined fragment, HTMX applies both swaps in one pass, and the agent sees the count-update mutation in the same batch as the main swap.
+- **Fix / recommendation.** Declare the OOB assertion on the fragment that will be swapped (`#todo-count` in the harness) and name the primary assertion in `fs-assert-oob="todos/add-item,..."`. The server response for the primary mutation carries both the main fragment and the OOB count fragment; HTMX applies both in one mutation batch; Faultsense's OOB path fires `immediateResolver` against the current DOM state.
+- **Source.** `conformance/htmx/views/_count.ejs`, `conformance/htmx/views/_todo_with_oob.ejs`.
+
+### `hx-swap="delete"` + `fs-assert-removed` just works
+
+- **Finding.** HTMX's `hx-swap="delete"` removes the target element on a successful response. Pair it with `fs-assert-removed="<target-selector>"` on the delete button — the `removed` assertion type picks up the outgoing element from `removedElements` and resolves immediately. No transition-class workaround needed because `delete` doesn't run through the settle pipeline.
+- **Source.** `conformance/htmx/views/_todo.ejs:32-38`.
+
+### `hx-target-422` + `hx-swap-422` for conditional mutex error variants
+
+- **Finding.** HTMX 2 added `hx-target-<status>` and `hx-swap-<status>` attributes that let you route error responses to a different target with a different swap strategy. This is the natural shape for Faultsense's `fs-assert-mutex="conditions"` — success responses target the main list (append), error responses target a dedicated error slot (innerHTML replace).
+- **Fix / recommendation.** The add form in `conformance/htmx/views/index.ejs` uses `hx-target-422="#add-error-slot"` and `hx-swap-422="innerHTML"` alongside the default `hx-target="#todo-list"` + `hx-swap="beforeend"`. The server returns 422 with an error fragment on validation failure; HTMX routes it to the error slot; the error variant of the conditional mutex matches; Faultsense dismisses the success variant.
+- **Source.** `conformance/htmx/views/index.ejs:32-41`.
 
 ---
 

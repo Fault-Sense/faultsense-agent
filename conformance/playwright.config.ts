@@ -37,8 +37,8 @@ export default defineConfig({
 
   projects: [
     {
-      name: "tanstack",
-      testMatch: "tanstack.spec.ts",
+      name: "react",
+      testMatch: "react.spec.ts",
       use: {
         ...devices["Desktop Chrome"],
         baseURL: "http://localhost:3100",
@@ -60,16 +60,20 @@ export default defineConfig({
         baseURL: "http://localhost:3300",
       },
     },
+    {
+      name: "htmx",
+      testMatch: "htmx.spec.ts",
+      use: {
+        ...devices["Desktop Chrome"],
+        baseURL: "http://localhost:3400",
+      },
+    },
   ],
 
   webServer: [
     {
-      // Run the existing tanstack example in conformance mode.
-      // VITE_FS_COLLECTOR=conformance flips the root route to load the
-      // conformance collector and set data-collector-url="conformance".
-      // Port 3100 keeps it separate from the default demo dev server on 3000.
-      command:
-        "cd ../examples/todolist-tanstack && VITE_FS_COLLECTOR=conformance npm run dev -- --port 3100",
+      // React 19 + Vite harness — minimal, plain React, StrictMode on.
+      command: "cd react && npm run dev",
       url: "http://localhost:3100",
       reuseExistingServer: !process.env.CI,
       timeout: 60_000,
@@ -77,9 +81,8 @@ export default defineConfig({
       stderr: "pipe",
     },
     {
-      // Vue 3 conformance harness. The harness is a purpose-built minimal
-      // app that exercises Vue's nextTick batching + fine-grained
-      // reactivity against a focused subset of the assertion catalog.
+      // Vue 3 conformance harness. Exercises nextTick batching +
+      // fine-grained reactivity against the same assertion catalog.
       command: "cd vue3 && npm run dev",
       url: "http://localhost:3200",
       reuseExistingServer: !process.env.CI,
@@ -98,6 +101,17 @@ export default defineConfig({
       url: "http://localhost:3300/up",
       reuseExistingServer: !process.env.CI,
       timeout: 300_000, // generous — first run builds the image
+      stdout: "ignore",
+      stderr: "pipe",
+    },
+    {
+      // HTMX + Express + EJS harness — language-agnostic HTMX with a
+      // minimal Node backend. Exercises hx-swap variants and
+      // hx-swap-oob against a real server.
+      command: "cd htmx && npm run dev",
+      url: "http://localhost:3400",
+      reuseExistingServer: !process.env.CI,
+      timeout: 60_000,
       stdout: "ignore",
       stderr: "pipe",
     },

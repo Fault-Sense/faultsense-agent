@@ -56,16 +56,31 @@ The only places jsdom diverges in ways that matter are layout (`getBoundingClien
 
 ### Q2. Reuse existing tanstack/htmx example apps in place, or extract minimal `conformance/react/` and `conformance/htmx/` pages? (R6, R9)
 
-**Decision: reuse in place, add only the collector adapter and Playwright driver.** (see origin: R6, R9)
+**Decision: every harness is purpose-built minimal under `conformance/`. The `examples/todolist-*` apps stay in `examples/` as pure marketing + manual demos, decoupled from the conformance suite.** (see origin: R6, R9)
 
-Both example apps already exercise the full 20-assertion catalog (confirmed via `examples/todolist-tanstack/ASSERTIONS.md`). Extracting a minimal conformance page per framework would duplicate maintenance — any future agent feature that adds new assertion types would need to be added to both the example and the conformance copy. Bad trade.
+**This is a reversal** — the original decision was "reuse in place" with a `VITE_FS_COLLECTOR=conformance` env-var switch wired into the tanstack example. We shipped that in Phase 3 as a single-scenario smoke test and then built Phase 4 (Vue 3) and Phase 5 (Hotwire) as purpose-built minimal harnesses. The reversal landed after Phase 5 — enough evidence had accumulated that the minimal-harness pattern was strictly better.
 
-Instead, each existing example gets two small additions:
+**Why the reversal:**
 
-1. A custom in-page collector registration (~10 lines). The tanstack example adds it as a module-level side effect in a new `src/faultsense-collector.ts` imported from `__root.tsx` before the `<script>` tags. The htmx example adds it to `public/todos.js` before HTMX loads.
-2. A Playwright driver at `conformance/drivers/tanstack.spec.ts` and `conformance/drivers/htmx.spec.ts`. The driver boots the example's dev server via Playwright's `webServer` config, navigates to the app, triggers each assertion scenario, and asserts the expected `window.__fsAssertions` payloads.
+- **Consistency beats cleverness.** Two patterns ("reuse example with env-var switch" vs. "purpose-built minimal") is cognitive overhead. Every new framework harness would have to pick. One pattern is simpler.
+- **Decoupling lets the demos be demos.** The tanstack example had to be two things at once: a pretty showcase AND a test-driveable harness. Marketing polish (animations, styling, route changes) risked breaking the conformance driver. Decoupling lets the demo become actually polished while the harness stays minimal and stable.
+- **Better scenario coverage.** Phase 3's tanstack smoke test had 1 scenario. Vue 3 and Hotwire had 10 and 7 respectively. Matching tanstack → `conformance/react/` with full 10-scenario coverage makes the Phase 6 works-with matrix meaningful instead of lopsided.
+- **Solves TanStack Start's dev-mode double-init quirk.** The Phase 3 driver needed a 500 ms settle wait to work around a `<Scripts />` HMR re-init. A plain Vite + React harness without TanStack Start's SSR path doesn't have that problem.
+- **Faster CI.** TanStack Start's dev server boots in ~3-5s; a minimal Vite + React dev server boots in <1s (same as vue3).
 
-The new Vue 3 and Hotwire harnesses live under `conformance/vue3/` and `conformance/hotwire/` and follow the same shape: tiny app + collector + driver. Consistency with the minimal form is maintained *at the driver level*, not at the page level — the driver file is the same shape across all four frameworks, which is what matters for CI.
+**What's in `conformance/`:**
+
+- `conformance/react/` — plain React 19 + Vite + StrictMode. Covers React reconciliation, hooks state, keyed list updates, conditional JSX. NOT TanStack Start — TanStack Start-specific quirks (SSR hydration, `<Scripts />` re-init) are out of scope and can become a future `conformance/tanstack-start/` harness if demand arises.
+- `conformance/vue3/` — Vue 3 Composition API + Vite. Covers `nextTick` batching and fine-grained reactivity.
+- `conformance/hotwire/` — Rails 8 + turbo-rails + Turbo 8 (Docker-hosted). Covers Turbo Stream append/replace/remove + OOB.
+- `conformance/htmx/` — minimal Express + EJS + HTMX 2. Covers `hx-swap` variants and `hx-swap-oob`. Language-agnostic — the Node host is a faithful harness because HTMX's mutation shapes are driven by the client library, not the server language.
+
+**What's in `examples/`:**
+
+- `examples/todolist-tanstack/` — React 19 + TanStack Start + Vite, full SSR, panel collector, auth + routing + offline banner + activity log. Marketing showcase and the "read this to learn how to instrument a real app" reference. Not driven by the conformance suite.
+- `examples/todolist-htmx/` — Express + EJS + HTMX 2, panel collector. Same role for the HTMX audience. Not driven by the conformance suite.
+
+Each harness follows the same shape: a `package.json` or `Gemfile`, a single-file app/component/view rendering all scenarios, a `public/` directory with symlinks to `dist/faultsense-agent.min.js` and `conformance/shared/collector.js`, a matching driver under `conformance/drivers/<framework>.spec.ts`, and a `webServer` entry in `conformance/playwright.config.ts`. The `scope: :todo` / `local: false` / route helper / CSRF / selector-quoting / HTMX transient-class / React controlled-checkbox findings from implementing these are captured in `docs/framework-integration-notes.md`.
 
 ### Q3. Collector shape for Layer 2? (R8)
 
