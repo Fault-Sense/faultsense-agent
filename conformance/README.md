@@ -69,7 +69,7 @@ npm run conformance -- --project=liveview
 
 ### Suggested CI workflow
 
-The repo does not currently have a `.github/workflows/` directory. When you're ready to wire Layer 2 into CI, the following workflow runs Layer 1 and all four Layer 2 harnesses in parallel jobs with per-toolchain caching:
+The repo does not currently have a `.github/workflows/` directory. When you're ready to wire Layer 2 into CI, the following workflow runs Layer 1 and all 10 Layer 2 harnesses (7 Node-backed + 3 Docker-backed) with per-toolchain caching. GitHub Actions ships with Docker + Buildx preinstalled on `ubuntu-latest`, so the three polyglot harnesses (hotwire/livewire/liveview) boot via `docker compose` without extra setup steps — their own Dockerfiles bring Ruby/PHP/Elixir in:
 
 ```yaml
 # .github/workflows/conformance.yml
@@ -98,13 +98,31 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: "22", cache: "npm" }
-      - uses: ruby/setup-ruby@v1
-        with: { ruby-version: "3.3", bundler-cache: true, working-directory: conformance/hotwire }
       - run: npm ci
       - run: npm run build:agent
-      - run: (cd conformance/react && npm ci)
-      - run: (cd conformance/vue3 && npm ci)
-      - run: (cd conformance/htmx && npm ci)
+      # Install devDeps for every Node-backed harness. The Docker-
+      # backed ones (hotwire/livewire/liveview) pull their runtimes
+      # from their own Dockerfiles — no host-side setup required.
+      - run: (cd conformance/react  && npm ci)
+      - run: (cd conformance/vue3   && npm ci)
+      - run: (cd conformance/svelte && npm ci)
+      - run: (cd conformance/solid  && npm ci)
+      - run: (cd conformance/alpine && npm ci)
+      - run: (cd conformance/astro  && npm ci)
+      - run: (cd conformance/htmx   && npm ci)
+      # Pre-build the Docker images so the first `npm run conformance`
+      # doesn't block on a cold compose build. docker/build-push-action
+      # handles BuildKit caching via GitHub's registry backend.
+      - name: Cache + build Docker harness images
+        uses: docker/bake-action@v5
+        with:
+          files: |
+            conformance/hotwire/docker-compose.yml
+            conformance/livewire/docker-compose.yml
+            conformance/liveview/docker-compose.yml
+          set: |
+            *.cache-from=type=gha
+            *.cache-to=type=gha,mode=max
       - name: Cache Playwright browsers
         uses: actions/cache@v4
         with:
