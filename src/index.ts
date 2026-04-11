@@ -3,6 +3,7 @@ import { createConnectivityHandlers } from "./processors/connectivity";
 import { createAssertionManager } from "./assertions/manager";
 import { interceptErrors } from "./interceptors/error";
 import { interceptNavigation } from "./interceptors/navigation";
+import { setResolverDebugLogger } from "./resolvers/dom";
 import { Configuration, CollectorFunction } from "./types";
 import {
   isValidConfiguration,
@@ -30,6 +31,10 @@ export function init(initialConfig: Partial<Configuration>): () => void {
   }
 
   const assertionManager = createAssertionManager(config);
+
+  // Wire up the dom resolver's debug logger so wait-for-pass no-match warnings
+  // fire in debug mode. Cleared in the cleanup closure below.
+  setResolverDebugLogger(logger);
 
   interceptErrors(assertionManager.handleGlobalError);
   interceptNavigation(assertionManager.handleNavigation);
@@ -133,6 +138,7 @@ export function init(initialConfig: Partial<Configuration>): () => void {
       observer.disconnect();
       observer = null;
     }
+    setResolverDebugLogger(null);
     // Invoke cleanup hooks registered by external collectors
     cleanupHooks.forEach(fn => fn());
     cleanupHooks.length = 0;
@@ -183,10 +189,14 @@ export function init(initialConfig: Partial<Configuration>): () => void {
   window.Faultsense.init = init;
   window.Faultsense.registerCleanupHook = (fn: () => void) => { cleanupHooks.push(fn); };
 
-  // Automatically initialize Faultsense if the fs-agent script tag exists
+  // Automatically initialize Faultsense if the fs-agent script tag exists.
+  // Tear down any prior init first — in Vite dev mode (e.g. TanStack Start)
+  // the classic script tag effectively runs twice and both inits would leak
+  // their listeners/MutationObserver otherwise.
   document.addEventListener("DOMContentLoaded", function () {
     const config = extractConfigFromScriptTag();
     if (config) {
+      window.Faultsense!.cleanup?.();
       window.Faultsense!.cleanup = init(config);
 
       if (config.debug) {

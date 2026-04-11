@@ -2,31 +2,33 @@
 
 Generated from Layer 2 conformance test runs. This matrix is the source of truth — do not hand-edit it. Re-run `npm run conformance:matrix` after adding a scenario or harness.
 
-_Last updated: 2026-04-11 · 34 tests across 4 frameworks_
+_Last updated: 2026-04-11 · 45 tests across 5 frameworks_
 
 ## Per-framework coverage
 
 | Framework | Passing | Total |
 |---|---|---|
-| **hotwire** ✓ | 7 | 7 |
+| **hotwire** ✓ | 8 | 8 |
 | **htmx** ✓ | 7 | 7 |
 | **react** ✓ | 10 | 10 |
+| **svelte** ✓ | 10 | 10 |
 | **vue3** ✓ | 10 | 10 |
 
 ## Scenario coverage
 
-| Scenario | hotwire | htmx | react | vue3 |
-|---|---|---|---|---|
-| `actions/log-updated` | ○ | ○ | ✓ | ✓ |
-| `guide/advance-after-add` | ○ | ○ | ✓ | ✓ |
-| `layout/empty-state-shown` | ✓ | ✓ | ✓ | ✓ |
-| `layout/title-visible` | ✓ | ✓ | ✓ | ✓ |
-| `todos/add-item` | ✓ | ✓ | ✓ | ✓ |
-| `todos/char-count-updated` | ✓ | ✓ | ✓ | ✓ |
-| `todos/count-updated` | ✓ | ✓ | ✓ | ✓ |
-| `todos/edit-item` | ○ | ○ | ✓ | ✓ |
-| `todos/remove-item` | ✓ | ✓ | ✓ | ✓ |
-| `todos/toggle-complete` | ✓ | ✓ | ✓ | ✓ |
+| Scenario | hotwire | htmx | react | svelte | vue3 |
+|---|---|---|---|---|---|
+| `actions/log-updated` | ○ | ○ | ✓ | ✓ | ✓ |
+| `guide/advance-after-add` | ○ | ○ | ✓ | ✓ | ✓ |
+| `layout/empty-state-shown` | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `layout/title-visible` | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `morph/status-flip` | ✓ | ○ | ○ | ○ | ○ |
+| `todos/add-item` | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `todos/char-count-updated` | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `todos/count-updated` | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `todos/edit-item` | ○ | ○ | ✓ | ✓ | ✓ |
+| `todos/remove-item` | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `todos/toggle-complete` | ✓ | ✓ | ✓ | ✓ | ✓ |
 
 **Legend:** ✓ passing · ✗ failing · ○ not exercised by this harness
 
@@ -34,18 +36,18 @@ _Last updated: 2026-04-11 · 34 tests across 4 frameworks_
 
 Layer 1 locks every PAT in synthetically via the jsdom conformance suite under `tests/conformance/`. The table below shows which PATs each framework **additionally** exercises empirically through its Layer 2 harness — the more ✓ cells here, the more real-framework evidence backs up the Layer 1 regression lock. An empty row means no scenario in any harness currently exercises that pattern empirically.
 
-| Pattern | hotwire | htmx | react | vue3 |
-|---|---|---|---|---|
-| [PAT-01](mutation-patterns.md#pat-01-pre-existing-target) | ○ | ○ | ○ | ○ |
-| [PAT-02](mutation-patterns.md#pat-02-delayed-commit-mutation) | ✓ | ✓ | ✓ | ✓ |
-| [PAT-03](mutation-patterns.md#pat-03-outerhtml-replacement) | ✓ | ✓ | ✓ | ✓ |
-| [PAT-04](mutation-patterns.md#pat-04-morphdom-preserved-identity) | ○ | ○ | ○ | ○ |
-| [PAT-05](mutation-patterns.md#pat-05-detach-reattach) | ✓ | ✓ | ✓ | ✓ |
-| [PAT-06](mutation-patterns.md#pat-06-text-only-mutation) | ✓ | ✓ | ✓ | ✓ |
-| [PAT-07](mutation-patterns.md#pat-07-microtask-batching) | ✓ | ✓ | ✓ | ✓ |
-| [PAT-08](mutation-patterns.md#pat-08-cascading-mutations) | ✓ | ✓ | ✓ | ✓ |
-| [PAT-09](mutation-patterns.md#pat-09-hydration-upgrade) | ○ | ○ | ○ | ○ |
-| [PAT-10](mutation-patterns.md#pat-10-shadow-dom-traversal) | ○ | ○ | ○ | ○ |
+| Pattern | hotwire | htmx | react | svelte | vue3 |
+|---|---|---|---|---|---|
+| [PAT-01](mutation-patterns.md#pat-01-pre-existing-target) | ○ | ○ | ○ | ○ | ○ |
+| [PAT-02](mutation-patterns.md#pat-02-delayed-commit-mutation) | ✓ | ✓ | ✓ | ✓ | ✓ |
+| [PAT-03](mutation-patterns.md#pat-03-outerhtml-replacement) | ✓ | ✓ | ✓ | ✓ | ✓ |
+| [PAT-04](mutation-patterns.md#pat-04-morphdom-preserved-identity) | ✓ | ○ | ○ | ○ | ○ |
+| [PAT-05](mutation-patterns.md#pat-05-detach-reattach) | ✓ | ✓ | ✓ | ✓ | ✓ |
+| [PAT-06](mutation-patterns.md#pat-06-text-only-mutation) | ✓ | ✓ | ✓ | ✓ | ✓ |
+| [PAT-07](mutation-patterns.md#pat-07-microtask-batching) | ✓ | ✓ | ✓ | ✓ | ✓ |
+| [PAT-08](mutation-patterns.md#pat-08-cascading-mutations) | ✓ | ✓ | ✓ | ✓ | ✓ |
+| [PAT-09](mutation-patterns.md#pat-09-hydration-upgrade) | ○ | ○ | ○ | ○ | ○ |
+| [PAT-10](mutation-patterns.md#pat-10-shadow-dom-traversal) | ○ | ○ | ○ | ○ | ○ |
 
 **Legend:** ✓ empirically exercised by this harness · ○ not exercised at Layer 2 (Layer 1 still covers it)
 

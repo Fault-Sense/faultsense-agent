@@ -7,6 +7,16 @@ import {
   AssertionCollectionResolver,
 } from "../types";
 import { isVisible } from "../utils/elements";
+import { Logger } from "../utils/logger";
+
+// Module-level debug logger. Set by `init()` in src/index.ts so the resolver
+// can emit debug-mode warnings without threading the full config through the
+// ElementResolver type signature. Cleared on agent teardown.
+let debugLogger: Logger | null = null;
+
+export function setResolverDebugLogger(logger: Logger | null): void {
+  debugLogger = logger;
+}
 
 const assertionTypeMatchers: Record<
   string,
@@ -210,6 +220,17 @@ function handleAssertion(
       return completeAssertion(assertion, true);
     }
   }
+
+  // Matching elements exist but every one failed the modifier check. In debug
+  // mode, emit a warning so users can distinguish "selector didn't match" from
+  // "selector matched but modifier eliminated the candidates" — the latter is
+  // usually a symptom of quoted selector values, regex typos, or stale
+  // expectations. Non-invariant assertions still stay pending (wait-for-pass).
+  debugLogger?.warn(
+    `[Faultsense]: Assertion "${assertion.assertionKey}" (${assertion.type}=${JSON.stringify(
+      assertion.typeValue
+    )}) matched ${matchingElements.length} element(s) but no element satisfied all modifiers. Still pending.`
+  );
 
   // Invariants commit on violation so the failure propagates; everything
   // else stays pending until pass, timeout, or GC sweep.

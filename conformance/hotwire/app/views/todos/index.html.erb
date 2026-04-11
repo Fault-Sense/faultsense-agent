@@ -10,6 +10,7 @@
     5. layout/empty-state-shown   — mount trigger + visible (server-rendered)
     6. todos/count-updated        — OOB triggered by add/toggle/remove
     7. layout/title-visible       — invariant
+    8. morph/status-flip          — Turbo 8 idiomorph (PAT-04 empirical)
 %>
 <main>
   <%# Scenario 7: layout/title-visible — invariant. The title must stay
@@ -81,4 +82,22 @@
   <ul id="todo-list">
     <%= render partial: "todos/todo", collection: @todos, as: :todo %>
   </ul>
+
+  <%# Scenario 8: morph/status-flip — Turbo 8 idiomorph (PAT-04 empirical).
+      Submitting this form POSTs to /todos/activate which responds with
+      turbo_stream.replace method: :morph. Idiomorph patches #morph-status's
+      class and text in place, preserving DOM identity — so the assertion
+      uses `updated` (not `added`), which ONLY resolves when the mutation
+      lands on updatedElements (i.e., same-identity target). If Turbo fell
+      back to an outerHTML swap, `updated` would stay pending until timeout
+      and the scenario would fail — that's the PAT-04 signal. %>
+  <%= form_with url: activate_todos_path, method: :post, data: { turbo: true }, class: "morph-form" do |f| %>
+    <%= f.submit "Activate (morph)",
+        class: "morph-submit",
+        "fs-assert" => "morph/status-flip",
+        "fs-trigger" => "click",
+        "fs-assert-updated" => "#morph-status[classlist=active:true]",
+        "fs-assert-timeout" => "1500" %>
+  <% end %>
+  <%= render "todos/morph_status", active: @active %>
 </main>
