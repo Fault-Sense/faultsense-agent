@@ -249,8 +249,14 @@ Faultsense is framework-agnostic — it observes the DOM, not framework internal
 |---|---|---|
 | React 19 + Vite | `conformance/react/` | 10/10 scenarios |
 | Vue 3 + Vite | `conformance/vue3/` | 10/10 scenarios |
-| Hotwire (Rails 8 + Turbo 8) | `conformance/hotwire/` (Docker) | 7/7 scenarios |
+| Svelte 5 (runes) + Vite | `conformance/svelte/` | 10/10 scenarios |
+| Solid 1.9 + Vite | `conformance/solid/` | 10/10 scenarios |
+| Alpine.js 3 | `conformance/alpine/` | 10/10 scenarios |
+| Astro 6 (SSR + React island) | `conformance/astro/` | 11/11 scenarios (PAT-09 empirical) |
+| Hotwire (Rails 8 + Turbo 8) | `conformance/hotwire/` (Docker) | 8/8 scenarios (PAT-04 empirical) |
 | HTMX 2 + Express | `conformance/htmx/` | 7/7 scenarios |
+| Livewire 3 (Laravel 11) | `conformance/livewire/` (Docker) | 8/8 scenarios (PAT-04 empirical) |
+| Phoenix LiveView 1.0 | `conformance/liveview/` (Docker) | 8/8 scenarios (PAT-04 empirical) |
 
 Adding a new framework means scaffolding a minimal harness and a driver file — see [`conformance/README.md`](conformance/README.md). The Layer 1 mutation-pattern suite at [`tests/conformance/`](tests/conformance/) locks in every DOM mutation shape the agent handles, so frameworks that produce those shapes are supported by transitivity — the Layer 2 drivers are empirical confirmation, not the source of truth.
 
