@@ -1,0 +1,10 @@
+<%# Scenario 6: todos/count-updated — OOB assertion on the count label.
+    Triggered out-of-band whenever add/toggle/remove passes; the agent
+    runs immediateResolver against the current DOM, and the text
+    modifier must match the freshly-rendered count. %>
+<div id="todo-count"
+  fs-assert="todos/count-updated"
+  fs-assert-oob="todos/add-item,todos/remove-item,todos/toggle-complete"
+  fs-assert-visible="#todo-count[text-matches=\d+ / \d+ remaining]">
+  <%= todos.count { |t| !t[:completed] } %> / <%= todos.size %> remaining
+</div>

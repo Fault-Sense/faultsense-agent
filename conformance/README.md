@@ -10,9 +10,14 @@ See [`docs/mutation-patterns.md`](../docs/mutation-patterns.md) for the pattern 
 # One-time: install the Chromium build Playwright uses.
 npm run conformance:install
 
-# One-time per harness: install its own devDeps.
+# One-time per Node harness: install its own devDeps.
 (cd conformance/vue3 && npm install)
 # examples/todolist-tanstack is already installed if you've run the demo.
+
+# One-time for the Rails harness: build the Docker image. Playwright
+# will also auto-build on first run, but doing it upfront keeps the
+# first `npm run conformance` from blocking on a 5-minute image build.
+docker compose -f conformance/hotwire/docker-compose.yml build
 
 # Run every driver.
 npm run conformance
@@ -20,7 +25,22 @@ npm run conformance
 # Run a single framework.
 npm run conformance -- --project=tanstack
 npm run conformance -- --project=vue3
+npm run conformance -- --project=hotwire
 ```
+
+### Port map
+
+| Harness  | Port | Runtime |
+|----------|------|---------|
+| tanstack | 3100 | vite dev (examples/todolist-tanstack) |
+| vue3     | 3200 | vite dev (conformance/vue3) |
+| hotwire  | 3300 | docker compose (Rails 8 + Turbo 8) |
+
+### Prerequisites
+
+- Node.js for `tanstack` and `vue3` (Layer 1 + these two Playwright drivers run in pure Node).
+- Docker + Docker Compose for `hotwire`. No native Ruby or Rails install on the host — everything runs in `ruby:3.3-slim`.
+- Contributors without Docker can still run Layer 1 and the Node-only harnesses. Skip the Rails driver with `--project=tanstack --project=vue3`.
 
 `npm run conformance` is NOT wired into `npm test`. Layer 1 (jsdom) stays fast; Layer 2 boots real dev servers and takes longer. CI runs both as parallel jobs.
 

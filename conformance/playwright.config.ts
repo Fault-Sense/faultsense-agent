@@ -52,7 +52,14 @@ export default defineConfig({
         baseURL: "http://localhost:3200",
       },
     },
-    // Phase 5: hotwire project added here.
+    {
+      name: "hotwire",
+      testMatch: "hotwire.spec.ts",
+      use: {
+        ...devices["Desktop Chrome"],
+        baseURL: "http://localhost:3300",
+      },
+    },
   ],
 
   webServer: [
@@ -77,6 +84,20 @@ export default defineConfig({
       url: "http://localhost:3200",
       reuseExistingServer: !process.env.CI,
       timeout: 60_000,
+      stdout: "ignore",
+      stderr: "pipe",
+    },
+    {
+      // Hotwire / Rails 8 harness — runs in a Docker container because
+      // the system Ruby on most dev machines is too old for modern Rails.
+      // The image is built once on first run (and cached by Docker);
+      // subsequent runs start in ~2s. `docker compose up --wait` blocks
+      // until the container's HEALTHCHECK reports healthy.
+      command:
+        "docker compose -f hotwire/docker-compose.yml up -d --wait",
+      url: "http://localhost:3300/up",
+      reuseExistingServer: !process.env.CI,
+      timeout: 300_000, // generous — first run builds the image
       stdout: "ignore",
       stderr: "pipe",
     },

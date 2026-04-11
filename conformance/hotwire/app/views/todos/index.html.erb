@@ -1,0 +1,84 @@
+<%#
+  Faultsense Hotwire conformance harness — single page exercising the
+  Turbo mutation shapes no other harness covers naturally.
+
+  Scenarios (mirror to conformance/drivers/hotwire.spec.ts):
+    1. todos/add-item             — Turbo Stream append + conditional mutex
+    2. todos/toggle-complete      — Turbo Stream replace (outerHTML swap)
+    3. todos/remove-item          — Turbo Stream remove
+    4. todos/char-count-updated   — input trigger + text-matches
+    5. layout/empty-state-shown   — mount trigger + visible (server-rendered)
+    6. todos/count-updated        — OOB triggered by add/toggle/remove
+    7. layout/title-visible       — invariant
+%>
+<main>
+  <%# Scenario 7: layout/title-visible — invariant. The title must stay
+      visible for the lifetime of the page. %>
+  <h1
+    id="app-title"
+    fs-assert="layout/title-visible"
+    fs-trigger="invariant"
+    fs-assert-visible="#app-title"
+  >
+    Faultsense Hotwire harness
+  </h1>
+
+  <%# Scenario 1: todos/add-item — click on submit, expect either the
+      new <li class="todo-item"> to appear (success) OR the error slot
+      to be populated (error). mutex="conditions" groups the variants. %>
+  <%# form_with defaults to Turbo form submission when turbo-rails is
+      loaded — do NOT pass local: false, which forces the legacy UJS
+      data-remote path. The `scope: :todo` keeps field names nested
+      (todo[text]) to match TodosController#create's param lookup. %>
+  <%= form_with url: todos_path, scope: :todo do |f| %>
+    <%# Scenario 4: todos/char-count-updated — input trigger, text-matches
+        on the counter span. Every keystroke re-fires the assertion. %>
+    <%= f.text_field :text,
+        id: "add-todo-input",
+        maxlength: 100,
+        placeholder: "What needs to be done?",
+        "fs-assert" => "todos/char-count-updated",
+        "fs-trigger" => "input",
+        "fs-assert-visible" => "#char-count[text-matches=\\d+/100]" %>
+    <button type="submit"
+      fs-assert="todos/add-item"
+      fs-trigger="click"
+      fs-assert-mutex="conditions"
+      fs-assert-added-success=".todo-item"
+      fs-assert-added-error=".add-error"
+      fs-assert-timeout="1500">
+      Add
+    </button>
+    <span id="char-count">0/100</span>
+  <% end %>
+
+  <%# Error slot for the add-item conditional mutex. Empty by default;
+      populated by the create action's unprocessable_entity branch. %>
+  <div id="add-error-slot"></div>
+
+  <%# Scenario 5: layout/empty-state-shown — mount trigger, server-rendered
+      inline. When Rails hits the todos index, if the store is empty, we
+      render this <section>. Mount fires exactly once when the element is
+      first observed in the DOM. %>
+  <% if @todos.empty? %>
+    <section
+      class="empty-state"
+      fs-assert="layout/empty-state-shown"
+      fs-trigger="mount"
+      fs-assert-visible=".empty-state"
+    >
+      No todos yet — add one above.
+    </section>
+  <% end %>
+
+  <%# Scenario 6: todos/count-updated — OOB from every CRUD action.
+      Rendered as a turbo_stream.replace target on each create/toggle/
+      destroy response so the count text updates without a full reload. %>
+  <%= render "todos/count", todos: @todos %>
+
+  <%# Scenarios 2 + 3: toggle and delete buttons live inside each todo
+      partial so per-todo IDs end up in the selectors. %>
+  <ul id="todo-list">
+    <%= render partial: "todos/todo", collection: @todos, as: :todo %>
+  </ul>
+</main>
