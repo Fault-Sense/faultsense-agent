@@ -39,3 +39,20 @@ conformance/*/node_modules
 conformance/*/dist
 # Astro harness emits generated types + caches into .astro/
 conformance/*/.astro
+# Livewire (Laravel) harness runtime directories — only materialized
+# inside the Docker image via `composer install` / runtime.
+conformance/livewire/vendor
+conformance/livewire/storage/framework/cache/data
+conformance/livewire/storage/framework/sessions
+conformance/livewire/storage/framework/views
+conformance/livewire/storage/logs
+conformance/livewire/bootstrap/cache
+# LiveView (Phoenix) harness build artifacts — only materialized
+# inside the Docker image via `mix deps.get` / `mix compile`.
+conformance/liveview/_build
+conformance/liveview/deps
+conformance/liveview/priv/static/phoenix.js
+conformance/liveview/priv/static/phoenix_live_view.js
+conformance/liveview/priv/static/collector.js
+conformance/liveview/priv/static/faultsense-agent.min.js
+conformance/liveview/.elixir_ls

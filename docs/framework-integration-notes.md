@@ -255,6 +255,68 @@ Convention for new entries:
 
 ---
 
+## Phoenix LiveView 1.0 (Elixir + Bandit)
+
+**Harness:** `conformance/liveview/`.
+**Driver:** `conformance/drivers/liveview.spec.ts`.
+
+### Avoid `connect_info: [session: ...]` unless you actually mount Plug.Session
+
+- **Finding.** The `phx.new`-shaped `socket "/live", Phoenix.LiveView.Socket, websocket: [connect_info: [session: []]]` line fails at compile time with `KeyError: key :key not found in: []` when the endpoint has no `Plug.Session` configured. The generator ships this line because `phx.new` also ships a `Plug.Session` setup by default — removing one without the other breaks compilation.
+- **Fix / recommendation.** Set the socket to `websocket: true, longpoll: true` (no `connect_info`) for a cookie-less harness. The LiveView still reaches the server over the socket; you just can't read session data in `mount/3`, which is fine for a harness that doesn't authenticate anyone.
+- **Source.** `conformance/liveview/lib/faultsense_web/endpoint.ex:28-34`.
+
+### `:root` layout is both the pipeline root AND the LiveView inner — don't pass both
+
+- **Finding.** Setting `layout: {Layouts, :root}` on `use Phoenix.LiveView` AND `put_root_layout, html: {Layouts, :root}` in the router pipeline renders the page twice — once from the root layout wrap and once from the inner layout, producing a nested `<html>` inside another `<html>`. Browsers tolerate it, the agent scans both copies, and the assertions may resolve against the wrong (inner) DOM subtree.
+- **Fix / recommendation.** Use only the pipeline's `put_root_layout` for a single-layout harness. Drop the `layout:` option on `use Phoenix.LiveView` entirely — `nil` is the default and means "don't wrap the component in an inner layout".
+- **Source.** `conformance/liveview/lib/faultsense_web.ex:16-23`.
+
+### Serve `phoenix.js` + `phoenix_live_view.js` from `priv/static/` — no esbuild required
+
+- **Finding.** The stock `phx.new` scaffold assumes an esbuild + tailwind pipeline under `assets/`. For a conformance harness, that's overkill: we just need the client runtimes on a URL the browser can fetch.
+- **Fix / recommendation.** Copy the minified JS files out of `deps/phoenix/priv/static/phoenix.min.js` and `deps/phoenix_live_view/priv/static/phoenix_live_view.min.js` into the app's own `priv/static/` during the Docker build, then whitelist them in `Plug.Static`'s `only:` list alongside the Faultsense agent bundle. The layout embeds them as plain `<script src>` tags plus a small ES-module shim to instantiate `LiveSocket` — no bundler involved.
+- **Source.** `conformance/liveview/Dockerfile:46-49`, `conformance/liveview/lib/faultsense_web/endpoint.ex:37-40`, `conformance/liveview/lib/faultsense_web/components/layouts/root.html.heex:29-46`.
+
+### Phoenix LiveView uses morphdom for **every** update — PAT-04 coverage is automatic
+
+- **Finding.** Unlike Hotwire (where Turbo Stream defaults to outerHTML swaps and only opts into morph via `method: :morph`), Phoenix LiveView ships morphdom as the default DOM patcher for every re-render. `todos/toggle-complete` lands on `updatedElements` without any configuration — the `<li>`'s class attribute mutates in place because morphdom diffs the old vs new HEEx output and patches only the changed attribute.
+- **Fix / recommendation.** Set `toggleExpectedType: "updated"` in the driver's `HarnessConfig`. The Hotwire harness uses `"added"` because Turbo Stream's replace path swaps the whole `<li>`, but that doesn't apply here.
+- **Source.** `conformance/drivers/liveview.spec.ts:33-38`.
+
+---
+
+## Livewire 3 (Laravel 11 + PHP)
+
+**Harness:** `conformance/livewire/`.
+**Driver:** `conformance/drivers/livewire.spec.ts`.
+
+### `wire:key` is required for morph to preserve element identity
+
+- **Finding.** Without `wire:key="todo-{{ $id }}"` on each `<li>` inside `@foreach`, Livewire's `@alpinejs/morph` doesn't have a stable identifier for the keyed list. When the order or content changes, it may re-mount rows instead of patching them in place, breaking `fs-assert-updated` the same way `<For>` + `createSignal` breaks it in Solid.
+- **Fix / recommendation.** Always set `wire:key` on repeating elements when their position or content can change. Don't rely on HTML `id` alone — Livewire's morph walks `wire:key` first.
+- **Source.** `conformance/livewire/resources/views/livewire/todos-component.blade.php:83`.
+
+### Laravel 11 requires `APP_KEY` to be exactly 32 bytes (base64 of 32 random bytes)
+
+- **Finding.** Booting Laravel with `APP_KEY=base64:<short-key>` fails at runtime with `RuntimeException: Unsupported cipher or incorrect key length`. The encrypter is strict about AES-256-CBC's 32-byte block size and doesn't fall back to a shorter cipher.
+- **Fix / recommendation.** Generate a proper key via `openssl rand -base64 32` and bake it into the Dockerfile as a build-time ENV. Hardcoding is safe for a sealed harness container because the key never encrypts anything you care about.
+- **Source.** `conformance/livewire/Dockerfile:56-66`.
+
+### `php artisan serve` ends each request as a short-lived process — persist store state via `/tmp`
+
+- **Finding.** Laravel's built-in development server (the one `artisan serve` starts) spawns a fresh PHP process for each request via PHP's built-in web server. Static class state does NOT survive across requests. A naive `class Store { static $todos = [] }` pattern (which works in the Hotwire harness under Puma) silently drops the state on every wire request and leaves the UI stuck at "empty".
+- **Fix / recommendation.** Persist the harness state to a tiny JSON file under `/tmp` and read/write it on every call. The Playwright driver's `POST /todos/reset` endpoint writes the initial empty state, giving each scenario a clean slate. Documented as `App\Store::load()`/`save()` in the harness.
+- **Source.** `conformance/livewire/app/Store.php:13-97`.
+
+### Disable CSRF globally for the harness
+
+- **Finding.** The Playwright driver POSTs to `/todos/reset` without a CSRF token, and Livewire's own update endpoint (`/livewire/update`) POSTs with a token that Playwright doesn't retrieve. Both fail with 419 unless the middleware is bypassed.
+- **Fix / recommendation.** `$middleware->validateCsrfTokens(except: ['*'])` in `bootstrap/app.php`. Don't try to exclude specific paths — Livewire's update endpoint path is framework-managed and the wildcard is simpler.
+- **Source.** `conformance/livewire/bootstrap/app.php:18-22`.
+
+---
+
 ## Astro 6 (static output + React island)
 
 **Harness:** `conformance/astro/`.

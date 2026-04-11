@@ -1,0 +1,23 @@
+#!/usr/bin/env php
+<?php
+
+/**
+ * Laravel Artisan CLI entry point. Bootstraps the application, hands
+ * the ARGV to the console kernel, and exits with its status code.
+ * Only used inside the Docker image (`php artisan serve`) to launch
+ * the dev web server; this harness doesn't run any artisan commands
+ * interactively.
+ */
+
+use Symfony\Component\Console\Input\ArgvInput;
+
+define('LARAVEL_START', microtime(true));
+
+require __DIR__.'/vendor/autoload.php';
+
+/** @var Illuminate\Foundation\Application $app */
+$app = require_once __DIR__.'/bootstrap/app.php';
+
+$status = $app->handleCommand(new ArgvInput);
+
+exit($status);

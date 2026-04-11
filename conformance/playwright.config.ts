@@ -110,6 +110,22 @@ export default defineConfig({
         baseURL: "http://127.0.0.1:3800",
       },
     },
+    {
+      name: "livewire",
+      testMatch: "livewire.spec.ts",
+      use: {
+        ...devices["Desktop Chrome"],
+        baseURL: "http://localhost:3900",
+      },
+    },
+    {
+      name: "liveview",
+      testMatch: "liveview.spec.ts",
+      use: {
+        ...devices["Desktop Chrome"],
+        baseURL: "http://localhost:4000",
+      },
+    },
   ],
 
   webServer: [
@@ -201,6 +217,32 @@ export default defineConfig({
       url: "http://127.0.0.1:3800",
       reuseExistingServer: !process.env.CI,
       timeout: 120_000,
+      stdout: "ignore",
+      stderr: "pipe",
+    },
+    {
+      // Livewire (Laravel 11 + Livewire 3) harness — runs in a Docker
+      // container because PHP 8.3 + composer aren't assumed to be on
+      // contributor machines. Empirical PAT-04 coverage via
+      // @alpinejs/morph's in-place DOM patching.
+      command:
+        "docker compose -f livewire/docker-compose.yml up -d --wait",
+      url: "http://localhost:3900/up",
+      reuseExistingServer: !process.env.CI,
+      timeout: 300_000, // generous — first run builds the image
+      stdout: "ignore",
+      stderr: "pipe",
+    },
+    {
+      // LiveView (Phoenix 1.7 + LiveView 1.0) harness — runs in a
+      // Docker container because Elixir/OTP isn't assumed to be on
+      // contributor machines. Empirical PAT-04 coverage via
+      // phoenix_live_view's morphdom-based DOM patching.
+      command:
+        "docker compose -f liveview/docker-compose.yml up -d --wait",
+      url: "http://localhost:4000/up",
+      reuseExistingServer: !process.env.CI,
+      timeout: 600_000, // Elixir compile on first run is slow
       stdout: "ignore",
       stderr: "pipe",
     },
