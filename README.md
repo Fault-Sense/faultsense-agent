@@ -241,6 +241,19 @@ The `fs-*` attributes work in any framework that renders to the DOM.
 </button>
 ```
 
+## Works With
+
+Faultsense is framework-agnostic — it observes the DOM, not framework internals — so anything that ships HTML works. The table below is verified end-to-end against real framework dev servers via Playwright on every PR. Full results, per-scenario grid, and mutation-pattern coverage live in [`docs/works-with.md`](docs/works-with.md).
+
+| Framework | Runtime | Coverage |
+|---|---|---|
+| React 19 + Vite | `conformance/react/` | 10/10 scenarios |
+| Vue 3 + Vite | `conformance/vue3/` | 10/10 scenarios |
+| Hotwire (Rails 8 + Turbo 8) | `conformance/hotwire/` (Docker) | 7/7 scenarios |
+| HTMX 2 + Express | `conformance/htmx/` | 7/7 scenarios |
+
+Adding a new framework means scaffolding a minimal harness and a driver file — see [`conformance/README.md`](conformance/README.md). The Layer 1 mutation-pattern suite at [`tests/conformance/`](tests/conformance/) locks in every DOM mutation shape the agent handles, so frameworks that produce those shapes are supported by transitivity — the Layer 2 drivers are empirical confirmation, not the source of truth.
+
 ## Package Info
 
 - **Size**: 8.6 KB gzipped

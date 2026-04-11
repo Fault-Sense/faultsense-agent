@@ -44,6 +44,60 @@ npm run conformance -- --project=htmx
 - **Node.js** for `react`, `vue3`, and `htmx`. No additional setup beyond `npm install` in each harness directory.
 - **Docker + Docker Compose** for `hotwire`. No native Ruby or Rails install on the host — everything runs inside `ruby:3.3-slim`. Contributors without Docker can skip the Rails harness with `--project=react --project=vue3 --project=htmx`.
 
+### Suggested CI workflow
+
+The repo does not currently have a `.github/workflows/` directory. When you're ready to wire Layer 2 into CI, the following workflow runs Layer 1 and all four Layer 2 harnesses in parallel jobs with per-toolchain caching:
+
+```yaml
+# .github/workflows/conformance.yml
+name: conformance
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  layer1:
+    name: Layer 1 — jsdom unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22", cache: "npm" }
+      - run: npm ci
+      - run: npm run build:agent
+      - run: npm test
+
+  layer2:
+    name: Layer 2 — Playwright harnesses
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22", cache: "npm" }
+      - uses: ruby/setup-ruby@v1
+        with: { ruby-version: "3.3", bundler-cache: true, working-directory: conformance/hotwire }
+      - run: npm ci
+      - run: npm run build:agent
+      - run: (cd conformance/react && npm ci)
+      - run: (cd conformance/vue3 && npm ci)
+      - run: (cd conformance/htmx && npm ci)
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ hashFiles('package-lock.json') }}
+      - run: npm run conformance:install
+      - run: npm run conformance:matrix
+      - name: Upload works-with snapshot
+        uses: actions/upload-artifact@v4
+        with: { name: works-with, path: docs/works-with.md }
+      - name: Fail if the committed matrix drifted
+        run: git diff --exit-code docs/works-with.md
+```
+
+The final step is the interesting one: it fails CI if the regenerated matrix doesn't match the committed snapshot, which forces contributors to re-run `npm run conformance:matrix` whenever they add a scenario or harness. No matrix drift.
+
 ### `conformance/` vs `examples/` — who owns what
 
 `conformance/` is where Layer 2 lives. Every harness is purpose-built minimal: one page, one driver, 8–10 focused scenarios, one webServer entry in `playwright.config.ts`. Harnesses are regression infrastructure — they stay stable so the matrix stays meaningful.

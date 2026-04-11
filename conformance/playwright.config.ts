@@ -22,9 +22,19 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   // Keep worker count conservative locally so dev servers don't thrash.
   workers: process.env.CI ? 2 : 1,
+  // JSON reporter feeds the works-with matrix generator
+  // (conformance/scripts/generate-matrix.js). `list` stays for human
+  // console output; `github` adds annotations on CI.
   reporter: process.env.CI
-    ? [["list"], ["github"]]
-    : [["list"]],
+    ? [
+        ["list"],
+        ["github"],
+        ["json", { outputFile: "test-results/results.json" }],
+      ]
+    : [
+        ["list"],
+        ["json", { outputFile: "test-results/results.json" }],
+      ],
   use: {
     // Each harness's webServer entry sets its own baseURL via the project
     // block below, so this is just a sensible default.

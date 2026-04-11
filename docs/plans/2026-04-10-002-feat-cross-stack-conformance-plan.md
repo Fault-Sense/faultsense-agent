@@ -1,8 +1,9 @@
 ---
 title: Cross-stack conformance strategy — DOM mutation pattern suite + framework harnesses
 type: feat
-status: active
+status: completed
 date: 2026-04-10
+completed: 2026-04-11
 origin: docs/brainstorms/2026-04-10-cross-stack-conformance-requirements.md
 ---
 
