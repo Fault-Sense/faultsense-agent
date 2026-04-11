@@ -44,7 +44,14 @@ export default defineConfig({
         baseURL: "http://localhost:3100",
       },
     },
-    // Phase 4: vue3 project added here.
+    {
+      name: "vue3",
+      testMatch: "vue3.spec.ts",
+      use: {
+        ...devices["Desktop Chrome"],
+        baseURL: "http://localhost:3200",
+      },
+    },
     // Phase 5: hotwire project added here.
   ],
 
@@ -57,6 +64,17 @@ export default defineConfig({
       command:
         "cd ../examples/todolist-tanstack && VITE_FS_COLLECTOR=conformance npm run dev -- --port 3100",
       url: "http://localhost:3100",
+      reuseExistingServer: !process.env.CI,
+      timeout: 60_000,
+      stdout: "ignore",
+      stderr: "pipe",
+    },
+    {
+      // Vue 3 conformance harness. The harness is a purpose-built minimal
+      // app that exercises Vue's nextTick batching + fine-grained
+      // reactivity against a focused subset of the assertion catalog.
+      command: "cd vue3 && npm run dev",
+      url: "http://localhost:3200",
       reuseExistingServer: !process.env.CI,
       timeout: 60_000,
       stdout: "ignore",

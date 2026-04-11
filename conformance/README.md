@@ -10,11 +10,16 @@ See [`docs/mutation-patterns.md`](../docs/mutation-patterns.md) for the pattern 
 # One-time: install the Chromium build Playwright uses.
 npm run conformance:install
 
+# One-time per harness: install its own devDeps.
+(cd conformance/vue3 && npm install)
+# examples/todolist-tanstack is already installed if you've run the demo.
+
 # Run every driver.
 npm run conformance
 
 # Run a single framework.
 npm run conformance -- --project=tanstack
+npm run conformance -- --project=vue3
 ```
 
 `npm run conformance` is NOT wired into `npm test`. Layer 1 (jsdom) stays fast; Layer 2 boots real dev servers and takes longer. CI runs both as parallel jobs.
