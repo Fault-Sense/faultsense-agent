@@ -78,6 +78,14 @@ export default defineConfig({
         baseURL: "http://localhost:3400",
       },
     },
+    {
+      name: "svelte",
+      testMatch: "svelte.spec.ts",
+      use: {
+        ...devices["Desktop Chrome"],
+        baseURL: "http://localhost:3500",
+      },
+    },
   ],
 
   webServer: [
@@ -120,6 +128,17 @@ export default defineConfig({
       // hx-swap-oob against a real server.
       command: "cd htmx && npm run dev",
       url: "http://localhost:3400",
+      reuseExistingServer: !process.env.CI,
+      timeout: 60_000,
+      stdout: "ignore",
+      stderr: "pipe",
+    },
+    {
+      // Svelte 5 (runes mode) conformance harness. Exercises fine-grained
+      // signal-based reactivity against the same assertion catalog as
+      // the react / vue3 harnesses.
+      command: "cd svelte && npm run dev",
+      url: "http://localhost:3500",
       reuseExistingServer: !process.env.CI,
       timeout: 60_000,
       stdout: "ignore",

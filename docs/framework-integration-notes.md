@@ -150,6 +150,45 @@ Convention for new entries:
 
 ---
 
+## Svelte 5 (runes mode + Vite)
+
+**Harness:** `conformance/svelte/`.
+**Driver:** `conformance/drivers/svelte.spec.ts`.
+
+### `fs-trigger="change"` on `bind:checked` checkboxes just works
+
+- **Finding.** Svelte 5 `<input type="checkbox" bind:checked={todo.completed} onchange={...} fs-trigger="change" fs-assert-updated={\`...[classlist=completed:${!todo.completed}]\`}>` resolves correctly on the first click. The expected-next-state idiom holds — the agent reads the pre-flip attribute value, Svelte then flips the class, the mutation observer fires, and the `updated` assertion resolves against the new state.
+- **Why.** Svelte 5 commits reactive updates on the next microtask, not synchronously during the native event dispatch. The document-level capture listener reads the element's current state BEFORE the update lands, so the assertion is created with the correct expected-next snapshot. Vue 3's `nextTick` has the same property. React 19 is the outlier.
+- **Fix / recommendation.** Use `fs-trigger="change"` freely on Svelte 5 controlled checkboxes. No need for the `fs-trigger="click"` workaround documented for React 19 above.
+- **Source.** `conformance/svelte/src/App.svelte:142-151` + scenario `todos/toggle-complete` in `conformance/drivers/svelte.spec.ts`.
+
+### Svelte actions are the idiomatic way to focus on mount
+
+- **Finding.** The `todos/edit-item` scenario needs to focus the edit input the moment it's inserted into the DOM. Svelte's `use:focusOnMount` action runs on node mount and has no cleanup cost.
+  ```svelte
+  function focusOnMount(node: HTMLInputElement) { node.focus(); }
+  ...
+  <input use:focusOnMount class="edit-input" />
+  ```
+- **Why.** Svelte actions receive the node reference as their first argument and run during mount. This is equivalent to Vue's `@vue:mounted` callback and React's `useRef` + `useEffect` pattern, but terser.
+- **Fix / recommendation.** Prefer `use:` actions over `bind:this` + `$effect` for one-shot mount behavior.
+- **Source.** `conformance/svelte/src/App.svelte:79-82` + scenario `todos/edit-item`.
+
+### Vite HMR double-init is a non-issue (after the §3.1 agent fix)
+
+- **Finding.** Svelte 5 + Vite dev mode used to hit the same classic-script double-parse shape as TanStack Start. Under the agent's pre-fix behavior, both inits would leave dangling listeners.
+- **Why.** Same root cause as TanStack: Vite's module graph re-execution during HMR connect.
+- **Fix / recommendation.** No harness workaround needed as of commit `86c88a5` (the §3.1 fix on `src/index.ts:189-198`). The agent's DOMContentLoaded handler now tears down the previous init before creating a new one. The 300 ms settle wait in `beforeEach` still exists as a conservative pad — it could likely be dropped on Svelte, but the cost is negligible.
+- **Source.** `conformance/drivers/svelte.spec.ts:22-28` (`beforeEach`).
+
+### Unknown `fs-*` attributes need no TypeScript declaration
+
+- **Finding.** Unlike React (which needs a `HTMLAttributes<T>` module augmentation), Svelte does not type-check custom HTML attributes by default. `fs-assert`, `fs-trigger`, and friends render correctly with no type error and no `faultsense.d.ts` file.
+- **Fix / recommendation.** Nothing to do. Just write the attributes.
+- **Source.** `conformance/svelte/src/App.svelte` — no declaration file anywhere in the harness.
+
+---
+
 ## Hotwire (Rails 8 + Turbo 8 + turbo-rails)
 
 **Harness:** `conformance/hotwire/` (runs in a Docker container — macOS system Ruby is too old).
@@ -200,6 +239,12 @@ Convention for new entries:
 - **Finding.** Mounting `/dist/faultsense-agent.min.js` into `conformance/hotwire/public/` via a Docker bind mount means rebuilds of the agent (`npm run build:agent`) are picked up without rebuilding the Ruby image.
 - **Fix / recommendation.** `docker-compose.yml` has a `volumes:` entry mounting the agent bundle and the shared collector as read-only into the container's `public/` directory. Combined with a bind mount of `app/` and `config/`, dev iteration is fast (no image rebuilds for code or agent changes).
 - **Source.** `conformance/hotwire/docker-compose.yml:17-25`.
+
+### Turbo 8 `method: :morph` — PAT-04 preserved-identity idiomorph
+
+- **Finding.** `turbo_stream.replace target, method: :morph, partial: ..., locals: ...` applies the response via idiomorph instead of the default childList swap. The target element keeps its DOM identity; only its attributes and descendants are patched in place. MutationObserver records arrive as `attributes` and `characterData` on the same node.
+- **Fix / recommendation.** Use `fs-assert-updated="#target-id[classlist=...]"` or `fs-assert-updated="#target-id[text-matches=...]"` for morph targets. Do NOT use `fs-assert-added` — idiomorph does not produce childList mutations, so `addedElements` is empty and an `added` assertion would silently stay pending. This is the inverse of the PAT-03 `turbo_stream.replace` (default, non-morph) pattern, which REQUIRES `added` because the swap is wholesale.
+- **Source.** `conformance/hotwire/app/controllers/todos_controller.rb#activate` + `conformance/hotwire/app/views/todos/_morph_status.html.erb` + scenario `morph/status-flip` in the driver. Tested on turbo-rails 2.0.23 + Turbo 8.0.13 CDN client.
 
 ### Skip Action Cable unless you need Turbo Stream broadcasts
 
