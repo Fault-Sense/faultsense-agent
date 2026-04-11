@@ -124,19 +124,12 @@ Convention for new entries:
 **Harness:** `conformance/htmx/`.
 **Driver:** `conformance/drivers/htmx.spec.ts`.
 
-### HTMX swap-transition classes shadow the final state
+### For `hx-swap="outerHTML"` toggles, use `fs-assert-updated` with an ID selector
 
-- **Finding.** With the default `hx-swap` timing, a new element inserted via `hx-swap="outerHTML"` temporarily carries `htmx-swapping`, `htmx-added`, and `htmx-settling` classes INSTEAD OF (or in addition to) the server-rendered class list. When the agent's `added` assertion checks the element immediately on insertion, the classlist modifier fails because the final classes haven't been applied yet. HTMX removes the transient classes ~20-40 ms later, but by then the element is in `updatedElements`, and the `added` assertion type only checks `addedElements`. The assertion stays pending forever and times out.
-- **Why.** HTMX's default settle pipeline animates swaps via a 20 ms swap phase + 20 ms settle phase, and applies marker classes during each phase. The agent sees the transient state first, the final state never.
-- **Fix / recommendation.** **Disable HTMX's swap transition on any element that carries a Faultsense assertion with classlist/attribute modifiers:**
-  ```erb
-  <button hx-patch="/todos/1/toggle"
-          hx-target="#todo-1"
-          hx-swap="outerHTML swap:0ms settle:0ms"
-          fs-assert-added=".todo-item[classlist=completed:true]">…</button>
-  ```
-  `swap:0ms settle:0ms` skips both phases. The new element lands in the DOM with its final class list and the `added` assertion resolves on the initial mutation.
-- **Source.** `conformance/htmx/views/_todo.ejs:12-22`. This is the most significant HTMX-specific finding from Layer 2 — every HTMX app using `fs-assert-added` with classlist modifiers will hit it unless the swap timing is disabled.
+- **Finding.** An HTMX outerHTML swap (`hx-patch`, `hx-put`, etc. with `hx-swap="outerHTML"` on a target like `#todo-1`) produces a childList mutation: old element in `removedElements`, new element in `addedElements`, parent in `updatedElements`. HTMX also applies transient marker classes (`htmx-swapping`, `htmx-added`, `htmx-settling`) during its swap + settle phases (default ~20 ms each), which can make classlist modifier checks fail on the FIRST mutation batch.
+- **Why this still works under wait-for-pass.** The `updated` type's matcher in `src/resolvers/dom.ts:17-24` is special — it does `document.querySelector(typeValue)` up-front and then checks both `el.matches(selector)` AND `targetElement?.contains(el)` for every element in `updatedElements`. When HTMX strips its marker classes in a subsequent attribute mutation, the same-ID element lands in `updatedElements` again, the matcher re-resolves `document.querySelector("#todo-1")` to the SAME now-clean element, the classlist check passes, and the assertion resolves. Wait-for-pass (PR #20 / `src/resolvers/dom.ts:158-219`) keeps the assertion pending across the transient batch instead of committing a false fail.
+- **Fix / recommendation.** **Use `fs-assert-updated="#todo-<id>[classlist=completed:<expected>]"` instead of `fs-assert-added=".todo-item[...]"` for HTMX outerHTML swaps.** The existing `examples/todolist-htmx/views/partials/todo-item.ejs:32` is the canonical pattern. The `added` type with a class selector silently times out because `added` only re-checks `addedElements`, and the marker-class removal happens as an attribute mutation on an already-inserted element (so the element is in `updatedElements`, not `addedElements`, on the second batch).
+- **Source.** `conformance/htmx/views/_todo.ejs` + `examples/todolist-htmx/views/partials/todo-item.ejs:32`. An earlier iteration of this doc incorrectly prescribed `hx-swap="outerHTML swap:0ms settle:0ms"` as the fix — that works but it's a workaround for using the wrong assertion type. Wait-for-pass already handles the transient classes correctly; the real fix is assertion type + selector choice.
 
 ### `hx-swap-oob` for multi-region updates pairs naturally with `fs-assert-oob`
 

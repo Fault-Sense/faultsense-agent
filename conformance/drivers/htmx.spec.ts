@@ -58,7 +58,7 @@ test.describe("htmx harness", () => {
     expect(errors).toEqual([]);
   });
 
-  test("todos/toggle-complete — hx-patch + outerHTML swap produces the flipped li", async ({
+  test("todos/toggle-complete — hx-patch + outerHTML swap resolves via updated+ID", async ({
     page,
   }) => {
     await page.locator("#add-todo-input").fill("toggle me");
@@ -73,7 +73,7 @@ test.describe("htmx harness", () => {
     const payload = await waitForFsAssertion(page, "todos/toggle-complete", {
       match: (a) => a.status === "passed",
     });
-    expect(payload.assertion_type).toBe("added");
+    expect(payload.assertion_type).toBe("updated");
   });
 
   test("todos/remove-item — hx-delete pulls the li out of the list", async ({
