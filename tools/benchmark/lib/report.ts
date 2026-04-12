@@ -180,14 +180,18 @@ function formatNum(val: number, unit: string): string {
   return `${Math.round(val * 100) / 100}${unit}`;
 }
 
+function scenarioKey(scenario: ScenarioResult): string {
+  return `${scenario.profile}/${scenario.mode}`;
+}
+
 export function computeMetrics(
   report: BenchmarkReport,
-): Record<ThrottleProfileName, MetricSummary[]> {
+): Record<string, MetricSummary[]> {
   const result: Record<string, MetricSummary[]> = {};
   for (const scenario of report.scenarios) {
-    result[scenario.profile] = extractMetrics(scenario);
+    result[scenarioKey(scenario)] = extractMetrics(scenario);
   }
-  return result as Record<ThrottleProfileName, MetricSummary[]>;
+  return result;
 }
 
 export function generateMarkdown(report: BenchmarkReport): string {
@@ -204,7 +208,8 @@ export function generateMarkdown(report: BenchmarkReport): string {
 
   const firstProfile = report.scenarios[0];
   if (firstProfile) {
-    const m = metrics[firstProfile.profile];
+    const key = scenarioKey(firstProfile);
+    const m = metrics[key];
     const lcp = m?.find((x) => x.name === "LCP");
     const heap = m?.find((x) => x.name === "JSHeapUsedSize delta");
     const lcpStr = lcp
@@ -249,7 +254,8 @@ export function generateMarkdown(report: BenchmarkReport): string {
 
   // 3. Headline table per profile
   for (const scenario of report.scenarios) {
-    const profileMetrics = metrics[scenario.profile];
+    const key = scenarioKey(scenario);
+    const profileMetrics = metrics[key];
     if (!profileMetrics) continue;
 
     const profile = THROTTLE_PROFILES[scenario.profile];
@@ -257,8 +263,9 @@ export function generateMarkdown(report: BenchmarkReport): string {
       scenario.profile === "unthrottled"
         ? "Unthrottled"
         : `Slow 4G (${profile.network?.latency}ms RTT, ${((profile.network?.downloadThroughput ?? 0) * 8 / 1_000_000).toFixed(1)}Mbps down)`;
+    const modeLabel = scenario.mode === "active" ? "active" : "idle soak";
 
-    lines.push(`## Results: ${profileLabel}`);
+    lines.push(`## Results: ${profileLabel} (${modeLabel})`);
     lines.push("");
     lines.push(
       `| Metric | A (without agent) | B (with agent) | Delta | Significance |`,
@@ -266,6 +273,11 @@ export function generateMarkdown(report: BenchmarkReport): string {
     lines.push(`|---|---|---|---|---|`);
 
     for (const m of profileMetrics) {
+      // INP is not meaningful in idle mode (no interactions)
+      if (m.name === "INP" && scenario.mode === "idle" && m.aMedian === 0 && m.bMedian === 0) {
+        lines.push(`| ${e(m.name)} | n/a (no interactions) | n/a | n/a | n/a |`);
+        continue;
+      }
       const aStr = formatNum(m.aMedian, m.unit);
       const bStr = formatNum(m.bMedian, m.unit);
       const deltaStr = `${m.delta >= 0 ? "+" : ""}${formatNum(m.delta, m.unit)}`;

@@ -27,7 +27,7 @@ export default defineConfig({
   ...(isDemo
     ? {
         webServer: {
-          command: `node ${path.resolve(__dirname, "../../examples/todolist-htmx/server.js")}`,
+          command: `FS_BENCH=1 node ${path.resolve(__dirname, "../../examples/todolist-htmx/server.js")}`,
           port: 3099,
           reuseExistingServer: false,
           timeout: 180_000,

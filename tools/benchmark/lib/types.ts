@@ -73,8 +73,11 @@ export interface PairResult {
   b: Measurement;
 }
 
+export type ScenarioMode = "idle" | "active";
+
 export interface ScenarioResult {
   profile: ThrottleProfileName;
+  mode: ScenarioMode;
   pairs: PairResult[];
   warmupPair: PairResult;
 }
@@ -85,6 +88,7 @@ export interface ScenarioConfig {
   url: string;
   throttle: ThrottleProfile;
   profileName: ThrottleProfileName;
+  mode: ScenarioMode;
   soakMs: number;
   pairsCount: number;
   agentPath: string;
@@ -93,6 +97,8 @@ export interface ScenarioConfig {
   webVitalsIifePath: string;
   webVitalsCollectorPath: string;
   atRestScrubPath?: string;
+  interactFn?: (page: import("@playwright/test").Page) => Promise<void>;
+  resetUrl?: string;
 }
 
 // ── Environment info ─────────────────────────────────────────────────
@@ -137,7 +143,7 @@ export interface MetricSummary {
 export interface BenchmarkReport {
   environment: EnvironmentInfo;
   scenarios: ScenarioResult[];
-  metrics: Record<ThrottleProfileName, MetricSummary[]>;
+  metrics: Record<string, MetricSummary[]>;
   status: "complete" | "aborted";
 }
 

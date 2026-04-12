@@ -1,6 +1,6 @@
 # Faultsense Performance Benchmark Report
 
-**faultsense 0.4.0** on http://localhost:3099/login (unthrottled, 5 pairs): LCP delta +0ms (within noise), heap delta +2.5KB (significant).
+**faultsense 0.4.0** on http://localhost:3099/login (unthrottled, 5 pairs): LCP delta +4ms (significant), heap delta +2.5KB (significant).
 
 ## Environment
 
@@ -14,43 +14,73 @@
 | Playwright | 1.59.1 |
 | Chromium | 147.0.7727.15 |
 | Agent version | 0.4.0 |
-| Agent commit | e1f7ce6 |
+| Agent commit | cfb3f61 |
 | Agent bundle SHA-256 | `c7f5972268af818fd37c8416c995db3f4163770cde6faa8c52a3dc6b4b73ed51` |
 | Target URL | http://localhost:3099/login |
 | Resolved IP | 127.0.0.1 |
-| Timestamp (UTC) | 2026-04-12T15:50:55.927Z |
+| Timestamp (UTC) | 2026-04-12T18:23:44.352Z |
 | Pairs (including 1 warmup) | 5 |
 | Soak duration | 30s |
 
-## Results: Unthrottled
+## Results: Unthrottled (idle soak)
 
 | Metric | A (without agent) | B (with agent) | Delta | Significance |
 |---|---|---|---|---|
-| LCP | 0ms (p95: 0ms, IQR: 0ms) | 0ms (p95: 0ms, IQR: 0ms) | +0ms | within noise |
+| LCP | 36ms (p95: 36ms, IQR: 0ms) | 40ms (p95: 44ms, IQR: 4ms) | +4ms | significant |
 | CLS | 0.000 (p95: 0.000, IQR: 0.000) | 0.000 (p95: 0.000, IQR: 0.000) | +0.000 | within noise |
-| INP | 0ms (p95: 0ms, IQR: 0ms) | 0ms (p95: 0ms, IQR: 0ms) | +0ms | within noise |
-| FCP | 0ms (p95: 0ms, IQR: 0ms) | 0ms (p95: 0ms, IQR: 0ms) | +0ms | within noise |
-| TTFB | 0ms (p95: 0ms, IQR: 0ms) | 0ms (p95: 0ms, IQR: 0ms) | +0ms | within noise |
-| JSHeapUsedSize delta | 5.2KB (p95: 5.2KB, IQR: 0B) | 7.7KB (p95: 7.7KB, IQR: 0B) | +2.5KB | significant |
+| INP | n/a (no interactions) | n/a | n/a | n/a |
+| FCP | 36ms (p95: 36ms, IQR: 0ms) | 40ms (p95: 44ms, IQR: 4ms) | +4ms | significant |
+| TTFB | 2.15ms (p95: 2.3ms, IQR: 0.2ms) | 2.1ms (p95: 2.3ms, IQR: 0.2ms) | -0.05ms | within noise |
+| JSHeapUsedSize delta | 14.2KB (p95: 14.2KB, IQR: 0B) | 16.7KB (p95: 16.7KB, IQR: 0B) | +2.5KB | significant |
 | DOM node delta | 102nodes (p95: 102nodes, IQR: 0nodes) | 102nodes (p95: 102nodes, IQR: 0nodes) | +0nodes | within noise |
 | Long task count | 0.000 (p95: 0.000, IQR: 0.000) | 0.000 (p95: 0.000, IQR: 0.000) | +0.000 | within noise |
 | Long task total ms | 0ms (p95: 0ms, IQR: 0ms) | 0ms (p95: 0ms, IQR: 0ms) | +0ms | within noise |
-| Wall clock delta | 30551ms (p95: 30553ms, IQR: 3ms) | 30554.5ms (p95: 30558ms, IQR: 4ms) | +3.5ms | within noise |
+| Wall clock delta | 31568ms (p95: 31570ms, IQR: 4ms) | 31567ms (p95: 31571ms, IQR: 5ms) | -1ms | within noise |
 
-## Results: Slow 4G (562.5ms RTT, 1.4Mbps down)
+## Results: Slow 4G (562.5ms RTT, 1.4Mbps down) (idle soak)
 
 | Metric | A (without agent) | B (with agent) | Delta | Significance |
 |---|---|---|---|---|
-| LCP | 0ms (p95: 0ms, IQR: 0ms) | 0ms (p95: 0ms, IQR: 0ms) | +0ms | within noise |
+| LCP | 38ms (p95: 40ms, IQR: 4ms) | 38ms (p95: 40ms, IQR: 4ms) | +0ms | within noise |
 | CLS | 0.000 (p95: 0.000, IQR: 0.000) | 0.000 (p95: 0.000, IQR: 0.000) | +0.000 | within noise |
-| INP | 0ms (p95: 0ms, IQR: 0ms) | 0ms (p95: 0ms, IQR: 0ms) | +0ms | within noise |
-| FCP | 0ms (p95: 0ms, IQR: 0ms) | 0ms (p95: 0ms, IQR: 0ms) | +0ms | within noise |
-| TTFB | 0ms (p95: 0ms, IQR: 0ms) | 0ms (p95: 0ms, IQR: 0ms) | +0ms | within noise |
-| JSHeapUsedSize delta | 5.2KB (p95: 5.2KB, IQR: 0B) | 7.7KB (p95: 7.7KB, IQR: 0B) | +2.5KB | significant |
+| INP | n/a (no interactions) | n/a | n/a | n/a |
+| FCP | 38ms (p95: 40ms, IQR: 4ms) | 38ms (p95: 40ms, IQR: 4ms) | +0ms | within noise |
+| TTFB | 2.3ms (p95: 2.5ms, IQR: 0.2ms) | 2ms (p95: 2.8ms, IQR: 1ms) | -0.3ms | measurable |
+| JSHeapUsedSize delta | 14.2KB (p95: 32.3KB, IQR: 18.1KB) | 16.7KB (p95: 16.7KB, IQR: 0B) | +2.5KB | within noise |
 | DOM node delta | 102nodes (p95: 102nodes, IQR: 0nodes) | 102nodes (p95: 102nodes, IQR: 0nodes) | +0nodes | within noise |
 | Long task count | 0.000 (p95: 0.000, IQR: 0.000) | 0.000 (p95: 0.000, IQR: 0.000) | +0.000 | within noise |
 | Long task total ms | 0ms (p95: 0ms, IQR: 0ms) | 0ms (p95: 0ms, IQR: 0ms) | +0ms | within noise |
-| Wall clock delta | 32296ms (p95: 32301ms, IQR: 6ms) | 32295.5ms (p95: 32300ms, IQR: 7ms) | -0.5ms | within noise |
+| Wall clock delta | 31572ms (p95: 31603ms, IQR: 33ms) | 31580ms (p95: 31586ms, IQR: 9ms) | +8ms | within noise |
+
+## Results: Unthrottled (active)
+
+| Metric | A (without agent) | B (with agent) | Delta | Significance |
+|---|---|---|---|---|
+| LCP | 36ms (p95: 44ms, IQR: 8ms) | 40ms (p95: 40ms, IQR: 0ms) | +4ms | within noise |
+| CLS | 0.000 (p95: 0.000, IQR: 0.000) | 0.000 (p95: 0.000, IQR: 0.000) | +0.000 | within noise |
+| INP | 16ms (p95: 24ms, IQR: 8ms) | 16ms (p95: 24ms, IQR: 8ms) | +0ms | within noise |
+| FCP | 36ms (p95: 44ms, IQR: 8ms) | 40ms (p95: 40ms, IQR: 0ms) | +4ms | within noise |
+| TTFB | 2.15ms (p95: 2.7ms, IQR: 0.9ms) | 1.5ms (p95: 1.8ms, IQR: 0.4ms) | -0.65ms | within noise |
+| JSHeapUsedSize delta | 81.8KB (p95: 81.8KB, IQR: 0B) | 94.6KB (p95: 95.0KB, IQR: 732B) | +12.8KB | significant |
+| DOM node delta | 1096nodes (p95: 1096nodes, IQR: 0nodes) | 1096nodes (p95: 1096nodes, IQR: 0nodes) | +0nodes | within noise |
+| Long task count | 0.000 (p95: 0.000, IQR: 0.000) | 0.000 (p95: 0.000, IQR: 0.000) | +0.000 | within noise |
+| Long task total ms | 0ms (p95: 0ms, IQR: 0ms) | 0ms (p95: 0ms, IQR: 0ms) | +0ms | within noise |
+| Wall clock delta | 34224ms (p95: 34260ms, IQR: 37ms) | 34233ms (p95: 34240ms, IQR: 14ms) | +9ms | within noise |
+
+## Results: Slow 4G (562.5ms RTT, 1.4Mbps down) (active)
+
+| Metric | A (without agent) | B (with agent) | Delta | Significance |
+|---|---|---|---|---|
+| LCP | 36ms (p95: 40ms, IQR: 4ms) | 36ms (p95: 36ms, IQR: 0ms) | +0ms | within noise |
+| CLS | 0.060 (p95: 0.060, IQR: 0.001) | 0.060 (p95: 0.060, IQR: 0.000) | +0.001 | within noise |
+| INP | 24ms (p95: 24ms, IQR: 0ms) | 24ms (p95: 24ms, IQR: 0ms) | +0ms | within noise |
+| FCP | 36ms (p95: 40ms, IQR: 4ms) | 36ms (p95: 36ms, IQR: 0ms) | +0ms | within noise |
+| TTFB | 1.75ms (p95: 2.6ms, IQR: 0.9ms) | 1.65ms (p95: 2ms, IQR: 0.5ms) | -0.1ms | within noise |
+| JSHeapUsedSize delta | 81.9KB (p95: 81.9KB, IQR: 0B) | 88.5KB (p95: 88.5KB, IQR: 0B) | +6.6KB | measurable |
+| DOM node delta | 1105nodes (p95: 1105nodes, IQR: 0nodes) | 1105nodes (p95: 1105nodes, IQR: 0nodes) | +0nodes | within noise |
+| Long task count | 0.000 (p95: 0.000, IQR: 0.000) | 0.000 (p95: 0.000, IQR: 0.000) | +0.000 | within noise |
+| Long task total ms | 0ms (p95: 0ms, IQR: 0ms) | 0ms (p95: 0ms, IQR: 0ms) | +0ms | within noise |
+| Wall clock delta | 38063.5ms (p95: 38096ms, IQR: 45ms) | 38037.5ms (p95: 38072ms, IQR: 35ms) | -26ms | within noise |
 
 ## Methodology
 

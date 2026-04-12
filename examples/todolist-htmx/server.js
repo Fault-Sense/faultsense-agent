@@ -3,6 +3,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { authRouter } from './routes/auth.js'
 import { todosRouter } from './routes/todos.js'
+import { resetStore } from './lib/store.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const app = express()
@@ -22,6 +23,15 @@ app.use((req, res, next) => {
 })
 
 app.get('/', (req, res) => res.redirect('/login'))
+
+// Benchmark reset endpoint — restores store to initial seed state.
+// Only active when FS_BENCH=1 (set by the benchmark tool's webServer config).
+if (process.env.FS_BENCH === '1') {
+  app.post('/reset', (req, res) => {
+    resetStore()
+    res.sendStatus(204)
+  })
+}
 
 app.use('/', authRouter)
 app.use('/', todosRouter)

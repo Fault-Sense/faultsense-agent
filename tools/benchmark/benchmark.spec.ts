@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { runBenchmark, type RunOptions } from "./lib/measure";
 import { generateMarkdown, generateJson, computeMetrics } from "./lib/report";
+import { runCanonicalInteraction } from "./lib/interact";
 
 const mode = process.env.FS_BENCH_MODE ?? "url";
 const isDemo = mode === "demo";
@@ -40,15 +41,24 @@ test("performance benchmark", async () => {
   const pairsCount = parseInt(process.env.FS_BENCH_PAIRS ?? "10", 10);
   const soakMs = parseInt(process.env.FS_BENCH_SOAK_MS ?? "60000", 10);
 
+  const port = process.env.FS_BENCH_PORT ?? "3099";
   const options: RunOptions = {
     url,
     pairsCount,
     soakMs,
     allowCi,
     isDemo,
+    // Demo mode: run active-state with scripted interactions + server reset
+    ...(isDemo
+      ? {
+          interactFn: runCanonicalInteraction,
+          resetUrl: `http://localhost:${port}/reset`,
+        }
+      : {}),
   };
 
-  console.log(`\nBenchmark: ${isDemo ? "demo" : "url"} mode`);
+  const modes = isDemo ? "idle + active" : "idle only";
+  console.log(`\nBenchmark: ${isDemo ? "demo" : "url"} mode (${modes})`);
   console.log(`Target: ${url}`);
   console.log(`Pairs: ${options.pairsCount} (first discarded as warmup)`);
   console.log(`Soak: ${options.soakMs! / 1000}s per measurement`);

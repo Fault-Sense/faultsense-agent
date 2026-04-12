@@ -9,11 +9,11 @@
     "playwrightVersion": "1.59.1",
     "chromiumRevision": "147.0.7727.15",
     "agentVersion": "0.4.0",
-    "agentCommitSha": "e1f7ce6",
+    "agentCommitSha": "cfb3f61",
     "agentBundleSha256": "c7f5972268af818fd37c8416c995db3f4163770cde6faa8c52a3dc6b4b73ed51",
     "targetUrl": "http://localhost:3099/login",
     "resolvedIp": "127.0.0.1",
-    "timestamp": "2026-04-12T15:50:55.927Z",
+    "timestamp": "2026-04-12T18:23:44.352Z",
     "pairsCount": 5,
     "soakMs": 30000,
     "ciMode": false
@@ -21,328 +21,862 @@
   "scenarios": [
     {
       "profile": "unthrottled",
+      "mode": "idle",
       "pairs": [
         {
           "a": {
             "condition": "A",
-            "heapStart": 822488,
-            "heapEnd": 827784,
+            "heapStart": 979040,
+            "heapEnd": 993536,
             "domCounters": {
               "documents": 1,
               "nodes": 102,
-              "jsEventListeners": 33
+              "jsEventListeners": 48
             },
             "longtasks": [],
-            "webVitals": {},
+            "webVitals": {
+              "ttfb": 2.1999999284744263,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0
+            },
             "profile": null,
-            "wallClockMs": 30549
+            "wallClockMs": 31570
           },
           "b": {
             "condition": "B",
-            "heapStart": 904544,
-            "heapEnd": 912448,
+            "heapStart": 1065052,
+            "heapEnd": 1082156,
             "domCounters": {
               "documents": 1,
               "nodes": 102,
-              "jsEventListeners": 53
+              "jsEventListeners": 68
             },
             "longtasks": [],
-            "webVitals": {},
+            "webVitals": {
+              "ttfb": 2.299999952316284,
+              "fcp": 44,
+              "lcp": 44,
+              "cls": 0
+            },
             "profile": null,
-            "wallClockMs": 30552
+            "wallClockMs": 31566
           }
         },
         {
           "a": {
             "condition": "A",
-            "heapStart": 822488,
-            "heapEnd": 827784,
+            "heapStart": 1026684,
+            "heapEnd": 1041180,
             "domCounters": {
               "documents": 1,
               "nodes": 102,
-              "jsEventListeners": 33
+              "jsEventListeners": 48
             },
             "longtasks": [],
-            "webVitals": {},
+            "webVitals": {
+              "ttfb": 2.100000023841858,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0
+            },
             "profile": null,
-            "wallClockMs": 30550
+            "wallClockMs": 31565
           },
           "b": {
             "condition": "B",
-            "heapStart": 904544,
-            "heapEnd": 912448,
+            "heapStart": 1112696,
+            "heapEnd": 1129800,
             "domCounters": {
               "documents": 1,
               "nodes": 102,
-              "jsEventListeners": 53
+              "jsEventListeners": 68
             },
             "longtasks": [],
-            "webVitals": {},
+            "webVitals": {
+              "ttfb": 2.100000023841858,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0
+            },
             "profile": null,
-            "wallClockMs": 30558
+            "wallClockMs": 31571
           }
         },
         {
           "a": {
             "condition": "A",
-            "heapStart": 822488,
-            "heapEnd": 827784,
+            "heapStart": 979040,
+            "heapEnd": 993536,
             "domCounters": {
               "documents": 1,
               "nodes": 102,
-              "jsEventListeners": 33
+              "jsEventListeners": 48
             },
             "longtasks": [],
-            "webVitals": {},
+            "webVitals": {
+              "ttfb": 2.3000000715255737,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0
+            },
             "profile": null,
-            "wallClockMs": 30553
+            "wallClockMs": 31570
           },
           "b": {
             "condition": "B",
-            "heapStart": 904544,
-            "heapEnd": 912448,
+            "heapStart": 1112292,
+            "heapEnd": 1129168,
             "domCounters": {
               "documents": 1,
               "nodes": 102,
-              "jsEventListeners": 53
+              "jsEventListeners": 68
             },
             "longtasks": [],
-            "webVitals": {},
+            "webVitals": {
+              "ttfb": 2,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0
+            },
             "profile": null,
-            "wallClockMs": 30555
+            "wallClockMs": 31566
           }
         },
         {
           "a": {
             "condition": "A",
-            "heapStart": 822488,
-            "heapEnd": 827784,
+            "heapStart": 978636,
+            "heapEnd": 992904,
             "domCounters": {
               "documents": 1,
               "nodes": 102,
-              "jsEventListeners": 33
+              "jsEventListeners": 48
             },
             "longtasks": [],
-            "webVitals": {},
+            "webVitals": {
+              "ttfb": 2,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0
+            },
             "profile": null,
-            "wallClockMs": 30552
+            "wallClockMs": 31566
           },
           "b": {
             "condition": "B",
-            "heapStart": 904544,
-            "heapEnd": 912448,
+            "heapStart": 1065052,
+            "heapEnd": 1082156,
             "domCounters": {
               "documents": 1,
               "nodes": 102,
-              "jsEventListeners": 53
+              "jsEventListeners": 68
             },
             "longtasks": [],
-            "webVitals": {},
+            "webVitals": {
+              "ttfb": 2.100000023841858,
+              "fcp": 32,
+              "lcp": 32,
+              "cls": 0
+            },
             "profile": null,
-            "wallClockMs": 30554
+            "wallClockMs": 31568
           }
         }
       ],
       "warmupPair": {
         "a": {
           "condition": "A",
-          "heapStart": 822488,
-          "heapEnd": 827784,
+          "heapStart": 1026684,
+          "heapEnd": 1041180,
           "domCounters": {
             "documents": 1,
             "nodes": 102,
-            "jsEventListeners": 33
+            "jsEventListeners": 48
           },
           "longtasks": [],
-          "webVitals": {},
+          "webVitals": {
+            "ttfb": 7.100000023841858,
+            "fcp": 40,
+            "lcp": 40,
+            "cls": 0
+          },
           "profile": null,
-          "wallClockMs": 30559
+          "wallClockMs": 31577
         },
         "b": {
           "condition": "B",
-          "heapStart": 904544,
-          "heapEnd": 912448,
+          "heapStart": 1065052,
+          "heapEnd": 1082156,
           "domCounters": {
             "documents": 1,
             "nodes": 102,
-            "jsEventListeners": 53
+            "jsEventListeners": 68
           },
           "longtasks": [],
-          "webVitals": {},
+          "webVitals": {
+            "ttfb": 2.6999999284744263,
+            "fcp": 36,
+            "lcp": 36,
+            "cls": 0
+          },
           "profile": null,
-          "wallClockMs": 30555
+          "wallClockMs": 31573
         }
       }
     },
     {
       "profile": "slow4g",
+      "mode": "idle",
       "pairs": [
         {
           "a": {
             "condition": "A",
-            "heapStart": 822488,
-            "heapEnd": 827784,
+            "heapStart": 979040,
+            "heapEnd": 993536,
             "domCounters": {
               "documents": 1,
               "nodes": 102,
-              "jsEventListeners": 33
+              "jsEventListeners": 48
             },
             "longtasks": [],
-            "webVitals": {},
+            "webVitals": {
+              "ttfb": 2.5,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0
+            },
             "profile": null,
-            "wallClockMs": 32301
+            "wallClockMs": 31569
           },
           "b": {
             "condition": "B",
-            "heapStart": 904544,
-            "heapEnd": 912448,
+            "heapStart": 1065052,
+            "heapEnd": 1082156,
             "domCounters": {
               "documents": 1,
               "nodes": 102,
-              "jsEventListeners": 53
+              "jsEventListeners": 68
             },
             "longtasks": [],
-            "webVitals": {},
+            "webVitals": {
+              "ttfb": 1.8000000715255737,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0
+            },
             "profile": null,
-            "wallClockMs": 32298
+            "wallClockMs": 31570
           }
         },
         {
           "a": {
             "condition": "A",
-            "heapStart": 822488,
-            "heapEnd": 827784,
+            "heapStart": 979040,
+            "heapEnd": 993536,
             "domCounters": {
               "documents": 1,
               "nodes": 102,
-              "jsEventListeners": 33
+              "jsEventListeners": 48
             },
             "longtasks": [],
-            "webVitals": {},
+            "webVitals": {
+              "ttfb": 2.200000047683716,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0
+            },
             "profile": null,
-            "wallClockMs": 32297
+            "wallClockMs": 31570
           },
           "b": {
             "condition": "B",
-            "heapStart": 904544,
-            "heapEnd": 912448,
+            "heapStart": 1065052,
+            "heapEnd": 1082156,
             "domCounters": {
               "documents": 1,
               "nodes": 102,
-              "jsEventListeners": 53
+              "jsEventListeners": 68
             },
             "longtasks": [],
-            "webVitals": {},
+            "webVitals": {
+              "ttfb": 1.7999999523162842,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0
+            },
             "profile": null,
-            "wallClockMs": 32300
+            "wallClockMs": 31583
           }
         },
         {
           "a": {
             "condition": "A",
-            "heapStart": 822488,
-            "heapEnd": 827784,
+            "heapStart": 1057640,
+            "heapEnd": 1070172,
             "domCounters": {
               "documents": 1,
               "nodes": 102,
-              "jsEventListeners": 33
+              "jsEventListeners": 48
             },
             "longtasks": [],
-            "webVitals": {},
+            "webVitals": {
+              "ttfb": 2.299999952316284,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0
+            },
             "profile": null,
-            "wallClockMs": 32285
+            "wallClockMs": 31603
           },
           "b": {
             "condition": "B",
-            "heapStart": 904544,
-            "heapEnd": 912448,
+            "heapStart": 1101072,
+            "heapEnd": 1111760,
             "domCounters": {
               "documents": 1,
               "nodes": 102,
-              "jsEventListeners": 53
+              "jsEventListeners": 68
             },
             "longtasks": [],
-            "webVitals": {},
+            "webVitals": {
+              "ttfb": 2.799999952316284,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0
+            },
             "profile": null,
-            "wallClockMs": 32292
+            "wallClockMs": 31586
           }
         },
         {
           "a": {
             "condition": "A",
-            "heapStart": 822488,
-            "heapEnd": 827784,
+            "heapStart": 1026656,
+            "heapEnd": 1059680,
             "domCounters": {
               "documents": 1,
               "nodes": 102,
-              "jsEventListeners": 33
+              "jsEventListeners": 48
             },
             "longtasks": [],
-            "webVitals": {},
+            "webVitals": {
+              "ttfb": 2.3000000715255737,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0
+            },
             "profile": null,
-            "wallClockMs": 32295
+            "wallClockMs": 31574
           },
           "b": {
             "condition": "B",
-            "heapStart": 904544,
-            "heapEnd": 912448,
+            "heapStart": 1065052,
+            "heapEnd": 1082156,
             "domCounters": {
               "documents": 1,
               "nodes": 102,
-              "jsEventListeners": 53
+              "jsEventListeners": 68
             },
             "longtasks": [],
-            "webVitals": {},
+            "webVitals": {
+              "ttfb": 2.200000047683716,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0
+            },
             "profile": null,
-            "wallClockMs": 32293
+            "wallClockMs": 31577
           }
         }
       ],
       "warmupPair": {
         "a": {
           "condition": "A",
-          "heapStart": 822488,
-          "heapEnd": 827784,
+          "heapStart": 1026684,
+          "heapEnd": 1041180,
           "domCounters": {
             "documents": 1,
             "nodes": 102,
-            "jsEventListeners": 33
+            "jsEventListeners": 48
           },
           "longtasks": [],
-          "webVitals": {},
+          "webVitals": {
+            "ttfb": 2.3000000715255737,
+            "fcp": 36,
+            "lcp": 36,
+            "cls": 0
+          },
           "profile": null,
-          "wallClockMs": 32301
+          "wallClockMs": 31568
         },
         "b": {
           "condition": "B",
-          "heapStart": 904544,
-          "heapEnd": 912448,
+          "heapStart": 1112264,
+          "heapEnd": 1129140,
           "domCounters": {
             "documents": 1,
             "nodes": 102,
-            "jsEventListeners": 53
+            "jsEventListeners": 68
           },
           "longtasks": [],
-          "webVitals": {},
+          "webVitals": {
+            "ttfb": 2,
+            "fcp": 40,
+            "lcp": 40,
+            "cls": 0
+          },
           "profile": null,
-          "wallClockMs": 32293
+          "wallClockMs": 31575
+        }
+      }
+    },
+    {
+      "profile": "unthrottled",
+      "mode": "active",
+      "pairs": [
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2769244,
+            "heapEnd": 2853000,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.5,
+              "fcp": 44,
+              "lcp": 44,
+              "cls": 0,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 34225
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2972888,
+            "heapEnd": 3070112,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.600000023841858,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 34220
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2769052,
+            "heapEnd": 2852808,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.6999999284744263,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 34260
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2973080,
+            "heapEnd": 3070400,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.7999999523162842,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 34240
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2769084,
+            "heapEnd": 2852840,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.8000000715255737,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 34223
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2972892,
+            "heapEnd": 3069480,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.399999976158142,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 34226
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2769056,
+            "heapEnd": 2852812,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.7999999523162842,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 34221
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2972892,
+            "heapEnd": 3069480,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.4000000953674316,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 34240
+          }
+        }
+      ],
+      "warmupPair": {
+        "a": {
+          "condition": "A",
+          "heapStart": 2768972,
+          "heapEnd": 2852728,
+          "domCounters": {
+            "documents": 1,
+            "nodes": 1096,
+            "jsEventListeners": 102
+          },
+          "longtasks": [],
+          "webVitals": {
+            "ttfb": 2.299999952316284,
+            "fcp": 40,
+            "lcp": 40,
+            "cls": 0,
+            "inp": 16
+          },
+          "profile": null,
+          "wallClockMs": 34249
+        },
+        "b": {
+          "condition": "B",
+          "heapStart": 2972856,
+          "heapEnd": 3070176,
+          "domCounters": {
+            "documents": 1,
+            "nodes": 1096,
+            "jsEventListeners": 123
+          },
+          "longtasks": [],
+          "webVitals": {
+            "ttfb": 2.100000023841858,
+            "fcp": 40,
+            "lcp": 40,
+            "cls": 0,
+            "inp": 16
+          },
+          "profile": null,
+          "wallClockMs": 34222
+        }
+      }
+    },
+    {
+      "profile": "slow4g",
+      "mode": "active",
+      "pairs": [
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2772740,
+            "heapEnd": 2856560,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.5999999046325684,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0.06036521706040471,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 38041
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2972596,
+            "heapEnd": 3063176,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.7999999523162842,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0.06036521706040471,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 38037
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2772068,
+            "heapEnd": 2855888,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.600000023841858,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0.05926524153612948,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 38076
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2972644,
+            "heapEnd": 3063224,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.2999999523162842,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0.06036521706040471,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 38038
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2772212,
+            "heapEnd": 2856032,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.6999999284744263,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0.05926524153612948,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 38096
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2972700,
+            "heapEnd": 3063280,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0.06036521706040471,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 38072
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2772100,
+            "heapEnd": 2855920,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.7999999523162842,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0.06036521706040471,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 38051
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2972596,
+            "heapEnd": 3063176,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.5,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0.06036521706040471,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 38010
+          }
+        }
+      ],
+      "warmupPair": {
+        "a": {
+          "condition": "A",
+          "heapStart": 2772240,
+          "heapEnd": 2856060,
+          "domCounters": {
+            "documents": 1,
+            "nodes": 1105,
+            "jsEventListeners": 102
+          },
+          "longtasks": [],
+          "webVitals": {
+            "ttfb": 2.100000023841858,
+            "fcp": 36,
+            "lcp": 36,
+            "cls": 0.05926524153612948,
+            "inp": 16
+          },
+          "profile": null,
+          "wallClockMs": 38082
+        },
+        "b": {
+          "condition": "B",
+          "heapStart": 2972116,
+          "heapEnd": 3062696,
+          "domCounters": {
+            "documents": 1,
+            "nodes": 1105,
+            "jsEventListeners": 123
+          },
+          "longtasks": [],
+          "webVitals": {
+            "ttfb": 1.899999976158142,
+            "fcp": 32,
+            "lcp": 32,
+            "cls": 0.05926524153612948,
+            "inp": 24
+          },
+          "profile": null,
+          "wallClockMs": 38066
         }
       }
     }
   ],
   "metrics": {
-    "unthrottled": [
+    "unthrottled/idle": [
       {
         "name": "LCP",
         "unit": "ms",
-        "aMedian": 0,
-        "bMedian": 0,
-        "delta": 0,
-        "aP95": 0,
-        "bP95": 0,
+        "aMedian": 36,
+        "bMedian": 40,
+        "delta": 4,
+        "aP95": 36,
+        "bP95": 44,
         "aIqr": 0,
-        "bIqr": 0,
-        "significance": "within noise"
+        "bIqr": 4,
+        "significance": "significant"
       },
       {
         "name": "CLS",
@@ -371,35 +905,35 @@
       {
         "name": "FCP",
         "unit": "ms",
-        "aMedian": 0,
-        "bMedian": 0,
-        "delta": 0,
-        "aP95": 0,
-        "bP95": 0,
+        "aMedian": 36,
+        "bMedian": 40,
+        "delta": 4,
+        "aP95": 36,
+        "bP95": 44,
         "aIqr": 0,
-        "bIqr": 0,
-        "significance": "within noise"
+        "bIqr": 4,
+        "significance": "significant"
       },
       {
         "name": "TTFB",
         "unit": "ms",
-        "aMedian": 0,
-        "bMedian": 0,
-        "delta": 0,
-        "aP95": 0,
-        "bP95": 0,
-        "aIqr": 0,
-        "bIqr": 0,
+        "aMedian": 2.149999976158142,
+        "bMedian": 2.100000023841858,
+        "delta": -0.04999995231628418,
+        "aP95": 2.3000000715255737,
+        "bP95": 2.299999952316284,
+        "aIqr": 0.20000004768371582,
+        "bIqr": 0.19999992847442627,
         "significance": "within noise"
       },
       {
         "name": "JSHeapUsedSize delta",
         "unit": "bytes",
-        "aMedian": 5296,
-        "bMedian": 7904,
+        "aMedian": 14496,
+        "bMedian": 17104,
         "delta": 2608,
-        "aP95": 5296,
-        "bP95": 7904,
+        "aP95": 14496,
+        "bP95": 17104,
         "aIqr": 0,
         "bIqr": 0,
         "significance": "significant"
@@ -443,27 +977,27 @@
       {
         "name": "Wall clock delta",
         "unit": "ms",
-        "aMedian": 30551,
-        "bMedian": 30554.5,
-        "delta": 3.5,
-        "aP95": 30553,
-        "bP95": 30558,
-        "aIqr": 3,
-        "bIqr": 4,
+        "aMedian": 31568,
+        "bMedian": 31567,
+        "delta": -1,
+        "aP95": 31570,
+        "bP95": 31571,
+        "aIqr": 4,
+        "bIqr": 5,
         "significance": "within noise"
       }
     ],
-    "slow4g": [
+    "slow4g/idle": [
       {
         "name": "LCP",
         "unit": "ms",
-        "aMedian": 0,
-        "bMedian": 0,
+        "aMedian": 38,
+        "bMedian": 38,
         "delta": 0,
-        "aP95": 0,
-        "bP95": 0,
-        "aIqr": 0,
-        "bIqr": 0,
+        "aP95": 40,
+        "bP95": 40,
+        "aIqr": 4,
+        "bIqr": 4,
         "significance": "within noise"
       },
       {
@@ -493,38 +1027,38 @@
       {
         "name": "FCP",
         "unit": "ms",
-        "aMedian": 0,
-        "bMedian": 0,
+        "aMedian": 38,
+        "bMedian": 38,
         "delta": 0,
-        "aP95": 0,
-        "bP95": 0,
-        "aIqr": 0,
-        "bIqr": 0,
+        "aP95": 40,
+        "bP95": 40,
+        "aIqr": 4,
+        "bIqr": 4,
         "significance": "within noise"
       },
       {
         "name": "TTFB",
         "unit": "ms",
-        "aMedian": 0,
-        "bMedian": 0,
-        "delta": 0,
-        "aP95": 0,
-        "bP95": 0,
-        "aIqr": 0,
-        "bIqr": 0,
-        "significance": "within noise"
+        "aMedian": 2.300000011920929,
+        "bMedian": 2.0000000596046448,
+        "delta": -0.2999999523162842,
+        "aP95": 2.5,
+        "bP95": 2.799999952316284,
+        "aIqr": 0.20000004768371582,
+        "bIqr": 0.9999998807907104,
+        "significance": "measurable"
       },
       {
         "name": "JSHeapUsedSize delta",
         "unit": "bytes",
-        "aMedian": 5296,
-        "bMedian": 7904,
+        "aMedian": 14496,
+        "bMedian": 17104,
         "delta": 2608,
-        "aP95": 5296,
-        "bP95": 7904,
-        "aIqr": 0,
+        "aP95": 33024,
+        "bP95": 17104,
+        "aIqr": 18528,
         "bIqr": 0,
-        "significance": "significant"
+        "significance": "within noise"
       },
       {
         "name": "DOM node delta",
@@ -565,13 +1099,257 @@
       {
         "name": "Wall clock delta",
         "unit": "ms",
-        "aMedian": 32296,
-        "bMedian": 32295.5,
-        "delta": -0.5,
-        "aP95": 32301,
-        "bP95": 32300,
-        "aIqr": 6,
-        "bIqr": 7,
+        "aMedian": 31572,
+        "bMedian": 31580,
+        "delta": 8,
+        "aP95": 31603,
+        "bP95": 31586,
+        "aIqr": 33,
+        "bIqr": 9,
+        "significance": "within noise"
+      }
+    ],
+    "unthrottled/active": [
+      {
+        "name": "LCP",
+        "unit": "ms",
+        "aMedian": 36,
+        "bMedian": 40,
+        "delta": 4,
+        "aP95": 44,
+        "bP95": 40,
+        "aIqr": 8,
+        "bIqr": 0,
+        "significance": "within noise"
+      },
+      {
+        "name": "CLS",
+        "unit": "",
+        "aMedian": 0,
+        "bMedian": 0,
+        "delta": 0,
+        "aP95": 0,
+        "bP95": 0,
+        "aIqr": 0,
+        "bIqr": 0,
+        "significance": "within noise"
+      },
+      {
+        "name": "INP",
+        "unit": "ms",
+        "aMedian": 16,
+        "bMedian": 16,
+        "delta": 0,
+        "aP95": 24,
+        "bP95": 24,
+        "aIqr": 8,
+        "bIqr": 8,
+        "significance": "within noise"
+      },
+      {
+        "name": "FCP",
+        "unit": "ms",
+        "aMedian": 36,
+        "bMedian": 40,
+        "delta": 4,
+        "aP95": 44,
+        "bP95": 40,
+        "aIqr": 8,
+        "bIqr": 0,
+        "significance": "within noise"
+      },
+      {
+        "name": "TTFB",
+        "unit": "ms",
+        "aMedian": 2.150000035762787,
+        "bMedian": 1.5000000596046448,
+        "delta": -0.6499999761581421,
+        "aP95": 2.6999999284744263,
+        "bP95": 1.7999999523162842,
+        "aIqr": 0.8999998569488525,
+        "bIqr": 0.39999985694885254,
+        "significance": "within noise"
+      },
+      {
+        "name": "JSHeapUsedSize delta",
+        "unit": "bytes",
+        "aMedian": 83756,
+        "bMedian": 96906,
+        "delta": 13150,
+        "aP95": 83756,
+        "bP95": 97320,
+        "aIqr": 0,
+        "bIqr": 732,
+        "significance": "significant"
+      },
+      {
+        "name": "DOM node delta",
+        "unit": "nodes",
+        "aMedian": 1096,
+        "bMedian": 1096,
+        "delta": 0,
+        "aP95": 1096,
+        "bP95": 1096,
+        "aIqr": 0,
+        "bIqr": 0,
+        "significance": "within noise"
+      },
+      {
+        "name": "Long task count",
+        "unit": "",
+        "aMedian": 0,
+        "bMedian": 0,
+        "delta": 0,
+        "aP95": 0,
+        "bP95": 0,
+        "aIqr": 0,
+        "bIqr": 0,
+        "significance": "within noise"
+      },
+      {
+        "name": "Long task total ms",
+        "unit": "ms",
+        "aMedian": 0,
+        "bMedian": 0,
+        "delta": 0,
+        "aP95": 0,
+        "bP95": 0,
+        "aIqr": 0,
+        "bIqr": 0,
+        "significance": "within noise"
+      },
+      {
+        "name": "Wall clock delta",
+        "unit": "ms",
+        "aMedian": 34224,
+        "bMedian": 34233,
+        "delta": 9,
+        "aP95": 34260,
+        "bP95": 34240,
+        "aIqr": 37,
+        "bIqr": 14,
+        "significance": "within noise"
+      }
+    ],
+    "slow4g/active": [
+      {
+        "name": "LCP",
+        "unit": "ms",
+        "aMedian": 36,
+        "bMedian": 36,
+        "delta": 0,
+        "aP95": 40,
+        "bP95": 36,
+        "aIqr": 4,
+        "bIqr": 0,
+        "significance": "within noise"
+      },
+      {
+        "name": "CLS",
+        "unit": "",
+        "aMedian": 0.05981522929826709,
+        "bMedian": 0.06036521706040471,
+        "delta": 0.0005499877621376187,
+        "aP95": 0.06036521706040471,
+        "bP95": 0.06036521706040471,
+        "aIqr": 0.0010999755242752304,
+        "bIqr": 0,
+        "significance": "within noise"
+      },
+      {
+        "name": "INP",
+        "unit": "ms",
+        "aMedian": 24,
+        "bMedian": 24,
+        "delta": 0,
+        "aP95": 24,
+        "bP95": 24,
+        "aIqr": 0,
+        "bIqr": 0,
+        "significance": "within noise"
+      },
+      {
+        "name": "FCP",
+        "unit": "ms",
+        "aMedian": 36,
+        "bMedian": 36,
+        "delta": 0,
+        "aP95": 40,
+        "bP95": 36,
+        "aIqr": 4,
+        "bIqr": 0,
+        "significance": "within noise"
+      },
+      {
+        "name": "TTFB",
+        "unit": "ms",
+        "aMedian": 1.7499999403953552,
+        "bMedian": 1.649999976158142,
+        "delta": -0.09999996423721313,
+        "aP95": 2.600000023841858,
+        "bP95": 2,
+        "aIqr": 0.9000000953674316,
+        "bIqr": 0.5,
+        "significance": "within noise"
+      },
+      {
+        "name": "JSHeapUsedSize delta",
+        "unit": "bytes",
+        "aMedian": 83820,
+        "bMedian": 90580,
+        "delta": 6760,
+        "aP95": 83820,
+        "bP95": 90580,
+        "aIqr": 0,
+        "bIqr": 0,
+        "significance": "measurable"
+      },
+      {
+        "name": "DOM node delta",
+        "unit": "nodes",
+        "aMedian": 1105,
+        "bMedian": 1105,
+        "delta": 0,
+        "aP95": 1105,
+        "bP95": 1105,
+        "aIqr": 0,
+        "bIqr": 0,
+        "significance": "within noise"
+      },
+      {
+        "name": "Long task count",
+        "unit": "",
+        "aMedian": 0,
+        "bMedian": 0,
+        "delta": 0,
+        "aP95": 0,
+        "bP95": 0,
+        "aIqr": 0,
+        "bIqr": 0,
+        "significance": "within noise"
+      },
+      {
+        "name": "Long task total ms",
+        "unit": "ms",
+        "aMedian": 0,
+        "bMedian": 0,
+        "delta": 0,
+        "aP95": 0,
+        "bP95": 0,
+        "aIqr": 0,
+        "bIqr": 0,
+        "significance": "within noise"
+      },
+      {
+        "name": "Wall clock delta",
+        "unit": "ms",
+        "aMedian": 38063.5,
+        "bMedian": 38037.5,
+        "delta": -26,
+        "aP95": 38096,
+        "bP95": 38072,
+        "aIqr": 45,
+        "bIqr": 35,
         "significance": "within noise"
       }
     ]

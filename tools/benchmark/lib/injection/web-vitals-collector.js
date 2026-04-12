@@ -21,27 +21,29 @@
     }
   }
 
+  var opts = { reportAllChanges: true };
+
   wv.onLCP(function (metric) {
     window.__fsBench.webVitals.lcp = metric.value;
     reported.lcp = true;
     checkFinalized();
-  });
+  }, opts);
 
   wv.onCLS(function (metric) {
     window.__fsBench.webVitals.cls = metric.value;
     reported.cls = true;
     checkFinalized();
-  });
+  }, opts);
 
   wv.onINP(function (metric) {
     window.__fsBench.webVitals.inp = metric.value;
-  });
+  }, opts);
 
   wv.onFCP(function (metric) {
     window.__fsBench.webVitals.fcp = metric.value;
-  });
+  }, opts);
 
   wv.onTTFB(function (metric) {
     window.__fsBench.webVitals.ttfb = metric.value;
-  });
+  }, opts);
 })();

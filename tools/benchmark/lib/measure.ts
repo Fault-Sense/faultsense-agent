@@ -100,17 +100,12 @@ async function runMeasurement(
     await cdp.send("Profiler.enable");
     await cdp.send("Profiler.setSamplingInterval", { interval: 100 });
 
-    // Network throttle BEFORE navigation (Lighthouse convention)
-    if (config.throttle.network) {
-      await cdp.send(
-        "Network.emulateNetworkConditions",
-        config.throttle.network,
-      );
-    }
-
     // Install shared instruments (both conditions)
     await page.addInitScript({ path: config.longtaskObserverPath });
-    await page.addInitScript({ path: config.webVitalsIifePath });
+    // web-vitals IIFE uses `var webVitals=...` which stays local in
+    // addInitScript's function scope. Replace with window assignment.
+    const wvContent = fs.readFileSync(config.webVitalsIifePath, "utf-8");
+    await page.addInitScript(wvContent.replace(/^var webVitals=/, "window.webVitals="));
     await page.addInitScript({ path: config.webVitalsCollectorPath });
 
     // Demo mode: at-rest scrub strips fs-* attributes before agent sees them
@@ -125,14 +120,34 @@ async function runMeasurement(
 
     if (signal.aborted) throw new BenchmarkError("aborted", "Aborted");
 
+    // Reset server state before each measurement (active mode)
+    if (config.resetUrl) {
+      await page.request.post(config.resetUrl);
+    }
+
     const navStart = Date.now();
     await page.goto(config.url, { waitUntil: "load" });
 
-    // CPU throttle AFTER navigation (Lighthouse convention)
+    // Apply throttling AFTER navigation. Lighthouse convention is network
+    // before nav, CPU after — but headed Chromium aborts navigations under
+    // CDP network throttling (ERR_ABORTED). Both conditions get the same
+    // throttle so the A/B differential is unaffected.
+    if (config.throttle.network) {
+      await cdp.send(
+        "Network.emulateNetworkConditions",
+        config.throttle.network,
+      );
+    }
     if (config.throttle.cpu > 1) {
       await cdp.send("Emulation.setCPUThrottlingRate", {
         rate: config.throttle.cpu,
       });
+    }
+
+    // Active mode: run scripted interactions before the soak
+    if (config.interactFn) {
+      debugLog(`    [${condition}] interacting...`);
+      await config.interactFn(page);
     }
 
     // Baseline heap — two GCs back-to-back (young-gen survivors need two passes)
@@ -172,7 +187,7 @@ async function runMeasurement(
       });
       document.dispatchEvent(new Event("visibilitychange"));
     });
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(1500);
     const webVitals: WebVitalsResult = await page.evaluate(
       () => window.__fsBench.webVitals,
     );
@@ -209,7 +224,7 @@ async function runPair(
 ): Promise<PairResult> {
   // Fresh browser per pair — A+B share a V8 isolate within the pair,
   // fresh between pairs (isolation). Halves launch overhead.
-  const browser = await chromium.launch({ headless: true });
+  const browser = await chromium.launch({ headless: false });
   try {
     const a = await runMeasurement(browser, config, "A", signal);
     const b = await runMeasurement(browser, config, "B", signal);
@@ -243,6 +258,8 @@ export interface RunOptions {
   soakMs?: number;
   allowCi?: boolean;
   isDemo?: boolean;
+  interactFn?: (page: import("@playwright/test").Page) => Promise<void>;
+  resetUrl?: string;
 }
 
 export async function runBenchmark(
@@ -280,74 +297,98 @@ export async function runBenchmark(
   const scenarios: ScenarioResult[] = [];
   const profiles: ThrottleProfileName[] = ["unthrottled", "slow4g"];
 
+  // Build scenario configs: idle (always), active (if interactFn provided)
+  type ScenarioSpec = { mode: "idle" | "active"; label: string };
+  const modes: ScenarioSpec[] = [{ mode: "idle", label: "idle soak" }];
+  if (options.interactFn) {
+    modes.push({ mode: "active", label: "active" });
+  }
+
+  const baseInjection = {
+    agentPath,
+    initWrapperPath: path.resolve(injectionDir, "init-wrapper.js"),
+    longtaskObserverPath: path.resolve(injectionDir, "longtask-observer.js"),
+    webVitalsIifePath: path.resolve(
+      rootDir,
+      "node_modules/web-vitals/dist/web-vitals.iife.js",
+    ),
+    webVitalsCollectorPath: path.resolve(
+      injectionDir,
+      "web-vitals-collector.js",
+    ),
+  };
+
+  let injectionChecked = false;
+
   try {
-    for (const profileName of profiles) {
-      if (signal.aborted) break;
-
-      const config: ScenarioConfig = {
-        url: parsedUrl.href,
-        throttle: THROTTLE_PROFILES[profileName],
-        profileName,
-        soakMs,
-        pairsCount,
-        agentPath,
-        initWrapperPath: path.resolve(injectionDir, "init-wrapper.js"),
-        longtaskObserverPath: path.resolve(injectionDir, "longtask-observer.js"),
-        webVitalsIifePath: path.resolve(
-          rootDir,
-          "node_modules/web-vitals/dist/web-vitals.iife.js",
-        ),
-        webVitalsCollectorPath: path.resolve(
-          injectionDir,
-          "web-vitals-collector.js",
-        ),
-        ...(isDemo
-          ? {
-              atRestScrubPath: path.resolve(injectionDir, "at-rest-scrub.js"),
-            }
-          : {}),
-      };
-
-      const pairs: PairResult[] = [];
-      let warmupPair: PairResult | null = null;
-
-      for (let i = 0; i < pairsCount; i++) {
+    for (const { mode, label } of modes) {
+      for (const profileName of profiles) {
         if (signal.aborted) break;
 
-        console.log(
-          `  [${profileName}] Pair ${i + 1}/${pairsCount}${i === 0 ? " (warmup)" : ""}`,
-        );
-        const pair = await runPair(config, i, signal);
+        const config: ScenarioConfig = {
+          url: parsedUrl.href,
+          throttle: THROTTLE_PROFILES[profileName],
+          profileName,
+          mode,
+          soakMs,
+          pairsCount,
+          ...baseInjection,
+          // Idle demo mode: scrub fs-* attrs. Active mode: no scrub (assertions must fire).
+          ...(isDemo && mode === "idle"
+            ? { atRestScrubPath: path.resolve(injectionDir, "at-rest-scrub.js") }
+            : {}),
+          // Active mode: scripted interactions + server reset
+          ...(mode === "active"
+            ? {
+                interactFn: options.interactFn,
+                resetUrl: options.resetUrl,
+              }
+            : {}),
+        };
 
-        // Post-nav sanity check on first B measurement of the first profile
-        if (i === 0 && profileName === profiles[0]) {
-          const browser = await chromium.launch({ headless: true });
-          try {
-            const ctx = await browser.newContext();
-            const page = await ctx.newPage();
-            await page.addInitScript({ path: agentPath });
-            await page.addInitScript({ path: config.initWrapperPath });
-            await page.goto(parsedUrl.href, { waitUntil: "load" });
-            await checkInjection(page);
-            await page.close().catch(() => {});
-            await ctx.close().catch(() => {});
-          } finally {
-            await browser.close().catch(() => {});
+        const pairs: PairResult[] = [];
+        let warmupPair: PairResult | null = null;
+
+        for (let i = 0; i < pairsCount; i++) {
+          if (signal.aborted) break;
+
+          console.log(
+            `  [${profileName}/${label}] Pair ${i + 1}/${pairsCount}${i === 0 ? " (warmup)" : ""}`,
+          );
+          const pair = await runPair(config, i, signal);
+
+          // Post-nav sanity check on first B measurement (once per run)
+          if (!injectionChecked && i === 0) {
+            injectionChecked = true;
+            const browser = await chromium.launch({ headless: false });
+            try {
+              const ctx = await browser.newContext();
+              const page = await ctx.newPage();
+              await page.addInitScript({ path: agentPath });
+              await page.addInitScript({ path: config.initWrapperPath });
+              await page.goto(parsedUrl.href, { waitUntil: "load" });
+              await checkInjection(page);
+              await page.close().catch(() => {});
+              await ctx.close().catch(() => {});
+            } finally {
+              await browser.close().catch(() => {});
+            }
+          }
+
+          if (i === 0) {
+            warmupPair = pair;
+          } else {
+            pairs.push(pair);
           }
         }
 
-        if (i === 0) {
-          warmupPair = pair;
-        } else {
-          pairs.push(pair);
-        }
+        scenarios.push({
+          profile: profileName,
+          mode,
+          pairs,
+          warmupPair: warmupPair!,
+        });
       }
-
-      scenarios.push({
-        profile: profileName,
-        pairs,
-        warmupPair: warmupPair!,
-      });
     }
   } finally {
     process.removeListener("SIGINT", sigintHandler);
@@ -426,7 +467,7 @@ async function gatherEnvironment(
 
   let chromiumRevision = "unknown";
   try {
-    const browser = await chromium.launch({ headless: true });
+    const browser = await chromium.launch({ headless: false });
     chromiumRevision = browser.version();
     await browser.close();
   } catch {
