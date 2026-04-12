@@ -1,0 +1,580 @@
+{
+  "environment": {
+    "machine": "gendry.local",
+    "os": "Darwin 25.3.0 (arm64)",
+    "cpuModel": "Apple M4 Pro",
+    "cpuCores": 14,
+    "ramGB": 48,
+    "nodeVersion": "v22.21.0",
+    "playwrightVersion": "1.59.1",
+    "chromiumRevision": "147.0.7727.15",
+    "agentVersion": "0.4.0",
+    "agentCommitSha": "e1f7ce6",
+    "agentBundleSha256": "c7f5972268af818fd37c8416c995db3f4163770cde6faa8c52a3dc6b4b73ed51",
+    "targetUrl": "http://localhost:3099/login",
+    "resolvedIp": "127.0.0.1",
+    "timestamp": "2026-04-12T15:50:55.927Z",
+    "pairsCount": 5,
+    "soakMs": 30000,
+    "ciMode": false
+  },
+  "scenarios": [
+    {
+      "profile": "unthrottled",
+      "pairs": [
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 822488,
+            "heapEnd": 827784,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 33
+            },
+            "longtasks": [],
+            "webVitals": {},
+            "profile": null,
+            "wallClockMs": 30549
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 904544,
+            "heapEnd": 912448,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 53
+            },
+            "longtasks": [],
+            "webVitals": {},
+            "profile": null,
+            "wallClockMs": 30552
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 822488,
+            "heapEnd": 827784,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 33
+            },
+            "longtasks": [],
+            "webVitals": {},
+            "profile": null,
+            "wallClockMs": 30550
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 904544,
+            "heapEnd": 912448,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 53
+            },
+            "longtasks": [],
+            "webVitals": {},
+            "profile": null,
+            "wallClockMs": 30558
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 822488,
+            "heapEnd": 827784,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 33
+            },
+            "longtasks": [],
+            "webVitals": {},
+            "profile": null,
+            "wallClockMs": 30553
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 904544,
+            "heapEnd": 912448,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 53
+            },
+            "longtasks": [],
+            "webVitals": {},
+            "profile": null,
+            "wallClockMs": 30555
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 822488,
+            "heapEnd": 827784,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 33
+            },
+            "longtasks": [],
+            "webVitals": {},
+            "profile": null,
+            "wallClockMs": 30552
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 904544,
+            "heapEnd": 912448,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 53
+            },
+            "longtasks": [],
+            "webVitals": {},
+            "profile": null,
+            "wallClockMs": 30554
+          }
+        }
+      ],
+      "warmupPair": {
+        "a": {
+          "condition": "A",
+          "heapStart": 822488,
+          "heapEnd": 827784,
+          "domCounters": {
+            "documents": 1,
+            "nodes": 102,
+            "jsEventListeners": 33
+          },
+          "longtasks": [],
+          "webVitals": {},
+          "profile": null,
+          "wallClockMs": 30559
+        },
+        "b": {
+          "condition": "B",
+          "heapStart": 904544,
+          "heapEnd": 912448,
+          "domCounters": {
+            "documents": 1,
+            "nodes": 102,
+            "jsEventListeners": 53
+          },
+          "longtasks": [],
+          "webVitals": {},
+          "profile": null,
+          "wallClockMs": 30555
+        }
+      }
+    },
+    {
+      "profile": "slow4g",
+      "pairs": [
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 822488,
+            "heapEnd": 827784,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 33
+            },
+            "longtasks": [],
+            "webVitals": {},
+            "profile": null,
+            "wallClockMs": 32301
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 904544,
+            "heapEnd": 912448,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 53
+            },
+            "longtasks": [],
+            "webVitals": {},
+            "profile": null,
+            "wallClockMs": 32298
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 822488,
+            "heapEnd": 827784,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 33
+            },
+            "longtasks": [],
+            "webVitals": {},
+            "profile": null,
+            "wallClockMs": 32297
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 904544,
+            "heapEnd": 912448,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 53
+            },
+            "longtasks": [],
+            "webVitals": {},
+            "profile": null,
+            "wallClockMs": 32300
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 822488,
+            "heapEnd": 827784,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 33
+            },
+            "longtasks": [],
+            "webVitals": {},
+            "profile": null,
+            "wallClockMs": 32285
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 904544,
+            "heapEnd": 912448,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 53
+            },
+            "longtasks": [],
+            "webVitals": {},
+            "profile": null,
+            "wallClockMs": 32292
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 822488,
+            "heapEnd": 827784,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 33
+            },
+            "longtasks": [],
+            "webVitals": {},
+            "profile": null,
+            "wallClockMs": 32295
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 904544,
+            "heapEnd": 912448,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 53
+            },
+            "longtasks": [],
+            "webVitals": {},
+            "profile": null,
+            "wallClockMs": 32293
+          }
+        }
+      ],
+      "warmupPair": {
+        "a": {
+          "condition": "A",
+          "heapStart": 822488,
+          "heapEnd": 827784,
+          "domCounters": {
+            "documents": 1,
+            "nodes": 102,
+            "jsEventListeners": 33
+          },
+          "longtasks": [],
+          "webVitals": {},
+          "profile": null,
+          "wallClockMs": 32301
+        },
+        "b": {
+          "condition": "B",
+          "heapStart": 904544,
+          "heapEnd": 912448,
+          "domCounters": {
+            "documents": 1,
+            "nodes": 102,
+            "jsEventListeners": 53
+          },
+          "longtasks": [],
+          "webVitals": {},
+          "profile": null,
+          "wallClockMs": 32293
+        }
+      }
+    }
+  ],
+  "metrics": {
+    "unthrottled": [
+      {
+        "name": "LCP",
+        "unit": "ms",
+        "aMedian": 0,
+        "bMedian": 0,
+        "delta": 0,
+        "aP95": 0,
+        "bP95": 0,
+        "aIqr": 0,
+        "bIqr": 0,
+        "significance": "within noise"
+      },
+      {
+        "name": "CLS",
+        "unit": "",
+        "aMedian": 0,
+        "bMedian": 0,
+        "delta": 0,
+        "aP95": 0,
+        "bP95": 0,
+        "aIqr": 0,
+        "bIqr": 0,
+        "significance": "within noise"
+      },
+      {
+        "name": "INP",
+        "unit": "ms",
+        "aMedian": 0,
+        "bMedian": 0,
+        "delta": 0,
+        "aP95": 0,
+        "bP95": 0,
+        "aIqr": 0,
+        "bIqr": 0,
+        "significance": "within noise"
+      },
+      {
+        "name": "FCP",
+        "unit": "ms",
+        "aMedian": 0,
+        "bMedian": 0,
+        "delta": 0,
+        "aP95": 0,
+        "bP95": 0,
+        "aIqr": 0,
+        "bIqr": 0,
+        "significance": "within noise"
+      },
+      {
+        "name": "TTFB",
+        "unit": "ms",
+        "aMedian": 0,
+        "bMedian": 0,
+        "delta": 0,
+        "aP95": 0,
+        "bP95": 0,
+        "aIqr": 0,
+        "bIqr": 0,
+        "significance": "within noise"
+      },
+      {
+        "name": "JSHeapUsedSize delta",
+        "unit": "bytes",
+        "aMedian": 5296,
+        "bMedian": 7904,
+        "delta": 2608,
+        "aP95": 5296,
+        "bP95": 7904,
+        "aIqr": 0,
+        "bIqr": 0,
+        "significance": "significant"
+      },
+      {
+        "name": "DOM node delta",
+        "unit": "nodes",
+        "aMedian": 102,
+        "bMedian": 102,
+        "delta": 0,
+        "aP95": 102,
+        "bP95": 102,
+        "aIqr": 0,
+        "bIqr": 0,
+        "significance": "within noise"
+      },
+      {
+        "name": "Long task count",
+        "unit": "",
+        "aMedian": 0,
+        "bMedian": 0,
+        "delta": 0,
+        "aP95": 0,
+        "bP95": 0,
+        "aIqr": 0,
+        "bIqr": 0,
+        "significance": "within noise"
+      },
+      {
+        "name": "Long task total ms",
+        "unit": "ms",
+        "aMedian": 0,
+        "bMedian": 0,
+        "delta": 0,
+        "aP95": 0,
+        "bP95": 0,
+        "aIqr": 0,
+        "bIqr": 0,
+        "significance": "within noise"
+      },
+      {
+        "name": "Wall clock delta",
+        "unit": "ms",
+        "aMedian": 30551,
+        "bMedian": 30554.5,
+        "delta": 3.5,
+        "aP95": 30553,
+        "bP95": 30558,
+        "aIqr": 3,
+        "bIqr": 4,
+        "significance": "within noise"
+      }
+    ],
+    "slow4g": [
+      {
+        "name": "LCP",
+        "unit": "ms",
+        "aMedian": 0,
+        "bMedian": 0,
+        "delta": 0,
+        "aP95": 0,
+        "bP95": 0,
+        "aIqr": 0,
+        "bIqr": 0,
+        "significance": "within noise"
+      },
+      {
+        "name": "CLS",
+        "unit": "",
+        "aMedian": 0,
+        "bMedian": 0,
+        "delta": 0,
+        "aP95": 0,
+        "bP95": 0,
+        "aIqr": 0,
+        "bIqr": 0,
+        "significance": "within noise"
+      },
+      {
+        "name": "INP",
+        "unit": "ms",
+        "aMedian": 0,
+        "bMedian": 0,
+        "delta": 0,
+        "aP95": 0,
+        "bP95": 0,
+        "aIqr": 0,
+        "bIqr": 0,
+        "significance": "within noise"
+      },
+      {
+        "name": "FCP",
+        "unit": "ms",
+        "aMedian": 0,
+        "bMedian": 0,
+        "delta": 0,
+        "aP95": 0,
+        "bP95": 0,
+        "aIqr": 0,
+        "bIqr": 0,
+        "significance": "within noise"
+      },
+      {
+        "name": "TTFB",
+        "unit": "ms",
+        "aMedian": 0,
+        "bMedian": 0,
+        "delta": 0,
+        "aP95": 0,
+        "bP95": 0,
+        "aIqr": 0,
+        "bIqr": 0,
+        "significance": "within noise"
+      },
+      {
+        "name": "JSHeapUsedSize delta",
+        "unit": "bytes",
+        "aMedian": 5296,
+        "bMedian": 7904,
+        "delta": 2608,
+        "aP95": 5296,
+        "bP95": 7904,
+        "aIqr": 0,
+        "bIqr": 0,
+        "significance": "significant"
+      },
+      {
+        "name": "DOM node delta",
+        "unit": "nodes",
+        "aMedian": 102,
+        "bMedian": 102,
+        "delta": 0,
+        "aP95": 102,
+        "bP95": 102,
+        "aIqr": 0,
+        "bIqr": 0,
+        "significance": "within noise"
+      },
+      {
+        "name": "Long task count",
+        "unit": "",
+        "aMedian": 0,
+        "bMedian": 0,
+        "delta": 0,
+        "aP95": 0,
+        "bP95": 0,
+        "aIqr": 0,
+        "bIqr": 0,
+        "significance": "within noise"
+      },
+      {
+        "name": "Long task total ms",
+        "unit": "ms",
+        "aMedian": 0,
+        "bMedian": 0,
+        "delta": 0,
+        "aP95": 0,
+        "bP95": 0,
+        "aIqr": 0,
+        "bIqr": 0,
+        "significance": "within noise"
+      },
+      {
+        "name": "Wall clock delta",
+        "unit": "ms",
+        "aMedian": 32296,
+        "bMedian": 32295.5,
+        "delta": -0.5,
+        "aP95": 32301,
+        "bP95": 32300,
+        "aIqr": 6,
+        "bIqr": 7,
+        "significance": "within noise"
+      }
+    ]
+  },
+  "status": "complete"
+}

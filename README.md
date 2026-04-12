@@ -260,6 +260,20 @@ Faultsense is framework-agnostic — it observes the DOM, not framework internal
 
 Adding a new framework means scaffolding a minimal harness and a driver file — see [`conformance/README.md`](conformance/README.md). The Layer 1 mutation-pattern suite at [`tests/conformance/`](tests/conformance/) locks in every DOM mutation shape the agent handles, so frameworks that produce those shapes are supported by transitivity — the Layer 2 drivers are empirical confirmation, not the source of truth.
 
+## Performance
+
+The agent is designed for negligible overhead. Published benchmark reports are at [`docs/performance/`](docs/performance/) — run the tool yourself to verify:
+
+```bash
+# Benchmark any public URL
+npm run benchmark -- https://your-site.com
+
+# Reproduce our published numbers
+npm run benchmark:demo
+```
+
+See [`tools/benchmark/README.md`](tools/benchmark/README.md) for full usage and methodology.
+
 ## Package Info
 
 - **Size**: 8.7 KB gzipped
