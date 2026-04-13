@@ -9,13 +9,13 @@
     "playwrightVersion": "1.59.1",
     "chromiumRevision": "147.0.7727.15",
     "agentVersion": "0.4.0",
-    "agentCommitSha": "cfb3f61",
+    "agentCommitSha": "1569318",
     "agentBundleSha256": "c7f5972268af818fd37c8416c995db3f4163770cde6faa8c52a3dc6b4b73ed51",
     "targetUrl": "http://localhost:3099/login",
     "resolvedIp": "127.0.0.1",
-    "timestamp": "2026-04-12T18:23:44.352Z",
-    "pairsCount": 5,
-    "soakMs": 30000,
+    "timestamp": "2026-04-13T13:52:21.962Z",
+    "pairsCount": 30,
+    "soakMs": 60000,
     "ciMode": false
   },
   "scenarios": [
@@ -35,18 +35,19 @@
             },
             "longtasks": [],
             "webVitals": {
-              "ttfb": 2.1999999284744263,
+              "ttfb": 2.3000000715255737,
               "fcp": 36,
               "lcp": 36,
               "cls": 0
             },
             "profile": null,
-            "wallClockMs": 31570
+            "wallClockMs": 61583,
+            "moCallbackTimings": null
           },
           "b": {
             "condition": "B",
-            "heapStart": 1065052,
-            "heapEnd": 1082156,
+            "heapStart": 1101884,
+            "heapEnd": 1118080,
             "domCounters": {
               "documents": 1,
               "nodes": 102,
@@ -54,53 +55,14 @@
             },
             "longtasks": [],
             "webVitals": {
-              "ttfb": 2.299999952316284,
-              "fcp": 44,
-              "lcp": 44,
-              "cls": 0
-            },
-            "profile": null,
-            "wallClockMs": 31566
-          }
-        },
-        {
-          "a": {
-            "condition": "A",
-            "heapStart": 1026684,
-            "heapEnd": 1041180,
-            "domCounters": {
-              "documents": 1,
-              "nodes": 102,
-              "jsEventListeners": 48
-            },
-            "longtasks": [],
-            "webVitals": {
-              "ttfb": 2.100000023841858,
+              "ttfb": 2.8000000715255737,
               "fcp": 36,
               "lcp": 36,
               "cls": 0
             },
             "profile": null,
-            "wallClockMs": 31565
-          },
-          "b": {
-            "condition": "B",
-            "heapStart": 1112696,
-            "heapEnd": 1129800,
-            "domCounters": {
-              "documents": 1,
-              "nodes": 102,
-              "jsEventListeners": 68
-            },
-            "longtasks": [],
-            "webVitals": {
-              "ttfb": 2.100000023841858,
-              "fcp": 40,
-              "lcp": 40,
-              "cls": 0
-            },
-            "profile": null,
-            "wallClockMs": 31571
+            "wallClockMs": 61581,
+            "moCallbackTimings": null
           }
         },
         {
@@ -115,22 +77,129 @@
             },
             "longtasks": [],
             "webVitals": {
-              "ttfb": 2.3000000715255737,
+              "ttfb": 2.200000047683716,
               "fcp": 36,
               "lcp": 36,
               "cls": 0
             },
             "profile": null,
-            "wallClockMs": 31570
+            "wallClockMs": 61583,
+            "moCallbackTimings": null
           },
           "b": {
             "condition": "B",
-            "heapStart": 1112292,
-            "heapEnd": 1129168,
+            "heapStart": 1054240,
+            "heapEnd": 1070436,
             "domCounters": {
               "documents": 1,
               "nodes": 102,
               "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.5,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61579,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 979040,
+            "heapEnd": 1012016,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.4000000953674316,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61581,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1054240,
+            "heapEnd": 1070436,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.200000047683716,
+              "fcp": 32,
+              "lcp": 32,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61584,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 979040,
+            "heapEnd": 1041152,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.399999976158142,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61584,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1053836,
+            "heapEnd": 1069804,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61582,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 978636,
+            "heapEnd": 992904,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
             },
             "longtasks": [],
             "webVitals": {
@@ -140,7 +209,1420 @@
               "cls": 0
             },
             "profile": null,
-            "wallClockMs": 31566
+            "wallClockMs": 61584,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1054240,
+            "heapEnd": 1070436,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.5,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61583,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 979040,
+            "heapEnd": 993536,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.399999976158142,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61581,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1053836,
+            "heapEnd": 1069804,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2,
+              "fcp": 32,
+              "lcp": 32,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61579,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 1026684,
+            "heapEnd": 1041180,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.799999952316284,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61576,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1054240,
+            "heapEnd": 1070436,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.7999999523162842,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61578,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 979040,
+            "heapEnd": 993536,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.899999976158142,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61578,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1054240,
+            "heapEnd": 1070436,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.4000000953674316,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61577,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 979040,
+            "heapEnd": 993536,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.6999999284744263,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61579,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1054240,
+            "heapEnd": 1070436,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.0999999046325684,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61579,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 978636,
+            "heapEnd": 992904,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61583,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1054240,
+            "heapEnd": 1070436,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.100000023841858,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61577,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 979040,
+            "heapEnd": 993536,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.5,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61582,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1054240,
+            "heapEnd": 1070436,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.600000023841858,
+              "fcp": 32,
+              "lcp": 32,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61577,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 979040,
+            "heapEnd": 993536,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.100000023841858,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61578,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1054240,
+            "heapEnd": 1070436,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.0999999046325684,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61578,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 979040,
+            "heapEnd": 993536,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.299999952316284,
+              "fcp": 44,
+              "lcp": 44,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61581,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1101856,
+            "heapEnd": 1118052,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.8000000715255737,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61580,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 979040,
+            "heapEnd": 993536,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.4000000953674316,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61581,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1054240,
+            "heapEnd": 1070436,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.8000000715255737,
+              "fcp": 32,
+              "lcp": 32,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61576,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 1026684,
+            "heapEnd": 1041180,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.3000000715255737,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61579,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1054240,
+            "heapEnd": 1070436,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.9000000953674316,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61580,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 979040,
+            "heapEnd": 993536,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.5999999046325684,
+              "fcp": 44,
+              "lcp": 44,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61580,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1054240,
+            "heapEnd": 1070436,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.899999976158142,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61577,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 979040,
+            "heapEnd": 993536,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.200000047683716,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61579,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1101884,
+            "heapEnd": 1118080,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.5,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61577,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 1026684,
+            "heapEnd": 1041180,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.200000047683716,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61583,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1054240,
+            "heapEnd": 1070436,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.600000023841858,
+              "fcp": 32,
+              "lcp": 32,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61574,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 979040,
+            "heapEnd": 993536,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.0999999046325684,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61580,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1054240,
+            "heapEnd": 1070436,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.299999952316284,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61576,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 979040,
+            "heapEnd": 993536,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.100000023841858,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61576,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1054240,
+            "heapEnd": 1070436,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.7999999523162842,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61574,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 1026684,
+            "heapEnd": 1041180,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.3000000715255737,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61580,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1054240,
+            "heapEnd": 1070436,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.600000023841858,
+              "fcp": 32,
+              "lcp": 32,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61577,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 979040,
+            "heapEnd": 1041152,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.200000047683716,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61579,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1101884,
+            "heapEnd": 1118080,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.5999999046325684,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61577,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 979040,
+            "heapEnd": 993536,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.100000023841858,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61578,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1054240,
+            "heapEnd": 1070436,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.600000023841858,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61576,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 979040,
+            "heapEnd": 993536,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.299999952316284,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61582,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1054240,
+            "heapEnd": 1070436,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.9000000953674316,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61580,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 1026712,
+            "heapEnd": 1041208,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.0999999046325684,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61580,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1054240,
+            "heapEnd": 1070436,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.100000023841858,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61579,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 1026308,
+            "heapEnd": 1040576,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61579,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1054240,
+            "heapEnd": 1070436,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.7000000476837158,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61583,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 979040,
+            "heapEnd": 993536,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.600000023841858,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61582,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1054240,
+            "heapEnd": 1070436,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.7000000476837158,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61576,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 1026684,
+            "heapEnd": 1041180,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.5,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61577,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1053836,
+            "heapEnd": 1069804,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61576,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 978636,
+            "heapEnd": 1040520,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61581,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1054240,
+            "heapEnd": 1070436,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.100000023841858,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61578,
+            "moCallbackTimings": null
+          }
+        }
+      ],
+      "warmupPair": {
+        "a": {
+          "condition": "A",
+          "heapStart": 1033092,
+          "heapEnd": 1041172,
+          "domCounters": {
+            "documents": 1,
+            "nodes": 102,
+            "jsEventListeners": 48
+          },
+          "longtasks": [],
+          "webVitals": {
+            "ttfb": 8.899999976158142,
+            "fcp": 52,
+            "lcp": 52,
+            "cls": 0
+          },
+          "profile": null,
+          "wallClockMs": 61631,
+          "moCallbackTimings": null
+        },
+        "b": {
+          "condition": "B",
+          "heapStart": 1054240,
+          "heapEnd": 1070436,
+          "domCounters": {
+            "documents": 1,
+            "nodes": 102,
+            "jsEventListeners": 68
+          },
+          "longtasks": [],
+          "webVitals": {
+            "ttfb": 2.0999999046325684,
+            "fcp": 32,
+            "lcp": 32,
+            "cls": 0
+          },
+          "profile": null,
+          "wallClockMs": 61585,
+          "moCallbackTimings": null
+        }
+      }
+    },
+    {
+      "profile": "slow4g",
+      "mode": "idle",
+      "pairs": [
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 979040,
+            "heapEnd": 993536,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.899999976158142,
+              "fcp": 44,
+              "lcp": 44,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61584,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1054240,
+            "heapEnd": 1070436,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.6999999284744263,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61576,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 979040,
+            "heapEnd": 993536,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.100000023841858,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61578,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1101884,
+            "heapEnd": 1118080,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.6999999284744263,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61578,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 979040,
+            "heapEnd": 993536,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.1999999284744263,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61577,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1053836,
+            "heapEnd": 1069804,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61588,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 979040,
+            "heapEnd": 993536,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.600000023841858,
+              "fcp": 48,
+              "lcp": 48,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61584,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1101884,
+            "heapEnd": 1118080,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.100000023841858,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61579,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 1026684,
+            "heapEnd": 1041180,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.1999999284744263,
+              "fcp": 48,
+              "lcp": 48,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61581,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1054240,
+            "heapEnd": 1070436,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.399999976158142,
+              "fcp": 32,
+              "lcp": 32,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61576,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 1026684,
+            "heapEnd": 1041180,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.299999952316284,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61581,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1101884,
+            "heapEnd": 1118080,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.100000023841858,
+              "fcp": 32,
+              "lcp": 32,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61578,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 979040,
+            "heapEnd": 993536,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.9000000953674316,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61581,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1054240,
+            "heapEnd": 1070436,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.9000000953674316,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61578,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 979040,
+            "heapEnd": 993536,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.700000047683716,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61580,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1054240,
+            "heapEnd": 1118052,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.399999976158142,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61582,
+            "moCallbackTimings": null
           }
         },
         {
@@ -161,12 +1643,13 @@
               "cls": 0
             },
             "profile": null,
-            "wallClockMs": 31566
+            "wallClockMs": 61577,
+            "moCallbackTimings": null
           },
           "b": {
             "condition": "B",
-            "heapStart": 1065052,
-            "heapEnd": 1082156,
+            "heapStart": 1101884,
+            "heapEnd": 1118080,
             "domCounters": {
               "documents": 1,
               "nodes": 102,
@@ -174,61 +1657,16 @@
             },
             "longtasks": [],
             "webVitals": {
-              "ttfb": 2.100000023841858,
-              "fcp": 32,
-              "lcp": 32,
+              "ttfb": 1.5,
+              "fcp": 36,
+              "lcp": 36,
               "cls": 0
             },
             "profile": null,
-            "wallClockMs": 31568
+            "wallClockMs": 61576,
+            "moCallbackTimings": null
           }
-        }
-      ],
-      "warmupPair": {
-        "a": {
-          "condition": "A",
-          "heapStart": 1026684,
-          "heapEnd": 1041180,
-          "domCounters": {
-            "documents": 1,
-            "nodes": 102,
-            "jsEventListeners": 48
-          },
-          "longtasks": [],
-          "webVitals": {
-            "ttfb": 7.100000023841858,
-            "fcp": 40,
-            "lcp": 40,
-            "cls": 0
-          },
-          "profile": null,
-          "wallClockMs": 31577
         },
-        "b": {
-          "condition": "B",
-          "heapStart": 1065052,
-          "heapEnd": 1082156,
-          "domCounters": {
-            "documents": 1,
-            "nodes": 102,
-            "jsEventListeners": 68
-          },
-          "longtasks": [],
-          "webVitals": {
-            "ttfb": 2.6999999284744263,
-            "fcp": 36,
-            "lcp": 36,
-            "cls": 0
-          },
-          "profile": null,
-          "wallClockMs": 31573
-        }
-      }
-    },
-    {
-      "profile": "slow4g",
-      "mode": "idle",
-      "pairs": [
         {
           "a": {
             "condition": "A",
@@ -241,18 +1679,19 @@
             },
             "longtasks": [],
             "webVitals": {
-              "ttfb": 2.5,
+              "ttfb": 1.899999976158142,
               "fcp": 36,
               "lcp": 36,
               "cls": 0
             },
             "profile": null,
-            "wallClockMs": 31569
+            "wallClockMs": 61579,
+            "moCallbackTimings": null
           },
           "b": {
             "condition": "B",
-            "heapStart": 1065052,
-            "heapEnd": 1082156,
+            "heapStart": 1101884,
+            "heapEnd": 1118080,
             "domCounters": {
               "documents": 1,
               "nodes": 102,
@@ -260,13 +1699,14 @@
             },
             "longtasks": [],
             "webVitals": {
-              "ttfb": 1.8000000715255737,
+              "ttfb": 2.399999976158142,
               "fcp": 40,
               "lcp": 40,
               "cls": 0
             },
             "profile": null,
-            "wallClockMs": 31570
+            "wallClockMs": 61580,
+            "moCallbackTimings": null
           }
         },
         {
@@ -281,18 +1721,19 @@
             },
             "longtasks": [],
             "webVitals": {
-              "ttfb": 2.200000047683716,
+              "ttfb": 1.899999976158142,
               "fcp": 36,
               "lcp": 36,
               "cls": 0
             },
             "profile": null,
-            "wallClockMs": 31570
+            "wallClockMs": 61577,
+            "moCallbackTimings": null
           },
           "b": {
             "condition": "B",
-            "heapStart": 1065052,
-            "heapEnd": 1082156,
+            "heapStart": 1054240,
+            "heapEnd": 1070436,
             "domCounters": {
               "documents": 1,
               "nodes": 102,
@@ -306,14 +1747,15 @@
               "cls": 0
             },
             "profile": null,
-            "wallClockMs": 31583
+            "wallClockMs": 61583,
+            "moCallbackTimings": null
           }
         },
         {
           "a": {
             "condition": "A",
-            "heapStart": 1057640,
-            "heapEnd": 1070172,
+            "heapStart": 979040,
+            "heapEnd": 993536,
             "domCounters": {
               "documents": 1,
               "nodes": 102,
@@ -321,18 +1763,19 @@
             },
             "longtasks": [],
             "webVitals": {
-              "ttfb": 2.299999952316284,
-              "fcp": 40,
-              "lcp": 40,
+              "ttfb": 2.600000023841858,
+              "fcp": 32,
+              "lcp": 32,
               "cls": 0
             },
             "profile": null,
-            "wallClockMs": 31603
+            "wallClockMs": 61580,
+            "moCallbackTimings": null
           },
           "b": {
             "condition": "B",
-            "heapStart": 1101072,
-            "heapEnd": 1111760,
+            "heapStart": 1054240,
+            "heapEnd": 1070436,
             "domCounters": {
               "documents": 1,
               "nodes": 102,
@@ -340,20 +1783,105 @@
             },
             "longtasks": [],
             "webVitals": {
-              "ttfb": 2.799999952316284,
+              "ttfb": 1.600000023841858,
+              "fcp": 32,
+              "lcp": 32,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61580,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 979040,
+            "heapEnd": 993536,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.5,
+              "fcp": 44,
+              "lcp": 44,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61581,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1054240,
+            "heapEnd": 1070436,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.8000000715255737,
+              "fcp": 32,
+              "lcp": 32,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61578,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 979040,
+            "heapEnd": 993536,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.5,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61581,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1054240,
+            "heapEnd": 1070436,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.899999976158142,
               "fcp": 36,
               "lcp": 36,
               "cls": 0
             },
             "profile": null,
-            "wallClockMs": 31586
+            "wallClockMs": 61575,
+            "moCallbackTimings": null
           }
         },
         {
           "a": {
             "condition": "A",
-            "heapStart": 1026656,
-            "heapEnd": 1059680,
+            "heapStart": 1026684,
+            "heapEnd": 1041180,
             "domCounters": {
               "documents": 1,
               "nodes": 102,
@@ -361,22 +1889,87 @@
             },
             "longtasks": [],
             "webVitals": {
-              "ttfb": 2.3000000715255737,
+              "ttfb": 2.5,
               "fcp": 40,
               "lcp": 40,
               "cls": 0
             },
             "profile": null,
-            "wallClockMs": 31574
+            "wallClockMs": 61585,
+            "moCallbackTimings": null
           },
           "b": {
             "condition": "B",
-            "heapStart": 1065052,
-            "heapEnd": 1082156,
+            "heapStart": 1054240,
+            "heapEnd": 1070436,
             "domCounters": {
               "documents": 1,
               "nodes": 102,
               "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.8000000715255737,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61577,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 1026684,
+            "heapEnd": 1041180,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.8000000715255737,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61581,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1101884,
+            "heapEnd": 1118080,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.899999976158142,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61579,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 979040,
+            "heapEnd": 993536,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
             },
             "longtasks": [],
             "webVitals": {
@@ -386,15 +1979,540 @@
               "cls": 0
             },
             "profile": null,
-            "wallClockMs": 31577
+            "wallClockMs": 61576,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1054240,
+            "heapEnd": 1070436,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.5,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61582,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 979040,
+            "heapEnd": 993536,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.600000023841858,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61582,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1101884,
+            "heapEnd": 1118080,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.600000023841858,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61581,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 1026280,
+            "heapEnd": 1040548,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61578,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1101884,
+            "heapEnd": 1118080,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.7999999523162842,
+              "fcp": 28,
+              "lcp": 28,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61581,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 979040,
+            "heapEnd": 993536,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.200000047683716,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61583,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1054240,
+            "heapEnd": 1070436,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.899999976158142,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61579,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 979040,
+            "heapEnd": 993536,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.200000047683716,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61582,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1101480,
+            "heapEnd": 1117448,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2,
+              "fcp": 32,
+              "lcp": 32,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61581,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 1026684,
+            "heapEnd": 1041180,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.100000023841858,
+              "fcp": 48,
+              "lcp": 48,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61585,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1054240,
+            "heapEnd": 1070436,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.7999999523162842,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61583,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 979040,
+            "heapEnd": 993536,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.5999999046325684,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61579,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1054240,
+            "heapEnd": 1070436,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.9000000953674316,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61578,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 979040,
+            "heapEnd": 993536,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.100000023841858,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61579,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1101884,
+            "heapEnd": 1118080,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.600000023841858,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61578,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 1026684,
+            "heapEnd": 1041180,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.1999999284744263,
+              "fcp": 32,
+              "lcp": 32,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61585,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1054240,
+            "heapEnd": 1070436,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.5,
+              "fcp": 32,
+              "lcp": 32,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61579,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 979040,
+            "heapEnd": 993536,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.600000023841858,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61580,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1054240,
+            "heapEnd": 1070436,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.7000000476837158,
+              "fcp": 32,
+              "lcp": 32,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61577,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 979040,
+            "heapEnd": 993536,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.4000000953674316,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61584,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1054240,
+            "heapEnd": 1070436,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.7000000476837158,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61579,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 1026684,
+            "heapEnd": 1041180,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 3.200000047683716,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61582,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1101480,
+            "heapEnd": 1117448,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61582,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 978636,
+            "heapEnd": 992904,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 48
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61595,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 1101480,
+            "heapEnd": 1117448,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 102,
+              "jsEventListeners": 68
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0
+            },
+            "profile": null,
+            "wallClockMs": 61582,
+            "moCallbackTimings": null
           }
         }
       ],
       "warmupPair": {
         "a": {
           "condition": "A",
-          "heapStart": 1026684,
-          "heapEnd": 1041180,
+          "heapStart": 979040,
+          "heapEnd": 993536,
           "domCounters": {
             "documents": 1,
             "nodes": 102,
@@ -408,12 +2526,13 @@
             "cls": 0
           },
           "profile": null,
-          "wallClockMs": 31568
+          "wallClockMs": 61578,
+          "moCallbackTimings": null
         },
         "b": {
           "condition": "B",
-          "heapStart": 1112264,
-          "heapEnd": 1129140,
+          "heapStart": 1101884,
+          "heapEnd": 1118080,
           "domCounters": {
             "documents": 1,
             "nodes": 102,
@@ -421,13 +2540,14 @@
           },
           "longtasks": [],
           "webVitals": {
-            "ttfb": 2,
-            "fcp": 40,
-            "lcp": 40,
+            "ttfb": 1.399999976158142,
+            "fcp": 36,
+            "lcp": 36,
             "cls": 0
           },
           "profile": null,
-          "wallClockMs": 31575
+          "wallClockMs": 61577,
+          "moCallbackTimings": null
         }
       }
     },
@@ -438,8 +2558,8 @@
         {
           "a": {
             "condition": "A",
-            "heapStart": 2769244,
-            "heapEnd": 2853000,
+            "heapStart": 2769248,
+            "heapEnd": 2853196,
             "domCounters": {
               "documents": 1,
               "nodes": 1096,
@@ -447,19 +2567,20 @@
             },
             "longtasks": [],
             "webVitals": {
-              "ttfb": 2.5,
-              "fcp": 44,
-              "lcp": 44,
+              "ttfb": 2.100000023841858,
+              "fcp": 36,
+              "lcp": 36,
               "cls": 0,
               "inp": 16
             },
             "profile": null,
-            "wallClockMs": 34225
+            "wallClockMs": 64244,
+            "moCallbackTimings": null
           },
           "b": {
             "condition": "B",
-            "heapStart": 2972888,
-            "heapEnd": 3070112,
+            "heapStart": 2872332,
+            "heapEnd": 2948988,
             "domCounters": {
               "documents": 1,
               "nodes": 1096,
@@ -468,20 +2589,329 @@
             "longtasks": [],
             "webVitals": {
               "ttfb": 1.600000023841858,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 64238,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2769248,
+            "heapEnd": 2853004,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.1999999284744263,
               "fcp": 40,
               "lcp": 40,
               "cls": 0,
               "inp": 16
             },
             "profile": null,
-            "wallClockMs": 34220
+            "wallClockMs": 64246,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2872556,
+            "heapEnd": 2949212,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.899999976158142,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 64258,
+            "moCallbackTimings": null
           }
         },
         {
           "a": {
             "condition": "A",
-            "heapStart": 2769052,
-            "heapEnd": 2852808,
+            "heapStart": 2769276,
+            "heapEnd": 2853032,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.299999952316284,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 64239,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2872236,
+            "heapEnd": 2948892,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.5,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 64253,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2768928,
+            "heapEnd": 2852684,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 64272,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2870620,
+            "heapEnd": 2947276,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.4000000953674316,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 64274,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2769248,
+            "heapEnd": 2853004,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.200000047683716,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 64267,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2871168,
+            "heapEnd": 2947824,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 64256,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2768784,
+            "heapEnd": 2852540,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.9000000953674316,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 64240,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2871516,
+            "heapEnd": 2948172,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.9000000953674316,
+              "fcp": 32,
+              "lcp": 32,
+              "cls": 0,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 64287,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2769248,
+            "heapEnd": 2853004,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.100000023841858,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 64263,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2871740,
+            "heapEnd": 2948396,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.5,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 64238,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2769248,
+            "heapEnd": 2853004,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.7999999523162842,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 64242,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2871544,
+            "heapEnd": 2948200,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.3000000715255737,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 64249,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2769248,
+            "heapEnd": 2853004,
             "domCounters": {
               "documents": 1,
               "nodes": 1096,
@@ -490,18 +2920,19 @@
             "longtasks": [],
             "webVitals": {
               "ttfb": 2.6999999284744263,
-              "fcp": 36,
-              "lcp": 36,
+              "fcp": 40,
+              "lcp": 40,
               "cls": 0,
-              "inp": 16
+              "inp": 24
             },
             "profile": null,
-            "wallClockMs": 34260
+            "wallClockMs": 64279,
+            "moCallbackTimings": null
           },
           "b": {
             "condition": "B",
-            "heapStart": 2973080,
-            "heapEnd": 3070400,
+            "heapStart": 2871740,
+            "heapEnd": 2948396,
             "domCounters": {
               "documents": 1,
               "nodes": 1096,
@@ -509,21 +2940,22 @@
             },
             "longtasks": [],
             "webVitals": {
-              "ttfb": 1.7999999523162842,
+              "ttfb": 1.399999976158142,
               "fcp": 36,
               "lcp": 36,
               "cls": 0,
-              "inp": 16
+              "inp": 24
             },
             "profile": null,
-            "wallClockMs": 34240
+            "wallClockMs": 64289,
+            "moCallbackTimings": null
           }
         },
         {
           "a": {
             "condition": "A",
-            "heapStart": 2769084,
-            "heapEnd": 2852840,
+            "heapStart": 2769248,
+            "heapEnd": 2853004,
             "domCounters": {
               "documents": 1,
               "nodes": 1096,
@@ -531,19 +2963,20 @@
             },
             "longtasks": [],
             "webVitals": {
-              "ttfb": 1.8000000715255737,
-              "fcp": 36,
-              "lcp": 36,
+              "ttfb": 2.1999999284744263,
+              "fcp": 40,
+              "lcp": 40,
               "cls": 0,
-              "inp": 16
+              "inp": 24
             },
             "profile": null,
-            "wallClockMs": 34223
+            "wallClockMs": 64240,
+            "moCallbackTimings": null
           },
           "b": {
             "condition": "B",
-            "heapStart": 2972892,
-            "heapEnd": 3069480,
+            "heapStart": 2871740,
+            "heapEnd": 2948396,
             "domCounters": {
               "documents": 1,
               "nodes": 1096,
@@ -558,7 +2991,360 @@
               "inp": 16
             },
             "profile": null,
-            "wallClockMs": 34226
+            "wallClockMs": 64257,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2768900,
+            "heapEnd": 2852656,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 3,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 64267,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2870380,
+            "heapEnd": 2947036,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.7000000476837158,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 64258,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2769248,
+            "heapEnd": 2853004,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.5,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 64265,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2871724,
+            "heapEnd": 2948380,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 6.600000023841858,
+              "fcp": 52,
+              "lcp": 52,
+              "cls": 0,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 64254,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2769248,
+            "heapEnd": 2853004,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.7999999523162842,
+              "fcp": 48,
+              "lcp": 48,
+              "cls": 0,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 64249,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2872780,
+            "heapEnd": 2949436,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.8000000715255737,
+              "fcp": 32,
+              "lcp": 32,
+              "cls": 0,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 64269,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2768900,
+            "heapEnd": 2852656,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2,
+              "fcp": 44,
+              "lcp": 44,
+              "cls": 0,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 64298,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2872584,
+            "heapEnd": 2949240,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.899999976158142,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 64263,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2769248,
+            "heapEnd": 2853004,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.899999976158142,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 64300,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2872556,
+            "heapEnd": 2949212,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.5999999046325684,
+              "fcp": 32,
+              "lcp": 32,
+              "cls": 0,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 64254,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2769248,
+            "heapEnd": 2853004,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.799999952316284,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 64264,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2871740,
+            "heapEnd": 2948396,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.8000000715255737,
+              "fcp": 44,
+              "lcp": 44,
+              "cls": 0,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 64263,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2769248,
+            "heapEnd": 2853004,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.200000047683716,
+              "fcp": 44,
+              "lcp": 44,
+              "cls": 0,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 64269,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2871752,
+            "heapEnd": 2948408,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.5,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 64269,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2769084,
+            "heapEnd": 2852840,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.899999976158142,
+              "fcp": 32,
+              "lcp": 32,
+              "cls": 0,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 64276,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2872556,
+            "heapEnd": 2949212,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.6999999284744263,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 64265,
+            "moCallbackTimings": null
           }
         },
         {
@@ -573,19 +3359,20 @@
             },
             "longtasks": [],
             "webVitals": {
-              "ttfb": 1.7999999523162842,
-              "fcp": 36,
-              "lcp": 36,
+              "ttfb": 2.100000023841858,
+              "fcp": 40,
+              "lcp": 40,
               "cls": 0,
               "inp": 24
             },
             "profile": null,
-            "wallClockMs": 34221
+            "wallClockMs": 64295,
+            "moCallbackTimings": null
           },
           "b": {
             "condition": "B",
-            "heapStart": 2972892,
-            "heapEnd": 3069480,
+            "heapStart": 2871708,
+            "heapEnd": 2948364,
             "domCounters": {
               "documents": 1,
               "nodes": 1096,
@@ -593,22 +3380,463 @@
             },
             "longtasks": [],
             "webVitals": {
-              "ttfb": 1.4000000953674316,
+              "ttfb": 1.899999976158142,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 64289,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2769248,
+            "heapEnd": 2853004,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.8000000715255737,
+              "fcp": 52,
+              "lcp": 52,
+              "cls": 0,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 64274,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2871516,
+            "heapEnd": 2948172,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.8000000715255737,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 64275,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2769248,
+            "heapEnd": 2853004,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.8000000715255737,
               "fcp": 40,
               "lcp": 40,
               "cls": 0,
               "inp": 24
             },
             "profile": null,
-            "wallClockMs": 34240
+            "wallClockMs": 64291,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2870620,
+            "heapEnd": 2947276,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.5,
+              "fcp": 28,
+              "lcp": 28,
+              "cls": 0,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 64265,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2769248,
+            "heapEnd": 2853004,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.100000023841858,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 64248,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2872584,
+            "heapEnd": 2949240,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.399999976158142,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 64276,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2769056,
+            "heapEnd": 2852812,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.899999976158142,
+              "fcp": 44,
+              "lcp": 44,
+              "cls": 0,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 64265,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2871768,
+            "heapEnd": 2948424,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.8000000715255737,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 64262,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2769248,
+            "heapEnd": 2853004,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.100000023841858,
+              "fcp": 44,
+              "lcp": 44,
+              "cls": 0,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 64261,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2871740,
+            "heapEnd": 2948396,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.7999999523162842,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 64287,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2769056,
+            "heapEnd": 2852812,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.8000000715255737,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 64258,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2872780,
+            "heapEnd": 2949436,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.5,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 64267,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2769248,
+            "heapEnd": 2853004,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.899999976158142,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 64261,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2871740,
+            "heapEnd": 2948396,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.7999999523162842,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 64280,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2769248,
+            "heapEnd": 2853004,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.200000047683716,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 64251,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2871740,
+            "heapEnd": 2948396,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.399999976158142,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 64280,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2769084,
+            "heapEnd": 2852840,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.7999999523162842,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 64275,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2872780,
+            "heapEnd": 2949436,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.7000000476837158,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 64290,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2769248,
+            "heapEnd": 2853004,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.7999999523162842,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 64266,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2872556,
+            "heapEnd": 2949212,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1096,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.5,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 64273,
+            "moCallbackTimings": null
           }
         }
       ],
       "warmupPair": {
         "a": {
           "condition": "A",
-          "heapStart": 2768972,
-          "heapEnd": 2852728,
+          "heapStart": 2770236,
+          "heapEnd": 2853992,
           "domCounters": {
             "documents": 1,
             "nodes": 1096,
@@ -616,19 +3844,20 @@
           },
           "longtasks": [],
           "webVitals": {
-            "ttfb": 2.299999952316284,
+            "ttfb": 1.7999999523162842,
             "fcp": 40,
             "lcp": 40,
             "cls": 0,
-            "inp": 16
+            "inp": 24
           },
           "profile": null,
-          "wallClockMs": 34249
+          "wallClockMs": 64324,
+          "moCallbackTimings": null
         },
         "b": {
           "condition": "B",
-          "heapStart": 2972856,
-          "heapEnd": 3070176,
+          "heapStart": 2872460,
+          "heapEnd": 2949116,
           "domCounters": {
             "documents": 1,
             "nodes": 1096,
@@ -636,14 +3865,15 @@
           },
           "longtasks": [],
           "webVitals": {
-            "ttfb": 2.100000023841858,
-            "fcp": 40,
-            "lcp": 40,
+            "ttfb": 1.7000000476837158,
+            "fcp": 36,
+            "lcp": 36,
             "cls": 0,
             "inp": 16
           },
           "profile": null,
-          "wallClockMs": 34222
+          "wallClockMs": 64248,
+          "moCallbackTimings": null
         }
       }
     },
@@ -651,6 +3881,490 @@
       "profile": "slow4g",
       "mode": "active",
       "pairs": [
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2775924,
+            "heapEnd": 2859744,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 103
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0.06036521706040471,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 68054,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2873744,
+            "heapEnd": 2949516,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.6999999284744263,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0.05926524153612948,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 68077,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2772548,
+            "heapEnd": 2856368,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 9.299999952316284,
+              "fcp": 56,
+              "lcp": 56,
+              "cls": 0.06036521706040471,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 68071,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2877780,
+            "heapEnd": 2953552,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.7000000476837158,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0.05926524153612948,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 68117,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2772740,
+            "heapEnd": 2856728,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.7999999523162842,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0.06036521706040471,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 68040,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2878308,
+            "heapEnd": 2954080,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.7999999523162842,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0.06036521706040471,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 68025,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2775396,
+            "heapEnd": 2859216,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 103
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0.05926524153612948,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 68044,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2878336,
+            "heapEnd": 2954108,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.5,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0.06036521706040471,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 68032,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2772404,
+            "heapEnd": 2856224,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.600000023841858,
+              "fcp": 44,
+              "lcp": 44,
+              "cls": 0.06036521706040471,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 68031,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2877984,
+            "heapEnd": 2953756,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0.05926524153612948,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 68110,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2772768,
+            "heapEnd": 2856588,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.3000000715255737,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0.06036521706040471,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 68089,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2878264,
+            "heapEnd": 2954036,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.5,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0.06036521706040471,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 68041,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2772348,
+            "heapEnd": 2856168,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0.06036521706040471,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 68085,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2877684,
+            "heapEnd": 2953456,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.6999999284744263,
+              "fcp": 32,
+              "lcp": 32,
+              "cls": 0.05926524153612948,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 68061,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2772212,
+            "heapEnd": 2856032,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.600000023841858,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0.05926524153612948,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 68061,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2878432,
+            "heapEnd": 2954204,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.899999976158142,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0.06036521706040471,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 68032,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2772548,
+            "heapEnd": 2856368,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.399999976158142,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0.06036521706040471,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 68020,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2878292,
+            "heapEnd": 2954064,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0.06036521706040471,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 68034,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2772212,
+            "heapEnd": 2856032,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.600000023841858,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0.05926524153612948,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 68076,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2877900,
+            "heapEnd": 2953672,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.5999999046325684,
+              "fcp": 32,
+              "lcp": 32,
+              "cls": 0.05926524153612948,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 68075,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2772756,
+            "heapEnd": 2856576,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.299999952316284,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0.06036521706040471,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 67991,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2874464,
+            "heapEnd": 2950236,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.1999999284744263,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0.06036521706040471,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 67998,
+            "moCallbackTimings": null
+          }
+        },
         {
           "a": {
             "condition": "A",
@@ -663,19 +4377,196 @@
             },
             "longtasks": [],
             "webVitals": {
-              "ttfb": 1.5999999046325684,
+              "ttfb": 2.600000023841858,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0.06036521706040471,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 68025,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2878336,
+            "heapEnd": 2954108,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.8000000715255737,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0.06036521706040471,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 68044,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2771764,
+            "heapEnd": 2855584,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.7999999523162842,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0.05926524153612948,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 68045,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2878116,
+            "heapEnd": 2953888,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.399999976158142,
               "fcp": 36,
               "lcp": 36,
               "cls": 0.06036521706040471,
               "inp": 24
             },
             "profile": null,
-            "wallClockMs": 38041
+            "wallClockMs": 68030,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2772292,
+            "heapEnd": 2856112,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2.200000047683716,
+              "fcp": 52,
+              "lcp": 52,
+              "cls": 0.06036521706040471,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 68109,
+            "moCallbackTimings": null
           },
           "b": {
             "condition": "B",
-            "heapStart": 2972596,
-            "heapEnd": 3063176,
+            "heapStart": 2873964,
+            "heapEnd": 2949736,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.8000000715255737,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0.05926524153612948,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 68085,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2772076,
+            "heapEnd": 2855896,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0.05926524153612948,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 68115,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2877900,
+            "heapEnd": 2953672,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.2999999523162842,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0.05926524153612948,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 68100,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2772740,
+            "heapEnd": 2856560,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.8000000715255737,
+              "fcp": 48,
+              "lcp": 48,
+              "cls": 0.06036521706040471,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 68058,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2877780,
+            "heapEnd": 2953552,
             "domCounters": {
               "documents": 1,
               "nodes": 1105,
@@ -684,20 +4575,21 @@
             "longtasks": [],
             "webVitals": {
               "ttfb": 1.7999999523162842,
-              "fcp": 36,
-              "lcp": 36,
-              "cls": 0.06036521706040471,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0.05926524153612948,
               "inp": 24
             },
             "profile": null,
-            "wallClockMs": 38037
+            "wallClockMs": 68149,
+            "moCallbackTimings": null
           }
         },
         {
           "a": {
             "condition": "A",
-            "heapStart": 2772068,
-            "heapEnd": 2855888,
+            "heapStart": 2772020,
+            "heapEnd": 2855840,
             "domCounters": {
               "documents": 1,
               "nodes": 1105,
@@ -705,19 +4597,284 @@
             },
             "longtasks": [],
             "webVitals": {
-              "ttfb": 2.600000023841858,
-              "fcp": 36,
-              "lcp": 36,
+              "ttfb": 1.600000023841858,
+              "fcp": 44,
+              "lcp": 44,
+              "cls": 0.05926524153612948,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 68042,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2878404,
+            "heapEnd": 2954176,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.5,
+              "fcp": 32,
+              "lcp": 32,
+              "cls": 0.06036521706040471,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 68058,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2771764,
+            "heapEnd": 2855584,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.600000023841858,
+              "fcp": 44,
+              "lcp": 44,
               "cls": 0.05926524153612948,
               "inp": 24
             },
             "profile": null,
-            "wallClockMs": 38076
+            "wallClockMs": 68056,
+            "moCallbackTimings": null
           },
           "b": {
             "condition": "B",
-            "heapStart": 2972644,
-            "heapEnd": 3063224,
+            "heapStart": 2877900,
+            "heapEnd": 2953672,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.7999999523162842,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0.05926524153612948,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 68128,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2772240,
+            "heapEnd": 2856060,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.7000000476837158,
+              "fcp": 56,
+              "lcp": 56,
+              "cls": 0.05926524153612948,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 68060,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2877928,
+            "heapEnd": 2953700,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.5999999046325684,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0.05926524153612948,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 68114,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2772740,
+            "heapEnd": 2856560,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.899999976158142,
+              "fcp": 44,
+              "lcp": 44,
+              "cls": 0.06036521706040471,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 68050,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2877900,
+            "heapEnd": 2953672,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.8000000715255737,
+              "fcp": 28,
+              "lcp": 28,
+              "cls": 0.05926524153612948,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 68026,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2772292,
+            "heapEnd": 2856112,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.7999999523162842,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0.06036521706040471,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 68047,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2878308,
+            "heapEnd": 2954080,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.5999999046325684,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0.06036521706040471,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 68050,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2772652,
+            "heapEnd": 2856472,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0.06036521706040471,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 68022,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2874392,
+            "heapEnd": 2950164,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.600000023841858,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0.06036521706040471,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 68073,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2772348,
+            "heapEnd": 2856168,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0.06036521706040471,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 68042,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2878456,
+            "heapEnd": 2954228,
             "domCounters": {
               "documents": 1,
               "nodes": 1105,
@@ -732,7 +4889,228 @@
               "inp": 24
             },
             "profile": null,
-            "wallClockMs": 38038
+            "wallClockMs": 68075,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2772292,
+            "heapEnd": 2856112,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.600000023841858,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0.06036521706040471,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 68050,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2873936,
+            "heapEnd": 2949708,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.6999999284744263,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0.05926524153612948,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 68066,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2771792,
+            "heapEnd": 2855612,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.7999999523162842,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0.05926524153612948,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 68101,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2877900,
+            "heapEnd": 2953672,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.5,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0.05926524153612948,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 68073,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2772796,
+            "heapEnd": 2856616,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 2,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0.06036521706040471,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 68053,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2878428,
+            "heapEnd": 2954200,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.600000023841858,
+              "fcp": 40,
+              "lcp": 40,
+              "cls": 0.06036521706040471,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 68052,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2772740,
+            "heapEnd": 2856560,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.7000000476837158,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0.06036521706040471,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 68023,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2877780,
+            "heapEnd": 2953552,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.6999999284744263,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0.05926524153612948,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 68059,
+            "moCallbackTimings": null
+          }
+        },
+        {
+          "a": {
+            "condition": "A",
+            "heapStart": 2771764,
+            "heapEnd": 2855584,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 102
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.9000000953674316,
+              "fcp": 32,
+              "lcp": 32,
+              "cls": 0.05926524153612948,
+              "inp": 24
+            },
+            "profile": null,
+            "wallClockMs": 68117,
+            "moCallbackTimings": null
+          },
+          "b": {
+            "condition": "B",
+            "heapStart": 2878456,
+            "heapEnd": 2954228,
+            "domCounters": {
+              "documents": 1,
+              "nodes": 1105,
+              "jsEventListeners": 123
+            },
+            "longtasks": [],
+            "webVitals": {
+              "ttfb": 1.399999976158142,
+              "fcp": 36,
+              "lcp": 36,
+              "cls": 0.06036521706040471,
+              "inp": 16
+            },
+            "profile": null,
+            "wallClockMs": 68100,
+            "moCallbackTimings": null
           }
         },
         {
@@ -748,18 +5126,19 @@
             "longtasks": [],
             "webVitals": {
               "ttfb": 1.6999999284744263,
-              "fcp": 36,
-              "lcp": 36,
+              "fcp": 40,
+              "lcp": 40,
               "cls": 0.05926524153612948,
               "inp": 24
             },
             "profile": null,
-            "wallClockMs": 38096
+            "wallClockMs": 68106,
+            "moCallbackTimings": null
           },
           "b": {
             "condition": "B",
-            "heapStart": 2972700,
-            "heapEnd": 3063280,
+            "heapStart": 2874392,
+            "heapEnd": 2950164,
             "domCounters": {
               "documents": 1,
               "nodes": 1105,
@@ -767,64 +5146,23 @@
             },
             "longtasks": [],
             "webVitals": {
-              "ttfb": 2,
+              "ttfb": 1.2999999523162842,
               "fcp": 36,
               "lcp": 36,
               "cls": 0.06036521706040471,
               "inp": 24
             },
             "profile": null,
-            "wallClockMs": 38072
-          }
-        },
-        {
-          "a": {
-            "condition": "A",
-            "heapStart": 2772100,
-            "heapEnd": 2855920,
-            "domCounters": {
-              "documents": 1,
-              "nodes": 1105,
-              "jsEventListeners": 102
-            },
-            "longtasks": [],
-            "webVitals": {
-              "ttfb": 1.7999999523162842,
-              "fcp": 40,
-              "lcp": 40,
-              "cls": 0.06036521706040471,
-              "inp": 16
-            },
-            "profile": null,
-            "wallClockMs": 38051
-          },
-          "b": {
-            "condition": "B",
-            "heapStart": 2972596,
-            "heapEnd": 3063176,
-            "domCounters": {
-              "documents": 1,
-              "nodes": 1105,
-              "jsEventListeners": 123
-            },
-            "longtasks": [],
-            "webVitals": {
-              "ttfb": 1.5,
-              "fcp": 36,
-              "lcp": 36,
-              "cls": 0.06036521706040471,
-              "inp": 16
-            },
-            "profile": null,
-            "wallClockMs": 38010
+            "wallClockMs": 68088,
+            "moCallbackTimings": null
           }
         }
       ],
       "warmupPair": {
         "a": {
           "condition": "A",
-          "heapStart": 2772240,
-          "heapEnd": 2856060,
+          "heapStart": 2772268,
+          "heapEnd": 2856088,
           "domCounters": {
             "documents": 1,
             "nodes": 1105,
@@ -832,19 +5170,20 @@
           },
           "longtasks": [],
           "webVitals": {
-            "ttfb": 2.100000023841858,
+            "ttfb": 2,
             "fcp": 36,
             "lcp": 36,
             "cls": 0.05926524153612948,
             "inp": 16
           },
           "profile": null,
-          "wallClockMs": 38082
+          "wallClockMs": 68076,
+          "moCallbackTimings": null
         },
         "b": {
           "condition": "B",
-          "heapStart": 2972116,
-          "heapEnd": 3062696,
+          "heapStart": 2878428,
+          "heapEnd": 2954200,
           "domCounters": {
             "documents": 1,
             "nodes": 1105,
@@ -852,14 +5191,15 @@
           },
           "longtasks": [],
           "webVitals": {
-            "ttfb": 1.899999976158142,
-            "fcp": 32,
-            "lcp": 32,
-            "cls": 0.05926524153612948,
+            "ttfb": 1.3000000715255737,
+            "fcp": 36,
+            "lcp": 36,
+            "cls": 0.06036521706040471,
             "inp": 24
           },
           "profile": null,
-          "wallClockMs": 38066
+          "wallClockMs": 68047,
+          "moCallbackTimings": null
         }
       }
     }
@@ -869,14 +5209,17 @@
       {
         "name": "LCP",
         "unit": "ms",
-        "aMedian": 36,
-        "bMedian": 40,
-        "delta": 4,
-        "aP95": 36,
-        "bP95": 44,
-        "aIqr": 0,
+        "aMedian": 40,
+        "bMedian": 36,
+        "delta": -4,
+        "aP95": 44,
+        "bP95": 40,
+        "aIqr": 4,
         "bIqr": 4,
-        "significance": "significant"
+        "pValue": 0.03293809478036147,
+        "ci95Lower": -6,
+        "ci95Upper": 0,
+        "significance": "measurable"
       },
       {
         "name": "CLS",
@@ -888,6 +5231,9 @@
         "bP95": 0,
         "aIqr": 0,
         "bIqr": 0,
+        "pValue": null,
+        "ci95Lower": null,
+        "ci95Upper": null,
         "significance": "within noise"
       },
       {
@@ -900,43 +5246,55 @@
         "bP95": 0,
         "aIqr": 0,
         "bIqr": 0,
+        "pValue": null,
+        "ci95Lower": null,
+        "ci95Upper": null,
         "significance": "within noise"
       },
       {
         "name": "FCP",
         "unit": "ms",
-        "aMedian": 36,
-        "bMedian": 40,
-        "delta": 4,
-        "aP95": 36,
-        "bP95": 44,
-        "aIqr": 0,
+        "aMedian": 40,
+        "bMedian": 36,
+        "delta": -4,
+        "aP95": 44,
+        "bP95": 40,
+        "aIqr": 4,
         "bIqr": 4,
-        "significance": "significant"
+        "pValue": 0.03293809478036147,
+        "ci95Lower": -6,
+        "ci95Upper": 0,
+        "significance": "measurable"
       },
       {
         "name": "TTFB",
         "unit": "ms",
-        "aMedian": 2.149999976158142,
-        "bMedian": 2.100000023841858,
-        "delta": -0.04999995231628418,
-        "aP95": 2.3000000715255737,
-        "bP95": 2.299999952316284,
-        "aIqr": 0.20000004768371582,
-        "bIqr": 0.19999992847442627,
-        "significance": "within noise"
+        "aMedian": 2.200000047683716,
+        "bMedian": 1.899999976158142,
+        "delta": -0.30000007152557373,
+        "aP95": 2.600000023841858,
+        "bP95": 2.5,
+        "aIqr": 0.30000007152557373,
+        "bIqr": 0.49999988079071045,
+        "pValue": 0.0007144048401919179,
+        "ci95Lower": -0.5499999523162842,
+        "ci95Upper": -0.19999992847442627,
+        "significance": "significant"
       },
       {
         "name": "JSHeapUsedSize delta",
         "unit": "bytes",
         "aMedian": 14496,
-        "bMedian": 17104,
-        "delta": 2608,
-        "aP95": 14496,
-        "bP95": 17104,
+        "bMedian": 16196,
+        "delta": 1700,
+        "aP95": 62112,
+        "bP95": 16196,
         "aIqr": 0,
         "bIqr": 0,
-        "significance": "significant"
+        "pValue": 0.02068509189938661,
+        "ci95Lower": 1586,
+        "ci95Upper": 1700,
+        "significance": "measurable"
       },
       {
         "name": "DOM node delta",
@@ -948,6 +5306,9 @@
         "bP95": 102,
         "aIqr": 0,
         "bIqr": 0,
+        "pValue": null,
+        "ci95Lower": null,
+        "ci95Upper": null,
         "significance": "within noise"
       },
       {
@@ -960,6 +5321,9 @@
         "bP95": 0,
         "aIqr": 0,
         "bIqr": 0,
+        "pValue": null,
+        "ci95Lower": null,
+        "ci95Upper": null,
         "significance": "within noise"
       },
       {
@@ -972,33 +5336,42 @@
         "bP95": 0,
         "aIqr": 0,
         "bIqr": 0,
+        "pValue": null,
+        "ci95Lower": null,
+        "ci95Upper": null,
         "significance": "within noise"
       },
       {
         "name": "Wall clock delta",
         "unit": "ms",
-        "aMedian": 31568,
-        "bMedian": 31567,
-        "delta": -1,
-        "aP95": 31570,
-        "bP95": 31571,
-        "aIqr": 4,
-        "bIqr": 5,
-        "significance": "within noise"
+        "aMedian": 61580,
+        "bMedian": 61578,
+        "delta": -2,
+        "aP95": 61584,
+        "bP95": 61583,
+        "aIqr": 3,
+        "bIqr": 3,
+        "pValue": 0.0011325003502411501,
+        "ci95Lower": -3,
+        "ci95Upper": -1.5,
+        "significance": "significant"
       }
     ],
     "slow4g/idle": [
       {
         "name": "LCP",
         "unit": "ms",
-        "aMedian": 38,
-        "bMedian": 38,
-        "delta": 0,
-        "aP95": 40,
+        "aMedian": 40,
+        "bMedian": 36,
+        "delta": -4,
+        "aP95": 48,
         "bP95": 40,
         "aIqr": 4,
-        "bIqr": 4,
-        "significance": "within noise"
+        "bIqr": 8,
+        "pValue": 0.007481869910950678,
+        "ci95Lower": -8,
+        "ci95Upper": -2,
+        "significance": "significant"
       },
       {
         "name": "CLS",
@@ -1010,6 +5383,9 @@
         "bP95": 0,
         "aIqr": 0,
         "bIqr": 0,
+        "pValue": null,
+        "ci95Lower": null,
+        "ci95Upper": null,
         "significance": "within noise"
       },
       {
@@ -1022,43 +5398,55 @@
         "bP95": 0,
         "aIqr": 0,
         "bIqr": 0,
+        "pValue": null,
+        "ci95Lower": null,
+        "ci95Upper": null,
         "significance": "within noise"
       },
       {
         "name": "FCP",
         "unit": "ms",
-        "aMedian": 38,
-        "bMedian": 38,
-        "delta": 0,
-        "aP95": 40,
+        "aMedian": 40,
+        "bMedian": 36,
+        "delta": -4,
+        "aP95": 48,
         "bP95": 40,
         "aIqr": 4,
-        "bIqr": 4,
-        "significance": "within noise"
+        "bIqr": 8,
+        "pValue": 0.007481869910950678,
+        "ci95Lower": -8,
+        "ci95Upper": -2,
+        "significance": "significant"
       },
       {
         "name": "TTFB",
         "unit": "ms",
-        "aMedian": 2.300000011920929,
-        "bMedian": 2.0000000596046448,
-        "delta": -0.2999999523162842,
-        "aP95": 2.5,
-        "bP95": 2.799999952316284,
-        "aIqr": 0.20000004768371582,
-        "bIqr": 0.9999998807907104,
-        "significance": "measurable"
+        "aMedian": 2.1999999284744263,
+        "bMedian": 1.8000000715255737,
+        "delta": -0.39999985694885254,
+        "aP95": 2.700000047683716,
+        "bP95": 2.399999976158142,
+        "aIqr": 0.5,
+        "bIqr": 0.30000007152557373,
+        "pValue": 0.0004947633297343046,
+        "ci95Lower": -0.550000011920929,
+        "ci95Upper": -0.19999998807907104,
+        "significance": "significant"
       },
       {
         "name": "JSHeapUsedSize delta",
         "unit": "bytes",
         "aMedian": 14496,
-        "bMedian": 17104,
-        "delta": 2608,
-        "aP95": 33024,
-        "bP95": 17104,
-        "aIqr": 18528,
+        "bMedian": 16196,
+        "delta": 1700,
+        "aP95": 14496,
+        "bP95": 16196,
+        "aIqr": 0,
         "bIqr": 0,
-        "significance": "within noise"
+        "pValue": 0.000002705475770747867,
+        "ci95Lower": 1700,
+        "ci95Upper": 1700,
+        "significance": "significant"
       },
       {
         "name": "DOM node delta",
@@ -1070,6 +5458,9 @@
         "bP95": 102,
         "aIqr": 0,
         "bIqr": 0,
+        "pValue": null,
+        "ci95Lower": null,
+        "ci95Upper": null,
         "significance": "within noise"
       },
       {
@@ -1082,6 +5473,9 @@
         "bP95": 0,
         "aIqr": 0,
         "bIqr": 0,
+        "pValue": null,
+        "ci95Lower": null,
+        "ci95Upper": null,
         "significance": "within noise"
       },
       {
@@ -1094,32 +5488,41 @@
         "bP95": 0,
         "aIqr": 0,
         "bIqr": 0,
+        "pValue": null,
+        "ci95Lower": null,
+        "ci95Upper": null,
         "significance": "within noise"
       },
       {
         "name": "Wall clock delta",
         "unit": "ms",
-        "aMedian": 31572,
-        "bMedian": 31580,
-        "delta": 8,
-        "aP95": 31603,
-        "bP95": 31586,
-        "aIqr": 33,
-        "bIqr": 9,
-        "significance": "within noise"
+        "aMedian": 61581,
+        "bMedian": 61579,
+        "delta": -2,
+        "aP95": 61585,
+        "bP95": 61583,
+        "aIqr": 4,
+        "bIqr": 3,
+        "pValue": 0.02989124863528314,
+        "ci95Lower": -4,
+        "ci95Upper": -0.5,
+        "significance": "measurable"
       }
     ],
     "unthrottled/active": [
       {
         "name": "LCP",
         "unit": "ms",
-        "aMedian": 36,
-        "bMedian": 40,
-        "delta": 4,
-        "aP95": 44,
-        "bP95": 40,
-        "aIqr": 8,
-        "bIqr": 0,
+        "aMedian": 40,
+        "bMedian": 36,
+        "delta": -4,
+        "aP95": 48,
+        "bP95": 44,
+        "aIqr": 4,
+        "bIqr": 4,
+        "pValue": 0.056914460134941613,
+        "ci95Lower": -6,
+        "ci95Upper": 0,
         "significance": "within noise"
       },
       {
@@ -1132,54 +5535,69 @@
         "bP95": 0,
         "aIqr": 0,
         "bIqr": 0,
+        "pValue": null,
+        "ci95Lower": null,
+        "ci95Upper": null,
         "significance": "within noise"
       },
       {
         "name": "INP",
         "unit": "ms",
-        "aMedian": 16,
-        "bMedian": 16,
+        "aMedian": 24,
+        "bMedian": 24,
         "delta": 0,
         "aP95": 24,
         "bP95": 24,
         "aIqr": 8,
         "bIqr": 8,
+        "pValue": 0.8067664276648829,
+        "ci95Lower": -8,
+        "ci95Upper": 8,
         "significance": "within noise"
       },
       {
         "name": "FCP",
         "unit": "ms",
-        "aMedian": 36,
-        "bMedian": 40,
-        "delta": 4,
-        "aP95": 44,
-        "bP95": 40,
-        "aIqr": 8,
-        "bIqr": 0,
+        "aMedian": 40,
+        "bMedian": 36,
+        "delta": -4,
+        "aP95": 48,
+        "bP95": 44,
+        "aIqr": 4,
+        "bIqr": 4,
+        "pValue": 0.056914460134941613,
+        "ci95Lower": -6,
+        "ci95Upper": 0,
         "significance": "within noise"
       },
       {
         "name": "TTFB",
         "unit": "ms",
-        "aMedian": 2.150000035762787,
-        "bMedian": 1.5000000596046448,
-        "delta": -0.6499999761581421,
-        "aP95": 2.6999999284744263,
-        "bP95": 1.7999999523162842,
-        "aIqr": 0.8999998569488525,
-        "bIqr": 0.39999985694885254,
-        "significance": "within noise"
+        "aMedian": 2.100000023841858,
+        "bMedian": 1.7000000476837158,
+        "delta": -0.3999999761581421,
+        "aP95": 2.899999976158142,
+        "bP95": 2.8000000715255737,
+        "aIqr": 0.30000007152557373,
+        "bIqr": 0.3999999761581421,
+        "pValue": 0.0004734171392966058,
+        "ci95Lower": -0.6000000238418579,
+        "ci95Upper": -0.24999994039535522,
+        "significance": "significant"
       },
       {
         "name": "JSHeapUsedSize delta",
         "unit": "bytes",
         "aMedian": 83756,
-        "bMedian": 96906,
-        "delta": 13150,
+        "bMedian": 76656,
+        "delta": -7100,
         "aP95": 83756,
-        "bP95": 97320,
+        "bP95": 76656,
         "aIqr": 0,
-        "bIqr": 732,
+        "bIqr": 0,
+        "pValue": 0.000002705475770747867,
+        "ci95Lower": -7100,
+        "ci95Upper": -7100,
         "significance": "significant"
       },
       {
@@ -1192,6 +5610,9 @@
         "bP95": 1096,
         "aIqr": 0,
         "bIqr": 0,
+        "pValue": null,
+        "ci95Lower": null,
+        "ci95Upper": null,
         "significance": "within noise"
       },
       {
@@ -1204,6 +5625,9 @@
         "bP95": 0,
         "aIqr": 0,
         "bIqr": 0,
+        "pValue": null,
+        "ci95Lower": null,
+        "ci95Upper": null,
         "significance": "within noise"
       },
       {
@@ -1216,18 +5640,24 @@
         "bP95": 0,
         "aIqr": 0,
         "bIqr": 0,
+        "pValue": null,
+        "ci95Lower": null,
+        "ci95Upper": null,
         "significance": "within noise"
       },
       {
         "name": "Wall clock delta",
         "unit": "ms",
-        "aMedian": 34224,
-        "bMedian": 34233,
-        "delta": 9,
-        "aP95": 34260,
-        "bP95": 34240,
-        "aIqr": 37,
-        "bIqr": 14,
+        "aMedian": 64265,
+        "bMedian": 64265,
+        "delta": 0,
+        "aP95": 64298,
+        "bP95": 64289,
+        "aIqr": 25,
+        "bIqr": 19,
+        "pValue": 0.35049559874150926,
+        "ci95Lower": -5,
+        "ci95Upper": 11,
         "significance": "within noise"
       }
     ],
@@ -1235,74 +5665,92 @@
       {
         "name": "LCP",
         "unit": "ms",
-        "aMedian": 36,
-        "bMedian": 36,
+        "aMedian": 40,
+        "bMedian": 40,
         "delta": 0,
-        "aP95": 40,
-        "bP95": 36,
-        "aIqr": 4,
-        "bIqr": 0,
-        "significance": "within noise"
+        "aP95": 56,
+        "bP95": 40,
+        "aIqr": 8,
+        "bIqr": 4,
+        "pValue": 0.02422364857176751,
+        "ci95Lower": -8,
+        "ci95Upper": 0,
+        "significance": "measurable"
       },
       {
         "name": "CLS",
         "unit": "",
-        "aMedian": 0.05981522929826709,
+        "aMedian": 0.06036521706040471,
         "bMedian": 0.06036521706040471,
-        "delta": 0.0005499877621376187,
+        "delta": 0,
         "aP95": 0.06036521706040471,
         "bP95": 0.06036521706040471,
         "aIqr": 0.0010999755242752304,
-        "bIqr": 0,
+        "bIqr": 0.0010999755242752304,
+        "pValue": 0.4955207482565771,
+        "ci95Lower": -0.0010999755242752304,
+        "ci95Upper": 0,
         "significance": "within noise"
       },
       {
         "name": "INP",
         "unit": "ms",
-        "aMedian": 24,
+        "aMedian": 16,
         "bMedian": 24,
-        "delta": 0,
+        "delta": 8,
         "aP95": 24,
         "bP95": 24,
-        "aIqr": 0,
-        "bIqr": 0,
+        "aIqr": 8,
+        "bIqr": 8,
+        "pValue": 0.2621927023870332,
+        "ci95Lower": 0,
+        "ci95Upper": 8,
         "significance": "within noise"
       },
       {
         "name": "FCP",
         "unit": "ms",
-        "aMedian": 36,
-        "bMedian": 36,
+        "aMedian": 40,
+        "bMedian": 40,
         "delta": 0,
-        "aP95": 40,
-        "bP95": 36,
-        "aIqr": 4,
-        "bIqr": 0,
-        "significance": "within noise"
+        "aP95": 56,
+        "bP95": 40,
+        "aIqr": 8,
+        "bIqr": 4,
+        "pValue": 0.02422364857176751,
+        "ci95Lower": -8,
+        "ci95Upper": 0,
+        "significance": "measurable"
       },
       {
         "name": "TTFB",
         "unit": "ms",
-        "aMedian": 1.7499999403953552,
-        "bMedian": 1.649999976158142,
-        "delta": -0.09999996423721313,
+        "aMedian": 2,
+        "bMedian": 1.6999999284744263,
+        "delta": -0.30000007152557373,
         "aP95": 2.600000023841858,
-        "bP95": 2,
-        "aIqr": 0.9000000953674316,
-        "bIqr": 0.5,
-        "significance": "within noise"
+        "bP95": 2.1999999284744263,
+        "aIqr": 0.5,
+        "bIqr": 0.2999999523162842,
+        "pValue": 0.00003954625045854421,
+        "ci95Lower": -0.5,
+        "ci95Upper": -0.20000004768371582,
+        "significance": "significant"
       },
       {
         "name": "JSHeapUsedSize delta",
         "unit": "bytes",
         "aMedian": 83820,
-        "bMedian": 90580,
-        "delta": 6760,
+        "bMedian": 75772,
+        "delta": -8048,
         "aP95": 83820,
-        "bP95": 90580,
+        "bP95": 75772,
         "aIqr": 0,
         "bIqr": 0,
-        "significance": "measurable"
+        "pValue": 0.000002705475770747867,
+        "ci95Lower": -8048,
+        "ci95Upper": -8048,
+        "significance": "significant"
       },
       {
         "name": "DOM node delta",
@@ -1314,6 +5762,9 @@
         "bP95": 1105,
         "aIqr": 0,
         "bIqr": 0,
+        "pValue": null,
+        "ci95Lower": null,
+        "ci95Upper": null,
         "significance": "within noise"
       },
       {
@@ -1326,6 +5777,9 @@
         "bP95": 0,
         "aIqr": 0,
         "bIqr": 0,
+        "pValue": null,
+        "ci95Lower": null,
+        "ci95Upper": null,
         "significance": "within noise"
       },
       {
@@ -1338,18 +5792,24 @@
         "bP95": 0,
         "aIqr": 0,
         "bIqr": 0,
+        "pValue": null,
+        "ci95Lower": null,
+        "ci95Upper": null,
         "significance": "within noise"
       },
       {
         "name": "Wall clock delta",
         "unit": "ms",
-        "aMedian": 38063.5,
-        "bMedian": 38037.5,
-        "delta": -26,
-        "aP95": 38096,
-        "bP95": 38072,
-        "aIqr": 45,
-        "bIqr": 35,
+        "aMedian": 68053,
+        "bMedian": 68066,
+        "delta": 13,
+        "aP95": 68115,
+        "bP95": 68128,
+        "aIqr": 34,
+        "bIqr": 47,
+        "pValue": 0.3198981416581099,
+        "ci95Lower": -6,
+        "ci95Upper": 24,
         "significance": "within noise"
       }
     ]

@@ -2,11 +2,14 @@ import {
   type BenchmarkReport,
   type MetricSummary,
   type ScenarioResult,
+  type StressScenarioResult,
   type PairResult,
+  type MoTimingSummary,
   type SignificanceLabel,
   type ThrottleProfileName,
   THROTTLE_PROFILES,
 } from "./types";
+import { wilcoxonSignedRank, hodgesLehmann, significanceLabelFromP } from "./stats";
 
 // ── HTML escaping ────────────────────────────────────────────────────
 
@@ -148,7 +151,11 @@ function extractMetrics(
     const aMed = median(aValues);
     const bMed = median(bValues);
     const deltaVal = bMed - aMed;
-    const aIqrVal = iqr(aValues);
+
+    // Paired differences for statistical tests
+    const diffs = pairs.map((p) => def.extractB(p) - def.extractA(p));
+    const wilcoxon = wilcoxonSignedRank(diffs);
+    const hl = hodgesLehmann(diffs);
 
     return {
       name: def.name,
@@ -158,9 +165,12 @@ function extractMetrics(
       delta: deltaVal,
       aP95: percentile95(aValues),
       bP95: percentile95(bValues),
-      aIqr: aIqrVal,
+      aIqr: iqr(aValues),
       bIqr: iqr(bValues),
-      significance: significanceLabel(deltaVal, aMed, aIqrVal),
+      pValue: wilcoxon.pValue,
+      ci95Lower: hl.ci95Lower,
+      ci95Upper: hl.ci95Upper,
+      significance: significanceLabelFromP(wilcoxon.pValue),
     };
   });
 }
@@ -178,6 +188,22 @@ function formatNum(val: number, unit: string): string {
   if (unit === "bytes") return formatBytes(val);
   if (unit === "") return val.toFixed(3);
   return `${Math.round(val * 100) / 100}${unit}`;
+}
+
+function formatProfileLabel(name: ThrottleProfileName, profile: { cpu: number; network: { latency: number; downloadThroughput: number } | null }): string {
+  if (name === "unthrottled") return "Unthrottled";
+  if (name === "cpu4x") return "CPU 4x throttle";
+  if (name === "slow4g-cpu4x") {
+    return `Slow 4G + CPU 4x (${profile.network?.latency}ms RTT, ${((profile.network?.downloadThroughput ?? 0) * 8 / 1_000_000).toFixed(1)}Mbps down)`;
+  }
+  // slow4g
+  return `Slow 4G (${profile.network?.latency}ms RTT, ${((profile.network?.downloadThroughput ?? 0) * 8 / 1_000_000).toFixed(1)}Mbps down)`;
+}
+
+function formatPValue(p: number | null): string {
+  if (p === null) return "n/a";
+  if (p < 0.001) return "<0.001";
+  return p.toFixed(3);
 }
 
 function scenarioKey(scenario: ScenarioResult): string {
@@ -259,30 +285,36 @@ export function generateMarkdown(report: BenchmarkReport): string {
     if (!profileMetrics) continue;
 
     const profile = THROTTLE_PROFILES[scenario.profile];
-    const profileLabel =
-      scenario.profile === "unthrottled"
-        ? "Unthrottled"
-        : `Slow 4G (${profile.network?.latency}ms RTT, ${((profile.network?.downloadThroughput ?? 0) * 8 / 1_000_000).toFixed(1)}Mbps down)`;
+    const profileLabel = formatProfileLabel(scenario.profile, profile);
     const modeLabel = scenario.mode === "active" ? "active" : "idle soak";
+    const baselinePrefix = scenario.isBaseline ? "A-vs-A Baseline: " : "Results: ";
 
-    lines.push(`## Results: ${profileLabel} (${modeLabel})`);
+    lines.push(`## ${baselinePrefix}${profileLabel} (${modeLabel})`);
     lines.push("");
+    const aLabel = scenario.isBaseline ? "A1" : "A (without agent)";
+    const bLabel = scenario.isBaseline ? "A2" : "B (with agent)";
+
     lines.push(
-      `| Metric | A (without agent) | B (with agent) | Delta | Significance |`,
+      `| Metric | ${aLabel} | ${bLabel} | Delta | 95% CI | p-value | Significance |`,
     );
-    lines.push(`|---|---|---|---|---|`);
+    lines.push(`|---|---|---|---|---|---|---|`);
 
     for (const m of profileMetrics) {
       // INP is not meaningful in idle mode (no interactions)
       if (m.name === "INP" && scenario.mode === "idle" && m.aMedian === 0 && m.bMedian === 0) {
-        lines.push(`| ${e(m.name)} | n/a (no interactions) | n/a | n/a | n/a |`);
+        lines.push(`| ${e(m.name)} | n/a (no interactions) | n/a | n/a | n/a | n/a | n/a |`);
         continue;
       }
       const aStr = formatNum(m.aMedian, m.unit);
       const bStr = formatNum(m.bMedian, m.unit);
       const deltaStr = `${m.delta >= 0 ? "+" : ""}${formatNum(m.delta, m.unit)}`;
+      const ciStr =
+        m.ci95Lower !== null && m.ci95Upper !== null
+          ? `[${m.ci95Lower >= 0 ? "+" : ""}${formatNum(m.ci95Lower, m.unit)}, ${m.ci95Upper >= 0 ? "+" : ""}${formatNum(m.ci95Upper, m.unit)}]`
+          : "n/a";
+      const pStr = formatPValue(m.pValue);
       lines.push(
-        `| ${e(m.name)} | ${aStr} (p95: ${formatNum(m.aP95, m.unit)}, IQR: ${formatNum(m.aIqr, m.unit)}) | ${bStr} (p95: ${formatNum(m.bP95, m.unit)}, IQR: ${formatNum(m.bIqr, m.unit)}) | ${deltaStr} | ${m.significance} |`,
+        `| ${e(m.name)} | ${aStr} (p95: ${formatNum(m.aP95, m.unit)}, IQR: ${formatNum(m.aIqr, m.unit)}) | ${bStr} (p95: ${formatNum(m.bP95, m.unit)}, IQR: ${formatNum(m.bIqr, m.unit)}) | ${deltaStr} | ${ciStr} | ${pStr} | ${m.significance} |`,
       );
     }
     lines.push("");
@@ -327,13 +359,27 @@ export function generateMarkdown(report: BenchmarkReport): string {
       "(following the Lighthouse convention).",
   );
   lines.push("");
+  lines.push(
+    "Statistical significance is assessed via the Wilcoxon signed-rank test (two-tailed, " +
+      "non-parametric) on paired A-B differences. The 95% confidence interval is the Hodges-Lehmann " +
+      "estimator over Walsh averages. p < 0.01 = significant, 0.01 \u2264 p < 0.05 = measurable, " +
+      "p \u2265 0.05 = within noise.",
+  );
+  lines.push("");
 
   // 5. Caveats
   lines.push("## Caveats");
   lines.push("");
-  lines.push(
-    "- This report measures **cold load + idle soak** only. Scripted user interactions are not included.",
-  );
+  const hasActive = report.scenarios.some((s) => s.mode === "active");
+  if (hasActive) {
+    lines.push(
+      "- This report measures **cold load + idle soak** and **scripted active-state interactions**.",
+    );
+  } else {
+    lines.push(
+      "- This report measures **cold load + idle soak** only. Scripted user interactions are not included.",
+    );
+  }
   lines.push(
     "- INP is a lab estimate in headless Chromium. Real-user INP requires actual interaction.",
   );
@@ -364,6 +410,135 @@ export function generateMarkdown(report: BenchmarkReport): string {
   return lines.join("\n");
 }
 
+// ── Stress report generation ─────────────────────────────────────────
+
+export function generateStressMarkdown(
+  stressResults: StressScenarioResult[],
+  env: BenchmarkReport["environment"],
+): string {
+  const e = escapeHtml;
+  const lines: string[] = [];
+
+  lines.push("# Faultsense Stress Benchmark Report");
+  lines.push("");
+  lines.push(
+    `**faultsense ${e(env.agentVersion)}** stress scaling curve. ` +
+      `${stressResults.length} configurations, ${env.pairsCount} pairs each.`,
+  );
+  lines.push("");
+
+  // Environment (reuse same format)
+  lines.push("## Environment");
+  lines.push("");
+  lines.push(`| Field | Value |`);
+  lines.push(`|---|---|`);
+  lines.push(`| Machine | ${e(env.machine)} |`);
+  lines.push(`| OS | ${e(env.os)} |`);
+  lines.push(`| CPU | ${e(env.cpuModel)} (${env.cpuCores} cores) |`);
+  lines.push(`| RAM | ${env.ramGB}GB |`);
+  lines.push(`| Chromium | ${e(env.chromiumRevision)} |`);
+  lines.push(`| Agent version | ${e(env.agentVersion)} |`);
+  lines.push(`| Agent commit | ${e(env.agentCommitSha)} |`);
+  lines.push(`| Timestamp (UTC) | ${e(env.timestamp)} |`);
+  lines.push(`| Pairs (including 1 warmup) | ${env.pairsCount} |`);
+  lines.push(`| Soak duration | ${env.soakMs / 1000}s |`);
+  lines.push("");
+
+  // Scaling curve table
+  lines.push("## Scaling Curve");
+  lines.push("");
+  lines.push(
+    "| Assertions | Churn (mut/s) | Profile | MO P50 | MO P95 | MO P99 | " +
+      "INP \u0394 | Heap \u0394 | Long Tasks \u0394 | p-value (heap) |",
+  );
+  lines.push(`|---|---|---|---|---|---|---|---|---|---|`);
+
+  for (const sr of stressResults) {
+    if (sr.isBaseline) continue;
+    const cfg = sr.stressConfig;
+    const metrics = extractMetrics(sr);
+    const inp = metrics.find((m) => m.name === "INP");
+    const heap = metrics.find((m) => m.name === "JSHeapUsedSize delta");
+    const lt = metrics.find((m) => m.name === "Long task count");
+    const mo = sr.moTimingSummary;
+
+    lines.push(
+      `| ${cfg.assertions} | ${cfg.churnRate} | ${sr.profile} ` +
+        `| ${mo ? formatNum(mo.p50, "ms") : "n/a"} ` +
+        `| ${mo ? formatNum(mo.p95, "ms") : "n/a"} ` +
+        `| ${mo ? formatNum(mo.p99, "ms") : "n/a"} ` +
+        `| ${inp ? `${inp.delta >= 0 ? "+" : ""}${formatNum(inp.delta, "ms")}` : "n/a"} ` +
+        `| ${heap ? `${heap.delta >= 0 ? "+" : ""}${formatBytes(heap.delta)}` : "n/a"} ` +
+        `| ${lt ? `${lt.delta >= 0 ? "+" : ""}${lt.delta.toFixed(0)}` : "n/a"} ` +
+        `| ${heap ? formatPValue(heap.pValue) : "n/a"} |`,
+    );
+  }
+  lines.push("");
+
+  // Per-config detailed tables
+  for (const sr of stressResults) {
+    const cfg = sr.stressConfig;
+    const label = sr.isBaseline
+      ? `A-vs-A Baseline (${cfg.assertions} assertions, ${cfg.churnRate} churn/s)`
+      : `${cfg.assertions} assertions, ${cfg.churnRate} churn/s`;
+    const profileLabel = formatProfileLabel(sr.profile, THROTTLE_PROFILES[sr.profile]);
+    lines.push(`## ${sr.isBaseline ? "Baseline: " : ""}${label} \u2014 ${profileLabel}`);
+    lines.push("");
+
+    const metrics = extractMetrics(sr);
+    const aLabel = sr.isBaseline ? "A1" : "A (without agent)";
+    const bLabel = sr.isBaseline ? "A2" : "B (with agent)";
+    lines.push(
+      `| Metric | ${aLabel} | ${bLabel} | Delta | 95% CI | p-value | Significance |`,
+    );
+    lines.push(`|---|---|---|---|---|---|---|`);
+
+    for (const m of metrics) {
+      const aStr = formatNum(m.aMedian, m.unit);
+      const bStr = formatNum(m.bMedian, m.unit);
+      const deltaStr = `${m.delta >= 0 ? "+" : ""}${formatNum(m.delta, m.unit)}`;
+      const ciStr =
+        m.ci95Lower !== null && m.ci95Upper !== null
+          ? `[${m.ci95Lower >= 0 ? "+" : ""}${formatNum(m.ci95Lower, m.unit)}, ${m.ci95Upper >= 0 ? "+" : ""}${formatNum(m.ci95Upper, m.unit)}]`
+          : "n/a";
+      lines.push(
+        `| ${e(m.name)} | ${aStr} | ${bStr} | ${deltaStr} | ${ciStr} | ${formatPValue(m.pValue)} | ${m.significance} |`,
+      );
+    }
+
+    // MO timing summary for this config
+    if (sr.moTimingSummary) {
+      const mo = sr.moTimingSummary;
+      lines.push("");
+      lines.push(
+        `**MutationObserver callback timing** (${mo.count} callbacks): ` +
+          `P50 ${formatNum(mo.p50, "ms")}, P95 ${formatNum(mo.p95, "ms")}, P99 ${formatNum(mo.p99, "ms")}`,
+      );
+    }
+    lines.push("");
+  }
+
+  // Methodology
+  lines.push("## Methodology");
+  lines.push("");
+  lines.push(
+    "Each configuration runs a React 19 stress harness with configurable assertion density " +
+      "and background DOM churn. Assertions cycle through 8 archetypes (click\u2192updated, " +
+      "click\u2192added, click\u2192removed, input\u2192visible, submit\u2192conditional, " +
+      "mount\u2192visible, invariant\u2192stable, click\u2192OOB chain) to exercise all " +
+      "resolver code paths.",
+  );
+  lines.push("");
+  lines.push(
+    "MutationObserver callback timing is captured by wrapping the MutationObserver constructor " +
+      "before agent load, adding performance.mark/measure around each callback invocation. " +
+      "The wrapper adds <0.01ms overhead per callback.",
+  );
+  lines.push("");
+
+  return lines.join("\n");
+}
+
 export function generateJson(report: BenchmarkReport): string {
   const metrics = computeMetrics(report);
   // Strip CPU profiler data from JSON output — it's 100MB+ and not useful
@@ -375,12 +550,12 @@ export function generateJson(report: BenchmarkReport): string {
     scenarios: report.scenarios.map((s) => ({
       ...s,
       pairs: s.pairs.map((p) => ({
-        a: { ...p.a, profile: null },
-        b: { ...p.b, profile: null },
+        a: { ...p.a, profile: null, moCallbackTimings: null },
+        b: { ...p.b, profile: null, moCallbackTimings: null },
       })),
       warmupPair: {
-        a: { ...s.warmupPair.a, profile: null },
-        b: { ...s.warmupPair.b, profile: null },
+        a: { ...s.warmupPair.a, profile: null, moCallbackTimings: null },
+        b: { ...s.warmupPair.b, profile: null, moCallbackTimings: null },
       },
     })),
   };

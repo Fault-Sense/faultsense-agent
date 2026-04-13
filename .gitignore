@@ -60,3 +60,5 @@ conformance/liveview/.elixir_ls
 # Benchmark tool local results (url-mode output; docs/performance/ is committed)
 tools/benchmark/results/
 tools/benchmark/test-results/
+tools/benchmark/stress/node_modules/
+tools/benchmark/stress/dist/

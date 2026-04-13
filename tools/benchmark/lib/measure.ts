@@ -113,7 +113,11 @@ async function runMeasurement(
       await page.addInitScript({ path: config.atRestScrubPath });
     }
 
-    if (condition === "B") {
+    if (condition === "B" && !config.baselineMode) {
+      // MO timing wrapper must load BEFORE the agent so it intercepts the constructor
+      if (config.moTimingWrapperPath) {
+        await page.addInitScript({ path: config.moTimingWrapperPath });
+      }
       await page.addInitScript({ path: config.agentPath });
       await page.addInitScript({ path: config.initWrapperPath });
     }
@@ -191,6 +195,11 @@ async function runMeasurement(
     const webVitals: WebVitalsResult = await page.evaluate(
       () => window.__fsBench.webVitals,
     );
+    // Collect MO callback timings before closing the page
+    const moCallbackTimings = config.moTimingWrapperPath && condition === "B"
+      ? await page.evaluate(() => window.__fsBench.moTimings || []).catch(() => null)
+      : null;
+
     debugLog(`    [${condition}] done (${Date.now() - navStart}ms)`);
 
     const wallClockMs = Date.now() - navStart;
@@ -207,6 +216,7 @@ async function runMeasurement(
       webVitals,
       profile: profileResult?.profile ?? null,
       wallClockMs,
+      moCallbackTimings,
     };
   } catch (err) {
     await page.close().catch(() => {});
@@ -260,6 +270,10 @@ export interface RunOptions {
   isDemo?: boolean;
   interactFn?: (page: import("@playwright/test").Page) => Promise<void>;
   resetUrl?: string;
+  baselineMode?: boolean;
+  moTimingWrapperPath?: string;
+  profiles?: ThrottleProfileName[];
+  modes?: ("idle" | "active")[];
 }
 
 export async function runBenchmark(
@@ -295,13 +309,19 @@ export async function runBenchmark(
   process.on("SIGINT", sigintHandler);
 
   const scenarios: ScenarioResult[] = [];
-  const profiles: ThrottleProfileName[] = ["unthrottled", "slow4g"];
+  const profiles: ThrottleProfileName[] = options.profiles ?? ["unthrottled", "slow4g"];
 
   // Build scenario configs: idle (always), active (if interactFn provided)
+  // Override with options.modes to run only specific modes (e.g., stress only needs active)
   type ScenarioSpec = { mode: "idle" | "active"; label: string };
-  const modes: ScenarioSpec[] = [{ mode: "idle", label: "idle soak" }];
-  if (options.interactFn) {
-    modes.push({ mode: "active", label: "active" });
+  let modes: ScenarioSpec[];
+  if (options.modes) {
+    modes = options.modes.map((m) => ({ mode: m, label: m === "active" ? "active" : "idle soak" }));
+  } else {
+    modes = [{ mode: "idle", label: "idle soak" }];
+    if (options.interactFn) {
+      modes.push({ mode: "active", label: "active" });
+    }
   }
 
   const baseInjection = {
@@ -344,6 +364,12 @@ export async function runBenchmark(
                 resetUrl: options.resetUrl,
               }
             : {}),
+          // A-vs-A baseline: condition B runs without agent
+          ...(options.baselineMode ? { baselineMode: true } : {}),
+          // MO callback timing wrapper
+          ...(options.moTimingWrapperPath
+            ? { moTimingWrapperPath: options.moTimingWrapperPath }
+            : {}),
         };
 
         const pairs: PairResult[] = [];
@@ -357,8 +383,8 @@ export async function runBenchmark(
           );
           const pair = await runPair(config, i, signal);
 
-          // Post-nav sanity check on first B measurement (once per run)
-          if (!injectionChecked && i === 0) {
+          // Post-nav sanity check on first B measurement (once per run, skip in baseline mode)
+          if (!injectionChecked && i === 0 && !options.baselineMode) {
             injectionChecked = true;
             const browser = await chromium.launch({ headless: false });
             try {
@@ -387,6 +413,7 @@ export async function runBenchmark(
           mode,
           pairs,
           warmupPair: warmupPair!,
+          ...(options.baselineMode ? { isBaseline: true } : {}),
         });
       }
     }

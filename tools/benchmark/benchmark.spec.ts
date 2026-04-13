@@ -38,7 +38,7 @@ test("performance benchmark", async () => {
 
   const allowCi = process.argv.includes("--allow-ci");
 
-  const pairsCount = parseInt(process.env.FS_BENCH_PAIRS ?? "10", 10);
+  const pairsCount = parseInt(process.env.FS_BENCH_PAIRS ?? "30", 10);
   const soakMs = parseInt(process.env.FS_BENCH_SOAK_MS ?? "60000", 10);
 
   const port = process.env.FS_BENCH_PORT ?? "3099";

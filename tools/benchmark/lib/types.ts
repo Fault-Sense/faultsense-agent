@@ -8,7 +8,9 @@ declare global {
       longtasks: PerformanceEntry[];
       webVitals: WebVitalsResult;
       finalized: boolean;
+      moTimings?: { durationMs: number }[];
     };
+    __fsBenchStressTrigger?: boolean;
     Faultsense?: {
       init: (config: Record<string, unknown>) => void;
       cleanup: () => void;
@@ -40,12 +42,22 @@ export interface ThrottleProfile {
   network: NetworkConditions | null;
 }
 
-export type ThrottleProfileName = "unthrottled" | "slow4g";
+export type ThrottleProfileName = "unthrottled" | "slow4g" | "cpu4x" | "slow4g-cpu4x";
 
 export const THROTTLE_PROFILES: Record<ThrottleProfileName, ThrottleProfile> = {
   unthrottled: { cpu: 1, network: null },
   slow4g: {
     cpu: 1,
+    network: {
+      offline: false,
+      latency: 562.5,
+      downloadThroughput: 180_000,
+      uploadThroughput: 84_375,
+    },
+  },
+  cpu4x: { cpu: 4, network: null },
+  "slow4g-cpu4x": {
+    cpu: 4,
     network: {
       offline: false,
       latency: 562.5,
@@ -66,6 +78,7 @@ export interface Measurement {
   webVitals: WebVitalsResult;
   profile: Protocol.Profiler.Profile | null;
   wallClockMs: number;
+  moCallbackTimings: { durationMs: number }[] | null;
 }
 
 export interface PairResult {
@@ -80,6 +93,7 @@ export interface ScenarioResult {
   mode: ScenarioMode;
   pairs: PairResult[];
   warmupPair: PairResult;
+  isBaseline?: boolean;
 }
 
 // ── Scenario config ──────────────────────────────────────────────────
@@ -97,8 +111,10 @@ export interface ScenarioConfig {
   webVitalsIifePath: string;
   webVitalsCollectorPath: string;
   atRestScrubPath?: string;
+  moTimingWrapperPath?: string;
   interactFn?: (page: import("@playwright/test").Page) => Promise<void>;
   resetUrl?: string;
+  baselineMode?: boolean;
 }
 
 // ── Environment info ─────────────────────────────────────────────────
@@ -137,7 +153,30 @@ export interface MetricSummary {
   bP95: number;
   aIqr: number;
   bIqr: number;
+  pValue: number | null;
+  ci95Lower: number | null;
+  ci95Upper: number | null;
   significance: SignificanceLabel;
+}
+
+// ── Stress benchmark types ──────────────────────────────────────────
+
+export interface StressConfig {
+  assertions: number;
+  churnRate: number;
+  churnNodes: number;
+}
+
+export interface MoTimingSummary {
+  p50: number;
+  p95: number;
+  p99: number;
+  count: number;
+}
+
+export interface StressScenarioResult extends ScenarioResult {
+  stressConfig: StressConfig;
+  moTimingSummary: MoTimingSummary | null;
 }
 
 export interface BenchmarkReport {
