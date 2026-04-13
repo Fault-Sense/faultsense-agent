@@ -127,3 +127,5 @@ Faultsense.setUserContext({ userId: 'u_123', plan: 'pro' });
 
 - `npm test` — run vitest (jsdom environment)
 - `npm run build` — esbuild → `dist/faultsense-agent.min.js` (IIFE, minified)
+- `npm run benchmark -- <URL>` — run performance benchmark against any public URL
+- `npm run benchmark:demo` — run benchmark against `examples/todolist-htmx`, writes to `docs/performance/current.md`

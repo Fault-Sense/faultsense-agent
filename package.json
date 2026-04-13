@@ -39,15 +39,21 @@
     "test": "vitest",
     "conformance": "playwright test --config=conformance/playwright.config.ts",
     "conformance:install": "playwright install --with-deps chromium",
-    "conformance:matrix": "npm run conformance && node conformance/scripts/generate-matrix.js"
+    "conformance:matrix": "npm run conformance && node conformance/scripts/generate-matrix.js",
+    "benchmark": "FS_BENCH_MODE=url playwright test --config=tools/benchmark/playwright.config.ts",
+    "benchmark:demo": "FS_BENCH_MODE=demo playwright test --config=tools/benchmark/playwright.config.ts",
+    "benchmark:stress": "FS_BENCH_MODE=stress playwright test --config=tools/benchmark/playwright.config.ts --project=stress",
+    "benchmark:ava": "FS_BENCH_MODE=ava playwright test --config=tools/benchmark/playwright.config.ts"
   },
   "devDependencies": {
     "@playwright/test": "^1.59.1",
     "@types/node": "^22.12.0",
+    "devtools-protocol": "^0.0.1612613",
     "esbuild": "^0.25.11",
     "jsdom": "^25.0.0",
     "msw": "^2.4.6",
     "typescript": "^5.9.3",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "web-vitals": "^4.2.4"
   }
 }

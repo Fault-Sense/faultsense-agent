@@ -58,3 +58,13 @@ export function deleteTodo(id) {
   todos.splice(index, 1)
   return { success: true }
 }
+
+export function resetStore() {
+  todos.length = 0
+  todos.push(
+    { id: '1', text: 'Try editing this todo', completed: false, createdAt: new Date().toISOString() },
+    { id: '2', text: 'Mark this one as complete', completed: false, createdAt: new Date().toISOString() },
+    { id: '3', text: 'Delete this todo to see conditional assertions', completed: false, createdAt: new Date().toISOString() },
+  )
+  nextId = 4
+}

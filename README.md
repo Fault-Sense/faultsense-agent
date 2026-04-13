@@ -260,6 +260,27 @@ Faultsense is framework-agnostic — it observes the DOM, not framework internal
 
 Adding a new framework means scaffolding a minimal harness and a driver file — see [`conformance/README.md`](conformance/README.md). The Layer 1 mutation-pattern suite at [`tests/conformance/`](tests/conformance/) locks in every DOM mutation shape the agent handles, so frameworks that produce those shapes are supported by transitivity — the Layer 2 drivers are empirical confirmation, not the source of truth.
 
+## Performance
+
+**Designed to stay off the critical path.**
+
+Benchmarked across 50-1000 assertions in a React 19 stress harness with background DOM churn and CPU throttling. All results use paired statistical comparisons with [published methodology](docs/performance/analysis.md).
+
+- **0ms INP** across all configurations, including 1000 assertions under 4x CPU throttle
+- **Zero new long tasks** — the main thread stays clean
+- **Sub-linear heap scaling** — 140KB at 1000 assertions (less than a medium JPEG)
+
+Published reports: [performance analysis](docs/performance/analysis.md) | [demo benchmark](docs/performance/current.md) | [stress scaling curve](docs/performance/stress.md)
+
+Run the benchmarks yourself:
+
+```bash
+npm run benchmark -- https://your-site.com
+npm run benchmark:stress
+```
+
+See [`tools/benchmark/README.md`](tools/benchmark/README.md) for full methodology.
+
 ## Package Info
 
 - **Size**: 8.7 KB gzipped
