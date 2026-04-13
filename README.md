@@ -262,17 +262,24 @@ Adding a new framework means scaffolding a minimal harness and a driver file —
 
 ## Performance
 
-The agent is designed for negligible overhead. Published benchmark reports are at [`docs/performance/`](docs/performance/) — run the tool yourself to verify:
+**Designed to stay off the critical path.**
+
+Benchmarked across 50-1000 assertions in a React 19 stress harness with background DOM churn and CPU throttling. All results use paired statistical comparisons with [published methodology](docs/performance/analysis.md).
+
+- **0ms INP** across all configurations, including 1000 assertions under 4x CPU throttle
+- **Zero new long tasks** — the main thread stays clean
+- **Sub-linear heap scaling** — 140KB at 1000 assertions (less than a medium JPEG)
+
+Published reports: [performance analysis](docs/performance/analysis.md) | [demo benchmark](docs/performance/current.md) | [stress scaling curve](docs/performance/stress.md)
+
+Run the benchmarks yourself:
 
 ```bash
-# Benchmark any public URL
 npm run benchmark -- https://your-site.com
-
-# Reproduce our published numbers
-npm run benchmark:demo
+npm run benchmark:stress
 ```
 
-See [`tools/benchmark/README.md`](tools/benchmark/README.md) for full usage and methodology.
+See [`tools/benchmark/README.md`](tools/benchmark/README.md) for full methodology.
 
 ## Package Info
 

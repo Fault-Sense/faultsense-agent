@@ -16,7 +16,7 @@ We measured the performance impact of the Faultsense agent across two benchmark 
 - **LCP impact is undetectable below 200 assertions**. At 1000, the initial attribute scan adds 6-12ms (one compositor frame).
 - **The agent never creates a long task.** At 1000 assertions, both conditions produce a long task from the heavy page itself; the agent adds ~23ms to the existing task during its one-time initial scan.
 
-All results include Wilcoxon signed-rank p-values and 95% confidence intervals. Full data is in [current.md](current.md) (demo) and [../../tools/benchmark/results/stress-report.md](../../tools/benchmark/results/stress-report.md) (stress).
+All results include Wilcoxon signed-rank p-values and 95% confidence intervals. Full data is in [current.md](current.md) (demo) and [stress.md](stress.md) (stress).
 
 ## Interaction to Next Paint (INP)
 
